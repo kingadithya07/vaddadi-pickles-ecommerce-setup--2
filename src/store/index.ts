@@ -201,14 +201,14 @@ const sampleDisplayImages: DisplayImage[] = [
 ];
 
 const defaultSettings: StoreSettings = {
-  upiId: 'vaddadipickles@upi',
+  upiId: '9885192948@upi',
   businessAddress: {
-    name: 'Vaddadi Pickles',
-    street: 'Main Road, Near Bus Stand',
-    city: 'Vijayawada',
-    state: 'Andhra Pradesh',
-    pincode: '520001',
-    phone: '+91 9876543210',
+    name: 'V.A.V.VIJAYA (Prop)',
+    street: 'SUJATHANAGAR',
+    city: 'VISAKHAPATNAM',
+    state: 'ANDHRA PRADESH',
+    pincode: '530051',
+    phone: '8008129309 (WhatsApp)',
   },
 };
 
@@ -229,13 +229,13 @@ interface StoreState {
   coupons: Coupon[];
   appliedCoupon: Coupon | null;
   isAdmin: boolean;
-  
+
   // Cart actions
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
   removeFromCart: (productId: string, weight: string) => void;
   updateQuantity: (productId: string, weight: string, quantity: number) => void;
   clearCart: () => void;
-  
+
   // User actions
   login: (user: User) => void;
   logout: () => void;
@@ -244,36 +244,36 @@ interface StoreState {
   updateUserAddress: (address: UserAddress) => void;
   deleteUserAddress: (addressId: string) => void;
   setDefaultAddress: (addressId: string) => void;
-  
+
   // Order actions
   createOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updatePaymentStatus: (orderId: string, status: Order['paymentStatus']) => void;
-  
+
   // Coupon actions
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
   addCoupon: (coupon: Coupon) => void;
   toggleCoupon: (code: string) => void;
-  
+
   // Product actions
   addProduct: (product: Product) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
-  
+
   // Combo actions
   addCombo: (combo: ComboProduct) => void;
   updateCombo: (combo: ComboProduct) => void;
   deleteCombo: (comboId: string) => void;
-  
+
   // Display Image actions
   addDisplayImage: (image: DisplayImage) => void;
   updateDisplayImage: (image: DisplayImage) => void;
   deleteDisplayImage: (imageId: string) => void;
-  
+
   // Settings actions
   updateSettings: (settings: StoreSettings) => void;
-  
+
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
 }
@@ -374,33 +374,33 @@ export const useStore = create<StoreState>()(
         if (address.isDefault) {
           addresses = addresses.map(a => ({ ...a, isDefault: false }));
         }
-        set({ 
-          user: { 
-            ...user, 
-            addresses: addresses.map(a => a.id === address.id ? address : a) 
-          } 
+        set({
+          user: {
+            ...user,
+            addresses: addresses.map(a => a.id === address.id ? address : a)
+          }
         });
       },
 
       deleteUserAddress: (addressId) => {
         const user = get().user;
         if (!user) return;
-        set({ 
-          user: { 
-            ...user, 
-            addresses: (user.addresses || []).filter(a => a.id !== addressId) 
-          } 
+        set({
+          user: {
+            ...user,
+            addresses: (user.addresses || []).filter(a => a.id !== addressId)
+          }
         });
       },
 
       setDefaultAddress: (addressId) => {
         const user = get().user;
         if (!user) return;
-        set({ 
-          user: { 
-            ...user, 
-            addresses: (user.addresses || []).map(a => ({ ...a, isDefault: a.id === addressId })) 
-          } 
+        set({
+          user: {
+            ...user,
+            addresses: (user.addresses || []).map(a => ({ ...a, isDefault: a.id === addressId }))
+          }
         });
       },
 
@@ -423,11 +423,11 @@ export const useStore = create<StoreState>()(
           orders: get().orders.map((order) =>
             order.id === orderId
               ? {
-                  ...order,
-                  paymentStatus,
-                  status: paymentStatus === 'approved' ? 'payment_approved' : order.status,
-                  updatedAt: new Date().toISOString(),
-                }
+                ...order,
+                paymentStatus,
+                status: paymentStatus === 'approved' ? 'payment_approved' : order.status,
+                updatedAt: new Date().toISOString(),
+              }
               : order
           ),
         });

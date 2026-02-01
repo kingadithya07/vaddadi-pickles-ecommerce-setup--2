@@ -7,7 +7,7 @@ import { Order, Address } from '../types';
 import { statesAndCities } from '../data/locations';
 
 export function Checkout() {
-  const { cart, user, appliedCoupon, createOrder, clearCart } = useStore();
+  const { cart, user, appliedCoupon, createOrder, clearCart, settings } = useStore();
   const navigate = useNavigate();
 
   const [paymentMethod, setPaymentMethod] = useState('upi');
@@ -63,8 +63,8 @@ export function Checkout() {
   const displayAmountWhole = Math.round(total); // For display without decimals
 
   // UPI Payment details
-  const upiId = 'vaddadipickles@ybl';
-  const merchantName = 'Vaddadi Pickles';
+  const upiId = settings.upiId;
+  const merchantName = settings.businessAddress.name;
   const orderId = `ORD-${Date.now()}`;
 
   // IMPORTANT: Use exact same amount format for QR code and display
