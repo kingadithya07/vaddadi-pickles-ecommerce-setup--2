@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home } from 'lucide-react';
 import { useStore } from '../store';
 import { UserAddress } from '../types';
 import { statesAndCities } from '../data/locations';
@@ -186,8 +186,8 @@ export function Profile() {
               <button
                 onClick={handleSave}
                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition ${saved
-                    ? 'bg-green-600 text-white'
-                    : 'bg-green-500 text-white hover:bg-green-600'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-green-500 text-white hover:bg-green-600'
                   }`}
               >
                 <Save size={18} />
@@ -227,14 +227,52 @@ export function Profile() {
               </h4>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Address Label (e.g., Home, Office)</label>
-                  <input
-                    type="text"
-                    placeholder="Home"
-                    value={addressForm.label}
-                    onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
+                  <label className="block text-sm text-gray-600 mb-2">Address Type</label>
+                  <div className="flex gap-3 mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setAddressForm({ ...addressForm, label: 'Home' })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Home'
+                          ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      <Home size={16} /> <span className="font-medium">Home</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddressForm({ ...addressForm, label: 'Work' })}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Work'
+                          ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      <Briefcase size={16} /> <span className="font-medium">Work</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (addressForm.label === 'Home' || addressForm.label === 'Work') {
+                          setAddressForm({ ...addressForm, label: '' });
+                        }
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label !== 'Home' && addressForm.label !== 'Work'
+                          ? 'bg-gray-100 border-gray-500 text-gray-800 ring-1 ring-gray-500'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                    >
+                      <MapPin size={16} /> <span className="font-medium">Other</span>
+                    </button>
+                  </div>
+                  {addressForm.label !== 'Home' && addressForm.label !== 'Work' && (
+                    <input
+                      type="text"
+                      placeholder="e.g. My Flat, Parents House"
+                      value={addressForm.label}
+                      onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  )}
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -414,8 +452,8 @@ export function Profile() {
                 <div
                   key={address.id}
                   className={`p-4 rounded-lg border-2 transition ${address.isDefault
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                 >
                   <div className="flex items-start justify-between">

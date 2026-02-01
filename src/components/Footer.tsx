@@ -64,7 +64,8 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; 2024 Vaddadi Pickles. All rights reserved.</p>
+          <p>&copy; 2026 Vaddadi Pickles. All rights reserved.</p>
+
         </div>
       </div>
     </footer>
