@@ -121,4 +121,5 @@ export interface StoreSettings {
     pincode: string;
     phone: string;
   };
+  enableCOD: boolean;
 }

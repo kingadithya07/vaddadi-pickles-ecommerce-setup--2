@@ -389,7 +389,7 @@ export function Checkout() {
               {[
                 { id: 'upi', label: 'UPI Payment', icon: Smartphone, desc: 'GPay / PhonePe / Paytm' },
                 { id: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'NEFT / IMPS / RTGS' },
-                { id: 'cod', label: 'Cash on Delivery', icon: CreditCard, desc: 'Pay when you receive' },
+                ...(settings.enableCOD ? [{ id: 'cod', label: 'Cash on Delivery', icon: CreditCard, desc: 'Pay when you receive' }] : []),
               ].map((method) => (
                 <label
                   key={method.id}
@@ -731,8 +731,8 @@ export function Checkout() {
               onClick={handlePlaceOrder}
               disabled={(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
               className={`w-full py-4 rounded-lg font-semibold transition ${(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
             >
               {paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'}

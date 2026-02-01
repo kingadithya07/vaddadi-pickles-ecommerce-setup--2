@@ -4,12 +4,12 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image
+  Plus, Trash2, ShoppingBag, Image, Settings
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels';
+type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings';
 
 const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'payment_pending', label: 'Payment Pending' },
@@ -21,7 +21,7 @@ const statusOptions: { value: Order['status']; label: string }[] = [
 ];
 
 export function Admin() {
-  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, addCoupon, toggleCoupon, addProduct, deleteProduct, settings } = useStore();
+  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, addCoupon, toggleCoupon, addProduct, deleteProduct, settings, updateSettings } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -488,13 +488,14 @@ Thank you for choosing Vaddadi Pickles!`;
             { id: 'payments', label: 'Payments', icon: CreditCard, badge: pendingPayments },
             { id: 'labels', label: 'Shipping Labels', icon: StickyNote },
             { id: 'coupons', label: 'Coupons', icon: Tag },
+            { id: 'settings', label: 'Settings', icon: Settings },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition whitespace-nowrap ${activeTab === tab.id
-                  ? 'bg-green-600 text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
             >
               <tab.icon size={20} />
@@ -563,8 +564,8 @@ Thank you for choosing Vaddadi Pickles!`;
                         </td>
                         <td className="py-3">
                           <span className={`px-2 py-1 rounded-full text-xs ${order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                              order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
+                            order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
                             }`}>
                             {order.paymentStatus}
                           </span>
@@ -573,6 +574,40 @@ Thank you for choosing Vaddadi Pickles!`;
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="max-w-2xl">
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">Store Settings</h3>
+
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">Cash on Delivery (COD)</h4>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Enable or disable COD option for customers at checkout.
+                  </p>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={settings.enableCOD}
+                    onChange={() => updateSettings({ ...settings, enableCOD: !settings.enableCOD })}
+                  />
+                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+                Current Status: <span className={`font-semibold ${settings.enableCOD ? 'text-green-600' : 'text-red-500'}`}>
+                  {settings.enableCOD ? 'Enabled (Customers can choose COD)' : 'Disabled (Prepaid only)'}
+                </span>
               </div>
             </div>
           </div>
@@ -804,8 +839,8 @@ Thank you for choosing Vaddadi Pickles!`;
                               <div key={v.weight} className="text-sm flex items-center gap-2">
                                 <span className="font-medium">{v.weight}:</span>
                                 <span className={`px-2 py-0.5 rounded text-xs ${v.stock > 10 ? 'bg-green-100 text-green-700' :
-                                    v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                                      'bg-red-100 text-red-700'
+                                  v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-red-100 text-red-700'
                                   }`}>
                                   {v.stock} pcs
                                 </span>
@@ -1156,8 +1191,8 @@ Thank you for choosing Vaddadi Pickles!`;
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Status:</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs ${order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                            order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
+                          order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
                           }`}>
                           {order.paymentStatus}
                         </span>
@@ -1270,8 +1305,8 @@ Thank you for choosing Vaddadi Pickles!`;
                         <button
                           onClick={() => toggleCoupon(coupon.code)}
                           className={`px-4 py-2 rounded-lg text-sm ${coupon.active
-                              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
                             }`}
                         >
                           {coupon.active ? 'Deactivate' : 'Activate'}

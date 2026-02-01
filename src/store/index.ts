@@ -210,6 +210,7 @@ const defaultSettings: StoreSettings = {
     pincode: '530051',
     phone: '8008129309 (WhatsApp)',
   },
+  enableCOD: true,
 };
 
 const sampleCoupons: Coupon[] = [
@@ -538,10 +539,24 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'vaddadi-pickles-store',
-      version: 1,
+      version: 2,
       migrate: (persistedState: any, version) => {
         if (version === 0) {
-          return { ...persistedState, settings: defaultSettings };
+          // Migration from version 0 to 2
+          return {
+            ...persistedState,
+            settings: defaultSettings,
+          };
+        }
+        if (version === 1) {
+          // Migration from version 1 to 2
+          return {
+            ...persistedState,
+            settings: {
+              ...persistedState.settings,
+              enableCOD: true,
+            },
+          };
         }
         return persistedState;
       },
