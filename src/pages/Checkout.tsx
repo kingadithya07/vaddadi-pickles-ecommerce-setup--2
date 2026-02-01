@@ -4,23 +4,33 @@ import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, Ex
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../store';
 import { Order, Address } from '../types';
+import { statesAndCities } from '../data/locations';
 
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart } = useStore();
   const navigate = useNavigate();
-  
+
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [transactionId, setTransactionId] = useState('');
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showQR, setShowQR] = useState(true);
-  const [address, setAddress] = useState<Address>(user?.address || {
+
+  // Address selection state
+  const userAddresses = user?.addresses || [];
+  const defaultAddress = userAddresses.find(addr => addr.isDefault) || userAddresses[0];
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddress?.id || 'new');
+  const [useNewAddress, setUseNewAddress] = useState(!defaultAddress);
+  const [newAddress, setNewAddress] = useState<Address>(user?.address || {
     street: '',
     city: '',
     state: '',
     pincode: '',
     country: 'India',
   });
+  const [isManualCity, setIsManualCity] = useState(false);
+  const [deliveryName, setDeliveryName] = useState(user?.name || '');
+  const [deliveryPhone, setDeliveryPhone] = useState(user?.phone || '');
 
   // Detect mobile device
   useEffect(() => {
@@ -43,27 +53,27 @@ export function Checkout() {
       : appliedCoupon.discount;
   }
   const shipping = subtotal >= 1000 ? 0 : 50;
-  
+
   // Calculate total and round to 2 decimal places to avoid floating point issues
   const totalRaw = subtotal - discount + shipping;
   const total = Math.round(totalRaw * 100) / 100; // Ensures exact 2 decimal precision
-  
+
   // Format amount for display (always show 2 decimal places for consistency)
   const displayAmount = total.toFixed(2);
   const displayAmountWhole = Math.round(total); // For display without decimals
-  
+
   // UPI Payment details
   const upiId = 'vaddadipickles@ybl';
   const merchantName = 'Vaddadi Pickles';
   const orderId = `ORD-${Date.now()}`;
-  
+
   // IMPORTANT: Use exact same amount format for QR code and display
   // UPI spec requires amount with 2 decimal places
   const paymentAmount = total.toFixed(2);
-  
+
   // Generate UPI payment URL for QR code and deep links
   const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${paymentAmount}&cu=INR&tn=${encodeURIComponent(`Order ${orderId}`)}&tr=${orderId}`;
-  
+
   // App-specific deep links - using same paymentAmount for consistency
   const gpayUrl = `gpay://upi/pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${paymentAmount}&cu=INR&tn=${encodeURIComponent(`Order ${orderId}`)}`;
   const phonepeUrl = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${paymentAmount}&cu=INR&tn=${encodeURIComponent(`Order ${orderId}`)}`;
@@ -78,7 +88,7 @@ export function Checkout() {
   const openPaymentApp = (appUrl: string, fallbackUrl: string) => {
     const startTime = Date.now();
     window.location.href = appUrl;
-    
+
     // If app doesn't open within 2 seconds, try fallback
     setTimeout(() => {
       if (Date.now() - startTime < 2500) {
@@ -93,18 +103,44 @@ export function Checkout() {
       return;
     }
 
+    // Get the selected address
+    let finalAddress: Address;
+    let finalName: string;
+    let finalPhone: string;
+
+    if (useNewAddress || selectedAddressId === 'new') {
+      finalAddress = newAddress;
+      finalName = deliveryName;
+      finalPhone = deliveryPhone;
+    } else {
+      const selectedAddr = userAddresses.find(addr => addr.id === selectedAddressId);
+      if (!selectedAddr) {
+        alert('Please select a valid address');
+        return;
+      }
+      finalAddress = {
+        street: selectedAddr.street,
+        city: selectedAddr.city,
+        state: selectedAddr.state,
+        pincode: selectedAddr.pincode,
+        country: selectedAddr.country,
+      };
+      finalName = selectedAddr.name;
+      finalPhone = selectedAddr.phone;
+    }
+
     const order: Order = {
       id: orderId,
       userId: user!.id,
-      userName: user!.name,
+      userName: finalName,
       userEmail: user!.email,
-      userPhone: user!.phone,
+      userPhone: finalPhone,
       items: cart,
       total: subtotal,
       discount,
       finalAmount: total,
       couponCode: appliedCoupon?.code,
-      address,
+      address: finalAddress,
       status: 'payment_pending',
       paymentStatus: 'awaiting_approval',
       paymentMethod,
@@ -152,47 +188,197 @@ export function Checkout() {
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <MapPin size={20} /> Delivery Address
             </h2>
-            <div className="space-y-4">
+
+            {/* Saved Addresses Selection */}
+            {userAddresses.length > 0 && (
+              <div className="space-y-3 mb-4">
+                <p className="text-sm text-gray-600 font-medium">Select a saved address:</p>
+                {userAddresses.map((addr) => (
+                  <label
+                    key={addr.id}
+                    className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${selectedAddressId === addr.id && !useNewAddress
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-green-300'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="address"
+                      checked={selectedAddressId === addr.id && !useNewAddress}
+                      onChange={() => {
+                        setSelectedAddressId(addr.id);
+                        setUseNewAddress(false);
+                      }}
+                      className="mt-1 text-green-600"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-gray-800">{addr.label}</span>
+                        {addr.isDefault && (
+                          <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded-full">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-700 font-medium">{addr.name}</p>
+                      <p className="text-gray-600 text-sm">{addr.phone}</p>
+                      <p className="text-gray-600 text-sm">
+                        {addr.street}, {addr.city}, {addr.state} - {addr.pincode}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Use New Address Option */}
+            <label
+              className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition mb-4 ${useNewAddress
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-200 hover:border-green-300'
+                }`}
+            >
               <input
-                type="text"
-                placeholder="Street Address"
-                value={address.street}
-                onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                type="radio"
+                name="address"
+                checked={useNewAddress}
+                onChange={() => setUseNewAddress(true)}
+                className="mt-1 text-green-600"
               />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="City"
-                  value={address.city}
-                  onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-                <input
-                  type="text"
-                  placeholder="State"
-                  value={address.state}
-                  onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
+              <div className="flex-1">
+                <span className="font-semibold text-gray-800">Use a different address</span>
+                <p className="text-sm text-gray-500">Enter delivery details below</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+            </label>
+
+            {/* New Address Form */}
+            {useNewAddress && (
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Recipient Name</label>
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={deliveryName}
+                      onChange={(e) => setDeliveryName(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile"
+                      value={deliveryPhone}
+                      onChange={(e) => setDeliveryPhone(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
                 <input
                   type="text"
-                  placeholder="Pincode"
-                  value={address.pincode}
-                  onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
+                  placeholder="Street Address"
+                  value={newAddress.street}
+                  onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
-                <input
-                  type="text"
-                  placeholder="Country"
-                  value={address.country}
-                  onChange={(e) => setAddress({ ...address, country: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <select
+                      value={newAddress.state}
+                      onChange={(e) => {
+                        setNewAddress({ ...newAddress, state: e.target.value, city: '' });
+                        setIsManualCity(false);
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white"
+                    >
+                      <option value="">Select State</option>
+                      {Object.keys(statesAndCities).sort().map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div>
+                    {isManualCity ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Enter City Name"
+                          value={newAddress.city}
+                          onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        />
+                        <button
+                          onClick={() => {
+                            setIsManualCity(false);
+                            setNewAddress({ ...newAddress, city: '' });
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap px-2"
+                        >
+                          Select from list
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <select
+                          value={newAddress.city}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === 'Other') {
+                              setIsManualCity(true);
+                              setNewAddress({ ...newAddress, city: '' });
+                            } else {
+                              setIsManualCity(false);
+                              setNewAddress({ ...newAddress, city: val });
+                            }
+                          }}
+                          disabled={!newAddress.state}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                        >
+                          <option value="">Select City</option>
+                          {newAddress.state && statesAndCities[newAddress.state]?.map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                          <option value="Other">Other (Enter Manually)</option>
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Pincode"
+                    value={newAddress.pincode}
+                    onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Country"
+                    value={newAddress.country}
+                    onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Payment Method */}
@@ -206,9 +392,8 @@ export function Checkout() {
               ].map((method) => (
                 <label
                   key={method.id}
-                  className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition ${
-                    paymentMethod === method.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
-                  }`}
+                  className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition ${paymentMethod === method.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                    }`}
                 >
                   <input
                     type="radio"
@@ -241,7 +426,7 @@ export function Checkout() {
                 {isMobile ? (
                   <div className="space-y-4">
                     <p className="text-center text-gray-600 font-medium">Pay using your favorite UPI app</p>
-                    
+
                     {/* Payment App Buttons */}
                     <div className="grid grid-cols-3 gap-3">
                       <button
@@ -253,7 +438,7 @@ export function Checkout() {
                         </div>
                         <span className="text-sm font-medium text-gray-700">GPay</span>
                       </button>
-                      
+
                       <button
                         onClick={() => openPaymentApp(phonepeUrl, upiUrl)}
                         className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition"
@@ -263,7 +448,7 @@ export function Checkout() {
                         </div>
                         <span className="text-sm font-medium text-gray-700">PhonePe</span>
                       </button>
-                      
+
                       <button
                         onClick={() => openPaymentApp(paytmUrl, upiUrl)}
                         className="flex flex-col items-center gap-2 p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition"
@@ -327,7 +512,7 @@ export function Checkout() {
                         <p className="text-lg font-bold text-green-700">₹{paymentAmount}</p>
                         <p className="text-sm text-gray-500">Scan with any UPI app</p>
                       </div>
-                      
+
                       {/* Supported Apps */}
                       <div className="flex items-center gap-4 mt-3">
                         <div className="flex items-center gap-1 text-xs text-gray-400">
@@ -489,7 +674,7 @@ export function Checkout() {
         <div>
           <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
-            
+
             <div className="space-y-4 max-h-60 overflow-y-auto mb-4">
               {cart.map((item) => (
                 <div key={`${item.product.id}-${item.variant.weight}`} className="flex items-center gap-3">
@@ -530,11 +715,10 @@ export function Checkout() {
             <button
               onClick={handlePlaceOrder}
               disabled={paymentMethod !== 'cod' && !transactionId}
-              className={`w-full py-4 rounded-lg font-semibold transition mt-6 ${
-                paymentMethod !== 'cod' && !transactionId
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
+              className={`w-full py-4 rounded-lg font-semibold transition mt-6 ${paymentMethod !== 'cod' && !transactionId
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
             >
               {paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'}
             </button>
