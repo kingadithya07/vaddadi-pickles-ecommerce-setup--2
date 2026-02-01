@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Package, Users, CreditCard, Tag, LayoutDashboard, 
+import {
+  Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
   Plus, Trash2, ShoppingBag, Image
@@ -21,7 +21,7 @@ const statusOptions: { value: Order['status']; label: string }[] = [
 ];
 
 export function Admin() {
-  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, addCoupon, toggleCoupon, addProduct, deleteProduct } = useStore();
+  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, addCoupon, toggleCoupon, addProduct, deleteProduct, settings } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -52,11 +52,11 @@ export function Admin() {
       alert('Please fill in product name and image URL');
       return;
     }
-    
+
     const enabledVariants: ProductVariant[] = newProduct.variants
       .filter(v => v.enabled)
       .map(v => ({ weight: v.weight, price: v.price, stock: v.stock }));
-    
+
     if (enabledVariants.length === 0) {
       alert('Please enable at least one weight variant');
       return;
@@ -76,7 +76,7 @@ export function Admin() {
     };
 
     addProduct(product);
-    
+
     // Reset form
     setNewProduct({
       name: '',
@@ -90,7 +90,7 @@ export function Admin() {
       ],
       bestSeller: false,
     });
-    
+
     alert('Product added successfully!');
   };
 
@@ -99,7 +99,7 @@ export function Admin() {
     return null;
   }
 
-  const sortedOrders = [...orders].sort((a, b) => 
+  const sortedOrders = [...orders].sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -130,12 +130,12 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
-    const codBadge = order.paymentMethod === 'cod' 
-      ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>` 
+    const codBadge = order.paymentMethod === 'cod'
+      ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
       : '';
-    
-    const paymentInfo = order.paymentMethod === 'cod' 
-      ? `💵 Collect: ₹${order.finalAmount}` 
+
+    const paymentInfo = order.paymentMethod === 'cod'
+      ? `💵 Collect: ₹${order.finalAmount}`
       : '✅ PREPAID';
 
     const singleLabelHtml = `
@@ -186,8 +186,8 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="from-box">
               <div class="title">FROM:</div>
               <div class="text">
-                Vaddadi Pickles, Main Road, Vijayawada<br>
-                Andhra Pradesh - 520001 | Ph: +91 9876543210
+                ${settings.businessAddress.name}, ${settings.businessAddress.street}<br>
+                ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
               </div>
             </div>
             
@@ -220,7 +220,7 @@ Thank you for choosing Vaddadi Pickles!`;
       </body>
       </html>
     `;
-    
+
     labelWindow.document.write(singleLabelHtml);
     labelWindow.document.close();
   };
@@ -229,8 +229,8 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
-    const codBadge = order.paymentMethod === 'cod' 
-      ? '<div class="cod">COD</div>' 
+    const codBadge = order.paymentMethod === 'cod'
+      ? '<div class="cod">COD</div>'
       : '';
 
     const smallLabelHtml = `
@@ -271,7 +271,7 @@ Thank you for choosing Vaddadi Pickles!`;
       </body>
       </html>
     `;
-    
+
     labelWindow.document.write(smallLabelHtml);
     labelWindow.document.close();
   };
@@ -279,16 +279,16 @@ Thank you for choosing Vaddadi Pickles!`;
   const printBulkLabels = () => {
     const readyOrders = orders.filter(o => o.paymentStatus === 'approved' && (o.status === 'processing' || o.status === 'payment_approved'));
     if (readyOrders.length === 0) return;
-    
+
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
     const labelsContent = readyOrders.map(order => {
-      const codBadge = order.paymentMethod === 'cod' 
-        ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>` 
+      const codBadge = order.paymentMethod === 'cod'
+        ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
         : '';
-      const paymentText = order.paymentMethod === 'cod' 
-        ? `COLLECT: ₹${order.finalAmount}` 
+      const paymentText = order.paymentMethod === 'cod'
+        ? `COLLECT: ₹${order.finalAmount}`
         : 'PAID ✓';
 
       return `
@@ -301,7 +301,7 @@ Thank you for choosing Vaddadi Pickles!`;
           
           <div class="from-section">
             <div class="title">FROM:</div>
-            Vaddadi Pickles, Vijayawada, Andhra Pradesh - 520001 | Ph: +91 9876543210
+            ${settings.businessAddress.name}, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
           </div>
           
           <div class="to-section">
@@ -374,7 +374,7 @@ Thank you for choosing Vaddadi Pickles!`;
       </body>
       </html>
     `;
-    
+
     labelWindow.document.write(labelsHtml);
     labelWindow.document.close();
   };
@@ -404,8 +404,8 @@ Thank you for choosing Vaddadi Pickles!`;
         <div class="label">
           <div class="header">
             <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #16a34a;" />
-            <h2>VADDADI PICKLES</h2>
-            <p>Vijayawada, Andhra Pradesh</p>
+            <h2>${settings.businessAddress.name.toUpperCase()}</h2>
+            <p>${settings.businessAddress.city}, ${settings.businessAddress.state}</p>
           </div>
           
           <div class="section">
@@ -436,7 +436,7 @@ Thank you for choosing Vaddadi Pickles!`;
       </body>
       </html>
     `;
-    
+
     labelWindow.document.write(labelHtml);
     labelWindow.document.close();
   };
@@ -459,9 +459,9 @@ Thank you for choosing Vaddadi Pickles!`;
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-4 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img 
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
-              alt="Vaddadi Pickles" 
+            <img
+              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              alt="Vaddadi Pickles"
               className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
             />
             <div>
@@ -492,11 +492,10 @@ Thank you for choosing Vaddadi Pickles!`;
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition whitespace-nowrap ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition whitespace-nowrap ${activeTab === tab.id
                   ? 'bg-green-600 text-white shadow-lg'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <tab.icon size={20} />
               {tab.label}
@@ -563,11 +562,10 @@ Thank you for choosing Vaddadi Pickles!`;
                           <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">{order.status}</span>
                         </td>
                         <td className="py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                            order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
+                          <span className={`px-2 py-1 rounded-full text-xs ${order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                              order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                            }`}>
                             {order.paymentStatus}
                           </span>
                         </td>
@@ -646,9 +644,9 @@ Thank you for choosing Vaddadi Pickles!`;
                     <div className="p-4 bg-gray-50 rounded-lg text-center">
                       <p className="text-sm text-gray-500 mb-2">Preview:</p>
                       {newProduct.image.startsWith('http') ? (
-                        <img 
-                          src={newProduct.image} 
-                          alt="Preview" 
+                        <img
+                          src={newProduct.image}
+                          alt="Preview"
                           className="w-24 h-24 object-cover rounded-lg mx-auto"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
@@ -681,7 +679,7 @@ Thank you for choosing Vaddadi Pickles!`;
                             />
                             <span className="font-medium text-gray-700">{variant.weight}</span>
                           </label>
-                          
+
                           <div className="flex-1">
                             <label className="text-xs text-gray-500">Price (₹)</label>
                             <input
@@ -696,7 +694,7 @@ Thank you for choosing Vaddadi Pickles!`;
                               className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
                             />
                           </div>
-                          
+
                           <div className="flex-1">
                             <label className="text-xs text-gray-500">Stock</label>
                             <input
@@ -747,7 +745,7 @@ Thank you for choosing Vaddadi Pickles!`;
                   All Products ({products.length})
                 </h3>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -766,8 +764,8 @@ Thank you for choosing Vaddadi Pickles!`;
                       <tr key={product.id} className="border-b hover:bg-gray-50">
                         <td className="px-6 py-4">
                           {product.image.startsWith('http') ? (
-                            <img 
-                              src={product.image} 
+                            <img
+                              src={product.image}
                               alt={product.name}
                               className="w-12 h-12 object-cover rounded-lg"
                             />
@@ -805,11 +803,10 @@ Thank you for choosing Vaddadi Pickles!`;
                             {product.variants.map((v) => (
                               <div key={v.weight} className="text-sm flex items-center gap-2">
                                 <span className="font-medium">{v.weight}:</span>
-                                <span className={`px-2 py-0.5 rounded text-xs ${
-                                  v.stock > 10 ? 'bg-green-100 text-green-700' :
-                                  v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-red-100 text-red-700'
-                                }`}>
+                                <span className={`px-2 py-0.5 rounded text-xs ${v.stock > 10 ? 'bg-green-100 text-green-700' :
+                                    v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-red-100 text-red-700'
+                                  }`}>
                                   {v.stock} pcs
                                 </span>
                               </div>
@@ -817,9 +814,8 @@ Thank you for choosing Vaddadi Pickles!`;
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm ${
-                            product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
+                          <span className={`px-3 py-1 rounded-full text-sm ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
                             {product.inStock ? 'In Stock' : 'Out of Stock'}
                           </span>
                         </td>
@@ -859,7 +855,7 @@ Thank you for choosing Vaddadi Pickles!`;
             ) : (
               sortedOrders.map((order) => (
                 <div key={order.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-                  <div 
+                  <div
                     className="p-6 cursor-pointer hover:bg-gray-50"
                     onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                   >
@@ -925,7 +921,7 @@ Thank you for choosing Vaddadi Pickles!`;
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
                         <button
                           onClick={() => printOrderLabel(order)}
@@ -1069,10 +1065,10 @@ Thank you for choosing Vaddadi Pickles!`;
                   Print All Ready Labels
                 </button>
               </div>
-              
+
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <p className="text-yellow-800 text-sm">
-                  <strong>💡 Tip:</strong> Labels are ready to print for orders with approved payment and status "Processing" or "Payment Approved". 
+                  <strong>💡 Tip:</strong> Labels are ready to print for orders with approved payment and status "Processing" or "Payment Approved".
                   Use A4 paper for best results. Each label is sized to fit 4 per page.
                 </p>
               </div>
@@ -1107,19 +1103,18 @@ Thank you for choosing Vaddadi Pickles!`;
             {/* Individual Labels */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedOrders.map((order) => (
-                <div 
-                  key={order.id} 
-                  className={`bg-white rounded-xl shadow-md overflow-hidden border-2 ${
-                    order.paymentStatus === 'approved' ? 'border-green-500' : 'border-gray-200'
-                  }`}
+                <div
+                  key={order.id}
+                  className={`bg-white rounded-xl shadow-md overflow-hidden border-2 ${order.paymentStatus === 'approved' ? 'border-green-500' : 'border-gray-200'
+                    }`}
                 >
                   {/* Label Preview */}
                   <div className="bg-gradient-to-r from-green-600 to-green-500 text-white p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <img 
-                          src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
-                          alt="VP" 
+                        <img
+                          src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+                          alt="VP"
                           className="w-10 h-10 rounded-full object-cover border-2 border-white"
                         />
                         <div>
@@ -1134,7 +1129,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="p-4">
                     <div className="mb-4">
                       <p className="text-xs text-gray-500 font-medium mb-1">SHIP TO:</p>
@@ -1144,7 +1139,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       <p className="text-sm font-bold text-gray-800">PIN: {order.address.pincode}</p>
                       <p className="text-sm text-gray-600 mt-1">📱 {order.userPhone}</p>
                     </div>
-                    
+
                     <div className="border-t border-dashed pt-3 mb-4">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Order ID:</span>
@@ -1160,16 +1155,15 @@ Thank you for choosing Vaddadi Pickles!`;
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Status:</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${
-                          order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                          order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                            order.paymentStatus === 'awaiting_approval' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                          }`}>
                           {order.paymentStatus}
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <button
                         onClick={() => printSingleLabel(order)}
@@ -1191,7 +1185,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 </div>
               ))}
             </div>
-            
+
             {sortedOrders.length === 0 && (
               <div className="bg-white rounded-xl shadow-md p-12 text-center">
                 <Package className="mx-auto text-gray-300 mb-4" size={60} />
@@ -1267,20 +1261,18 @@ Thank you for choosing Vaddadi Pickles!`;
                       </td>
                       <td className="px-6 py-4">₹{coupon.minOrder}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          coupon.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}>
+                        <span className={`px-3 py-1 rounded-full text-sm ${coupon.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
                           {coupon.active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() => toggleCoupon(coupon.code)}
-                          className={`px-4 py-2 rounded-lg text-sm ${
-                            coupon.active
+                          className={`px-4 py-2 rounded-lg text-sm ${coupon.active
                               ? 'bg-red-100 text-red-700 hover:bg-red-200'
                               : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
+                            }`}
                         >
                           {coupon.active ? 'Deactivate' : 'Activate'}
                         </button>

@@ -19,7 +19,7 @@ export function Login() {
     country: 'India',
   });
   const [error, setError] = useState('');
-  
+
   const { login } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,10 +38,10 @@ export function Login() {
           email: 'admin@vaddadi.com',
           phone: '+91 98765 43210',
           address: {
-            street: 'Vaddadi Pickles HQ',
-            city: 'Vijayawada',
-            state: 'Andhra Pradesh',
-            pincode: '520001',
+            street: 'SUJATHANAGAR',
+            city: 'VISAKHAPATNAM',
+            state: 'ANDHRA PRADESH',
+            pincode: '530051',
             country: 'India',
           },
           addresses: [],
@@ -100,9 +100,9 @@ export function Login() {
           phone: '+91 99999 99999',
           address: {
             street: '123 Demo Street',
-            city: 'Vijayawada',
-            state: 'Andhra Pradesh',
-            pincode: '520001',
+            city: 'VISAKHAPATNAM',
+            state: 'ANDHRA PRADESH',
+            pincode: '530051',
             country: 'India',
           },
           addresses: [{
@@ -111,9 +111,9 @@ export function Login() {
             name: formData.email.split('@')[0],
             phone: '+91 99999 99999',
             street: '123 Demo Street',
-            city: 'Vijayawada',
-            state: 'Andhra Pradesh',
-            pincode: '520001',
+            city: 'VISAKHAPATNAM',
+            state: 'ANDHRA PRADESH',
+            pincode: '530051',
             country: 'India',
             isDefault: true,
           }],
@@ -132,20 +132,20 @@ export function Login() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <img 
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
-              alt="Vaddadi Pickles" 
+            <img
+              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              alt="Vaddadi Pickles"
               className="w-20 h-20 rounded-full object-cover mx-auto border-4 border-green-500 shadow-lg"
             />
             <h2 className="text-2xl font-bold text-gray-800 mt-4">
               {isAdminLogin ? 'Admin Login' : isSignUp ? 'Create Account' : 'Welcome Back'}
             </h2>
             <p className="text-gray-600 mt-2">
-              {isAdminLogin 
-                ? 'Access the admin dashboard' 
-                : isSignUp 
-                ? 'Join Vaddadi Pickles family' 
-                : 'Sign in to your account'}
+              {isAdminLogin
+                ? 'Access the admin dashboard'
+                : isSignUp
+                  ? 'Join Vaddadi Pickles family'
+                  : 'Sign in to your account'}
             </p>
           </div>
 
