@@ -1,4 +1,5 @@
 import { Phone, Mail, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 import { useStore } from '../store';
 
@@ -25,7 +26,10 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><a href="/" className="hover:text-green-400 transition">Home</a></li>
               <li><a href="/products" className="hover:text-green-400 transition">Products</a></li>
-              <li><a href="/orders" className="hover:text-green-400 transition">Track Order</a></li>
+              <li><Link to="/orders" className="hover:text-green-500 transition">Track Order</Link></li>
+              <li><Link to="/privacy-policy" className="hover:text-green-500 transition">Privacy Policy</Link></li>
+              <li><Link to="/refund-policy" className="hover:text-green-500 transition">Refund Policy</Link></li>
+              <li><Link to="/terms-and-conditions" className="hover:text-green-500 transition">Terms & Conditions</Link></li>
             </ul>
           </div>
 

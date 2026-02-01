@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../store';
@@ -31,6 +31,7 @@ export function Checkout() {
   const [isManualCity, setIsManualCity] = useState(false);
   const [deliveryName, setDeliveryName] = useState(user?.name || '');
   const [deliveryPhone, setDeliveryPhone] = useState(user?.phone || '');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Detect mobile device
   useEffect(() => {
@@ -712,12 +713,26 @@ export function Checkout() {
               </p>
             </div>
 
+            <div className="mt-4 mb-4">
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                />
+                <span className="text-sm text-gray-600">
+                  I agree to the <Link to="/terms-and-conditions" target="_blank" className="text-green-600 hover:underline">Terms & Conditions</Link> and <Link to="/refund-policy" target="_blank" className="text-green-600 hover:underline">Refund Policy</Link>
+                </span>
+              </label>
+            </div>
+
             <button
               onClick={handlePlaceOrder}
-              disabled={paymentMethod !== 'cod' && !transactionId}
-              className={`w-full py-4 rounded-lg font-semibold transition mt-6 ${paymentMethod !== 'cod' && !transactionId
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-green-600 text-white hover:bg-green-700'
+              disabled={(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
+              className={`w-full py-4 rounded-lg font-semibold transition ${(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
             >
               {paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'}
@@ -728,10 +743,6 @@ export function Checkout() {
                 Please complete payment and enter transaction ID
               </p>
             )}
-
-            <p className="text-center text-xs text-gray-500 mt-4">
-              By placing this order, you agree to our terms and conditions
-            </p>
           </div>
         </div>
       </div>

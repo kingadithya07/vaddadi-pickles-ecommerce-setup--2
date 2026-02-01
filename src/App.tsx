@@ -10,6 +10,9 @@ import { OrderSuccess } from './pages/OrderSuccess';
 import { Orders } from './pages/Orders';
 import { Profile } from './pages/Profile';
 import { Admin } from './pages/Admin';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { RefundPolicy } from './pages/RefundPolicy';
+import { TermsAndConditions } from './pages/TermsAndConditions';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -90,6 +93,30 @@ export function App() {
           element={
             <Layout>
               <Profile />
+            </Layout>
+          }
+        />
+        <Route
+          path="/privacy-policy"
+          element={
+            <Layout>
+              <PrivacyPolicy />
+            </Layout>
+          }
+        />
+        <Route
+          path="/refund-policy"
+          element={
+            <Layout>
+              <RefundPolicy />
+            </Layout>
+          }
+        />
+        <Route
+          path="/terms-and-conditions"
+          element={
+            <Layout>
+              <TermsAndConditions />
             </Layout>
           }
         />
