@@ -249,6 +249,7 @@ interface StoreState {
   // Order actions
   createOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
+  updateOrderTracking: (orderId: string, trackingId: string, carrier: string) => void;
   updatePaymentStatus: (orderId: string, status: Order['paymentStatus']) => void;
 
   // Coupon actions
@@ -427,6 +428,22 @@ export const useStore = create<StoreState>()(
                 ...order,
                 paymentStatus,
                 status: paymentStatus === 'approved' ? 'payment_approved' : order.status,
+                updatedAt: new Date().toISOString(),
+              }
+              : order
+          ),
+        });
+      },
+
+      updateOrderTracking: (orderId, trackingId, carrier) => {
+        set({
+          orders: get().orders.map((order) =>
+            order.id === orderId
+              ? {
+                ...order,
+                trackingId,
+                carrier,
+                status: 'shipped', // Auto-update status to shipped when tracking is added
                 updatedAt: new Date().toISOString(),
               }
               : order

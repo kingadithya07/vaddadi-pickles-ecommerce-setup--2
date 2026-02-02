@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Package, Truck, CheckCircle, Clock, XCircle, FileText, MessageCircle, Printer } from 'lucide-react';
 import { useStore } from '../store';
 import { Order } from '../types';
+import { getTrackingUrl } from '../utils/tracking';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
@@ -17,8 +18,8 @@ const statusConfig: Record<Order['status'], { label: string; color: string; icon
 export function Orders() {
   const { orders, user } = useStore();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
-  const userOrders = orders.filter((o) => o.userId === user?.id).sort((a, b) => 
+
+  const userOrders = orders.filter((o) => o.userId === user?.id).sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -119,7 +120,7 @@ export function Orders() {
       </body>
       </html>
     `;
-    
+
     invoiceWindow.document.write(invoiceHtml);
     invoiceWindow.document.close();
   };
@@ -158,7 +159,7 @@ export function Orders() {
         {userOrders.map((order) => {
           const status = statusConfig[order.status];
           const StatusIcon = status.icon;
-          
+
           return (
             <div key={order.id} className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="p-6">
@@ -204,12 +205,11 @@ export function Orders() {
                       const stepIndex = ['payment_pending', 'payment_approved', 'processing', 'shipped', 'delivered'].indexOf(order.status);
                       const isCompleted = i <= stepIndex;
                       const isCurrent = i === stepIndex;
-                      
+
                       return (
                         <div key={step} className="flex flex-col items-center flex-1">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            isCompleted ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
-                          } ${isCurrent ? 'ring-4 ring-green-200' : ''}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                            } ${isCurrent ? 'ring-4 ring-green-200' : ''}`}>
                             {isCompleted ? <CheckCircle size={16} /> : i + 1}
                           </div>
                           <p className="text-xs mt-1 text-center">{step}</p>
@@ -244,6 +244,17 @@ export function Orders() {
                     <MessageCircle size={16} />
                     WhatsApp Support
                   </a>
+                  {order.trackingId && order.carrier && (
+                    <a
+                      href={getTrackingUrl(order.carrier, order.trackingId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                    >
+                      <Truck size={16} />
+                      Track Order
+                    </a>
+                  )}
                 </div>
 
                 {/* Order Details */}

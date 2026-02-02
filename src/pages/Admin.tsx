@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
+import { TRACKING_CARRIERS } from '../utils/tracking';
 
 type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings';
 
@@ -21,7 +22,7 @@ const statusOptions: { value: Order['status']; label: string }[] = [
 ];
 
 export function Admin() {
-  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, addCoupon, toggleCoupon, addProduct, deleteProduct, settings, updateSettings } = useStore();
+  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, updateOrderTracking, addCoupon, toggleCoupon, addProduct, deleteProduct, settings, updateSettings } = useStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -954,6 +955,56 @@ Thank you for choosing Vaddadi Pickles!`;
                             Transaction: {order.transactionId}<br />
                             {order.couponCode && <>Coupon: {order.couponCode}<br /></>}
                           </p>
+                        </div>
+                      </div>
+
+                      {/* Tracking Details Section */}
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        <h4 className="font-semibold text-gray-800 mb-4">Tracking Details</h4>
+                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                          <div className="flex-1 w-full">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Carrier</label>
+                            <select
+                              key={`carrier-select-${order.id}-${order.carrier}`}
+                              defaultValue={order.carrier || ''}
+                              id={`carrier-${order.id}`} // Use ID to access value in handler
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            >
+                              <option value="">Select Carrier</option>
+                              {TRACKING_CARRIERS.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex-1 w-full">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Tracking ID</label>
+                            <input
+                              key={`tracking-input-${order.id}-${order.trackingId}`}
+                              type="text"
+                              defaultValue={order.trackingId || ''}
+                              id={`tracking-${order.id}`} // Use ID to access value in handler
+                              placeholder="Enter Tracking Number"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              const carrierSelect = document.getElementById(`carrier-${order.id}`) as HTMLSelectElement;
+                              const trackingInput = document.getElementById(`tracking-${order.id}`) as HTMLInputElement;
+                              if (carrierSelect && trackingInput) {
+                                if (!trackingInput.value) {
+                                  alert('Please enter a tracking ID');
+                                  return;
+                                }
+                                updateOrderTracking(order.id, trackingInput.value, carrierSelect.value || 'Other');
+                                alert('Tracking details updated!');
+                                sendWhatsAppUpdate(order, 'shipped');
+                              }
+                            }}
+                            className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition"
+                          >
+                            Update Tracking
+                          </button>
                         </div>
                       </div>
 

@@ -92,6 +92,8 @@ export interface Order {
   paymentStatus: 'pending' | 'awaiting_approval' | 'approved' | 'rejected';
   paymentMethod: string;
   transactionId?: string;
+  trackingId?: string;
+  carrier?: string;
   createdAt: string;
   updatedAt: string;
 }
