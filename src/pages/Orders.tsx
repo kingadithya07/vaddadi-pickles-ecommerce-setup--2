@@ -245,15 +245,21 @@ export function Orders() {
                     WhatsApp Support
                   </a>
                   {order.trackingId && order.carrier && (
-                    <a
-                      href={getTrackingUrl(order.carrier, order.trackingId)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-                    >
-                      <Truck size={16} />
-                      Track Order
-                    </a>
+                    <div className="flex items-center gap-4 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                      <div>
+                        <p className="text-xs text-blue-600 font-semibold uppercase">{order.carrier} Tracking</p>
+                        <p className="font-mono font-medium text-blue-800 text-sm tracking-wide">{order.trackingId}</p>
+                      </div>
+                      <a
+                        href={getTrackingUrl(order.carrier, order.trackingId)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm ml-auto"
+                      >
+                        <Truck size={16} />
+                        Track Package
+                      </a>
+                    </div>
                   )}
                 </div>
 
