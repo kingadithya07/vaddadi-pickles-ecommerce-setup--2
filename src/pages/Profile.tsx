@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home } from 'lucide-react';
 import { useStore } from '../store';
 import { UserAddress } from '../types';
 import { statesAndCities } from '../data/locations';
+import { lookupPincode } from '../utils/pincode';
 
 export function Profile() {
   const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress } = useStore();
@@ -35,6 +36,24 @@ export function Profile() {
     navigate('/login');
     return null;
   }
+
+  // Handle pincode change for auto-fill in Profile
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (addressForm.pincode && addressForm.pincode.length === 6) {
+        const info = await lookupPincode(addressForm.pincode);
+        if (info) {
+          setAddressForm(prev => ({
+            ...prev,
+            state: info.state,
+            city: info.city
+          }));
+          setIsManualCity(false);
+        }
+      }
+    };
+    fetchLocation();
+  }, [addressForm.pincode]);
 
   const handleSave = () => {
     updateUser({
@@ -233,8 +252,8 @@ export function Profile() {
                       type="button"
                       onClick={() => setAddressForm({ ...addressForm, label: 'Home' })}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Home'
-                          ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >
                       <Home size={16} /> <span className="font-medium">Home</span>
@@ -243,8 +262,8 @@ export function Profile() {
                       type="button"
                       onClick={() => setAddressForm({ ...addressForm, label: 'Work' })}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Work'
-                          ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >
                       <Briefcase size={16} /> <span className="font-medium">Work</span>
@@ -257,8 +276,8 @@ export function Profile() {
                         }
                       }}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label !== 'Home' && addressForm.label !== 'Work'
-                          ? 'bg-gray-100 border-gray-500 text-gray-800 ring-1 ring-gray-500'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'bg-gray-100 border-gray-500 text-gray-800 ring-1 ring-gray-500'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                     >
                       <MapPin size={16} /> <span className="font-medium">Other</span>

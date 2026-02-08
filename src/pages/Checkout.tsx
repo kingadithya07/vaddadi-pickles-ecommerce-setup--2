@@ -7,6 +7,7 @@ import { Order, Address } from '../types';
 import { statesAndCities } from '../data/locations';
 
 import { useCartTotals } from '../hooks/useCartTotals';
+import { lookupPincode } from '../utils/pincode';
 
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart, settings } = useStore();
@@ -48,6 +49,24 @@ export function Checkout() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Handle pincode change for auto-fill
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (newAddress.pincode.length === 6) {
+        const info = await lookupPincode(newAddress.pincode);
+        if (info) {
+          setNewAddress(prev => ({
+            ...prev,
+            state: info.state,
+            city: info.city
+          }));
+          setIsManualCity(false);
+        }
+      }
+    };
+    fetchLocation();
+  }, [newAddress.pincode]);
 
   // UPI Payment details
   const upiId = settings.upiId;
