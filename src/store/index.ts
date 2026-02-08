@@ -140,7 +140,11 @@ const sampleCombos: ComboProduct[] = [
     name: 'Family Pack',
     description: 'Perfect combo for families - Mango, Lemon & Mixed pickles',
     image: '🎁',
-    products: ['1', '2', '3'],
+    products: [
+      { productId: '1', variantWeight: '250g' },
+      { productId: '2', variantWeight: '250g' },
+      { productId: '3', variantWeight: '250g' }
+    ],
     originalPrice: 999,
     comboPrice: 799,
     stock: 25,
@@ -151,7 +155,10 @@ const sampleCombos: ComboProduct[] = [
     name: 'Starter Kit',
     description: 'Try our best sellers - Mango Avakaya & Gongura',
     image: '⭐',
-    products: ['1', '4'],
+    products: [
+      { productId: '1', variantWeight: '250g' },
+      { productId: '4', variantWeight: '250g' }
+    ],
     originalPrice: 599,
     comboPrice: 449,
     stock: 30,
@@ -162,7 +169,11 @@ const sampleCombos: ComboProduct[] = [
     name: 'Spice Lovers Special',
     description: 'For those who love it hot - Red Chili, Garlic & Ginger',
     image: '🔥',
-    products: ['5', '7', '8'],
+    products: [
+      { productId: '5', variantWeight: '250g' },
+      { productId: '7', variantWeight: '250g' },
+      { productId: '8', variantWeight: '250g' }
+    ],
     originalPrice: 699,
     comboPrice: 549,
     stock: 20,
@@ -556,7 +567,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'vaddadi-pickles-store',
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version) => {
         if (version === 0) {
           // Migration from version 0 to 2
@@ -570,9 +581,16 @@ export const useStore = create<StoreState>()(
           return {
             ...persistedState,
             settings: {
-              ...persistedState.settings,
-              enableCOD: true,
+              ...defaultSettings,
+              ...(persistedState.settings || {}),
             },
+          };
+        }
+        if (version === 2) {
+          // Migration from version 2 to 3 - Reset combos to fix structure mismatch
+          return {
+            ...persistedState,
+            combos: sampleCombos,
           };
         }
         return persistedState;

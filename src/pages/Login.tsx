@@ -155,6 +155,12 @@ export function Login() {
             </div>
           )}
 
+          {isAdminLogin && (
+            <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-sm border border-yellow-200">
+              <strong>⚠️ Security Warning:</strong> This is a demo admin login. Authentication is handled client-side. Do not use for production with real data.
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <>

@@ -22,7 +22,7 @@ export interface ComboProduct {
   name: string;
   description: string;
   image: string;
-  products: string[]; // Product IDs included in combo
+  products: { productId: string; variantWeight: string }[]; // Product IDs and variants included in combo
   originalPrice: number;
   comboPrice: number;
   stock: number;

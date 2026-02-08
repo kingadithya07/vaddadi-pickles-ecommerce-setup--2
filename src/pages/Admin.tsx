@@ -22,7 +22,22 @@ const statusOptions: { value: Order['status']; label: string }[] = [
 ];
 
 export function Admin() {
-  const { orders, coupons, products, isAdmin, updateOrderStatus, updatePaymentStatus, updateOrderTracking, addCoupon, toggleCoupon, addProduct, deleteProduct, settings, updateSettings } = useStore();
+  const orders = useStore((state) => state.orders);
+  const coupons = useStore((state) => state.coupons);
+  const products = useStore((state) => state.products);
+  const isAdmin = useStore((state) => state.isAdmin);
+  const updateOrderStatus = useStore((state) => state.updateOrderStatus);
+  const updatePaymentStatus = useStore((state) => state.updatePaymentStatus);
+  const updateOrderTracking = useStore((state) => state.updateOrderTracking);
+  const addCoupon = useStore((state) => state.addCoupon);
+  const toggleCoupon = useStore((state) => state.toggleCoupon);
+  const addProduct = useStore((state) => state.addProduct);
+  const deleteProduct = useStore((state) => state.deleteProduct);
+  const addCombo = useStore((state) => state.addCombo);
+  const combos = useStore((state) => state.combos);
+  const deleteCombo = useStore((state) => state.deleteCombo);
+  const settings = useStore((state) => state.settings);
+  const updateSettings = useStore((state) => state.updateSettings);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -35,6 +50,7 @@ export function Admin() {
   });
 
   // Product Form State
+  const [isCombo, setIsCombo] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -48,7 +64,52 @@ export function Admin() {
     bestSeller: false,
   });
 
+  // Combo Form State
+  const [newCombo, setNewCombo] = useState({
+    name: '',
+    description: '',
+    image: '',
+    selectedProducts: [] as { productId: string; variantWeight: string }[],
+    originalPrice: 0,
+    comboPrice: 0,
+    stock: 0,
+  });
+
   const handleAddProduct = () => {
+    if (isCombo) {
+      if (!newCombo.name || !newCombo.image || newCombo.selectedProducts.length < 2) {
+        alert('Please fill in name, image, and select at least 2 products with variants');
+        return;
+      }
+
+      const combo = {
+        id: `combo_${Date.now()}`,
+        name: newCombo.name,
+        description: newCombo.description,
+        image: newCombo.image,
+        products: newCombo.selectedProducts,
+        originalPrice: newCombo.originalPrice,
+        comboPrice: newCombo.comboPrice,
+        stock: newCombo.stock,
+        active: true,
+      };
+
+      addCombo(combo);
+
+      setNewCombo({
+        name: '',
+        description: '',
+        image: '',
+        selectedProducts: [],
+        originalPrice: 0,
+        comboPrice: 0,
+        stock: 0,
+      });
+
+      alert('Combo added successfully!');
+      return;
+    }
+
     if (!newProduct.name || !newProduct.image) {
       alert('Please fill in product name and image URL');
       return;
@@ -539,6 +600,18 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <p className="text-gray-600">Total Customers</p>
             </div>
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Tag className="text-red-500" size={32} />
+                <span className="text-3xl font-bold text-gray-800">
+                  ₹{orders
+                    .filter((o) => o.paymentStatus === 'approved')
+                    .reduce((sum, o) => sum + (o.discount || 0), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+              <p className="text-gray-600">Total Coupon Discounts</p>
+            </div>
 
             {/* Recent Orders */}
             <div className="md:col-span-4 bg-white rounded-xl shadow-md p-6">
@@ -570,6 +643,39 @@ Thank you for choosing Vaddadi Pickles!`;
                             }`}>
                             {order.paymentStatus}
                           </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Render Combos */}
+                    {combos.map((combo) => (
+                      <tr key={combo.id} className="border-b hover:bg-gray-50 bg-purple-50">
+                        <td className="px-6 py-3">
+                          <span className="text-2xl">{combo.image}</span>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="font-medium text-gray-800">{combo.name}</div>
+                          <div className="text-xs text-gray-500">Combo</div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
+                            Combo
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-sm">
+                          <div className="font-semibold text-green-600">₹{combo.comboPrice}</div>
+                          <div className="text-xs text-gray-500 line-through">₹{combo.originalPrice}</div>
+                        </td>
+                        <td className="px-6 py-3 text-sm">
+                          {combo.stock} Packs
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <button
+                            onClick={() => deleteCombo(combo.id)}
+                            className="p-1 hover:bg-red-100 rounded text-red-500 transition"
+                            title="Delete Combo"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -619,159 +725,310 @@ Thank you for choosing Vaddadi Pickles!`;
           <div className="space-y-6">
             {/* Add New Product Form */}
             <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Plus className="text-green-600" size={24} />
-                <h3 className="text-xl font-semibold text-gray-800">Add New Product</h3>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Left Column */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
-                    <input
-                      type="text"
-                      value={newProduct.name}
-                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                      placeholder="e.g., Mango Avakaya"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                      placeholder="Describe your pickle..."
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select
-                      value={newProduct.category}
-                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
-                      <option value="Mango">Mango</option>
-                      <option value="Lemon">Lemon</option>
-                      <option value="Mixed">Mixed</option>
-                      <option value="Ginger">Ginger</option>
-                      <option value="Garlic">Garlic</option>
-                      <option value="Specialty">Specialty</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-                    <input
-                      type="text"
-                      value={newProduct.image}
-                      onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                      placeholder="https://example.com/image.jpg or emoji 🥭"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  {newProduct.image && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
-                      <p className="text-sm text-gray-500 mb-2">Preview:</p>
-                      {newProduct.image.startsWith('http') ? (
-                        <img
-                          src={newProduct.image}
-                          alt="Preview"
-                          className="w-24 h-24 object-cover rounded-lg mx-auto"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <span className="text-6xl">{newProduct.image}</span>
-                      )}
-                    </div>
-                  )}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Plus className="text-green-600" size={24} />
+                  <h3 className="text-xl font-semibold text-gray-800">Add New Item</h3>
                 </div>
-
-                {/* Right Column - Variants */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Weight Variants & Stock *</label>
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                      {newProduct.variants.map((variant, index) => (
-                        <div key={variant.weight} className="flex items-center gap-4 bg-white p-3 rounded-lg border">
-                          <label className="flex items-center gap-2 w-24">
-                            <input
-                              type="checkbox"
-                              checked={variant.enabled}
-                              onChange={(e) => {
-                                const newVariants = [...newProduct.variants];
-                                newVariants[index].enabled = e.target.checked;
-                                setNewProduct({ ...newProduct, variants: newVariants });
-                              }}
-                              className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                            />
-                            <span className="font-medium text-gray-700">{variant.weight}</span>
-                          </label>
-
-                          <div className="flex-1">
-                            <label className="text-xs text-gray-500">Price (₹)</label>
-                            <input
-                              type="number"
-                              value={variant.price}
-                              onChange={(e) => {
-                                const newVariants = [...newProduct.variants];
-                                newVariants[index].price = Number(e.target.value);
-                                setNewProduct({ ...newProduct, variants: newVariants });
-                              }}
-                              disabled={!variant.enabled}
-                              className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
-                            />
-                          </div>
-
-                          <div className="flex-1">
-                            <label className="text-xs text-gray-500">Stock</label>
-                            <input
-                              type="number"
-                              value={variant.stock}
-                              onChange={(e) => {
-                                const newVariants = [...newProduct.variants];
-                                newVariants[index].stock = Number(e.target.value);
-                                setNewProduct({ ...newProduct, variants: newVariants });
-                              }}
-                              disabled={!variant.enabled}
-                              className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      checked={newProduct.bestSeller}
-                      onChange={(e) => setNewProduct({ ...newProduct, bestSeller: e.target.checked })}
-                      className="w-5 h-5 text-yellow-600 rounded focus:ring-yellow-500"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-700">Mark as Best Seller</p>
-                      <p className="text-sm text-gray-500">Shows "Best Seller" badge on product</p>
-                    </div>
-                  </div>
-
+                <div className="bg-gray-100 p-1 rounded-lg flex">
                   <button
-                    onClick={handleAddProduct}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
+                    onClick={() => setIsCombo(false)}
+                    className={`px-4 py-2 rounded-md transition ${!isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
                   >
-                    <Plus size={20} />
-                    Add Product
+                    Product
+                  </button>
+                  <button
+                    onClick={() => setIsCombo(true)}
+                    className={`px-4 py-2 rounded-md transition ${isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
+                  >
+                    Combo
                   </button>
                 </div>
               </div>
+
+              {isCombo ? (
+                /* Combo Form */
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Combo Name *</label>
+                      <input
+                        type="text"
+                        value={newCombo.name}
+                        onChange={(e) => setNewCombo({ ...newCombo, name: e.target.value })}
+                        placeholder="e.g., Family Pack"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <textarea
+                        value={newCombo.description}
+                        onChange={(e) => setNewCombo({ ...newCombo, description: e.target.value })}
+                        placeholder="Describe the combo..."
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
+                      <input
+                        type="text"
+                        value={newCombo.image}
+                        onChange={(e) => setNewCombo({ ...newCombo, image: e.target.value })}
+                        placeholder="https://example.com/image.jpg or emoji 🎁"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Select Products & Variants *</label>
+                      <div className="bg-gray-50 p-3 rounded-lg h-60 overflow-y-auto border border-gray-200 space-y-2">
+                        {products.map((product) => {
+                          const isSelected = newCombo.selectedProducts.some(p => p.productId === product.id);
+                          const selectedVariant = newCombo.selectedProducts.find(p => p.productId === product.id)?.variantWeight || '';
+
+                          return (
+                            <div key={product.id} className={`p-2 rounded border ${isSelected ? 'bg-white border-green-200' : 'border-transparent'}`}>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      // Default to first variant if available
+                                      const defaultVariant = product.variants[0]?.weight || '';
+                                      setNewCombo({
+                                        ...newCombo,
+                                        selectedProducts: [...newCombo.selectedProducts, { productId: product.id, variantWeight: defaultVariant }]
+                                      });
+                                    } else {
+                                      setNewCombo({
+                                        ...newCombo,
+                                        selectedProducts: newCombo.selectedProducts.filter(p => p.productId !== product.id)
+                                      });
+                                    }
+                                  }}
+                                  className="rounded text-green-600 focus:ring-green-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">{product.name}</span>
+                              </label>
+
+                              {isSelected && (
+                                <div className="ml-6 mt-2">
+                                  <select
+                                    value={selectedVariant}
+                                    onChange={(e) => {
+                                      setNewCombo({
+                                        ...newCombo,
+                                        selectedProducts: newCombo.selectedProducts.map(p =>
+                                          p.productId === product.id ? { ...p, variantWeight: e.target.value } : p
+                                        )
+                                      });
+                                    }}
+                                    className="text-xs w-full p-1 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                  >
+                                    {product.variants.map(v => (
+                                      <option key={v.weight} value={v.weight}>{v.weight} - ₹{v.price}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Original Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newCombo.originalPrice}
+                        onChange={(e) => setNewCombo({ ...newCombo, originalPrice: Number(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Combo Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newCombo.comboPrice}
+                        onChange={(e) => setNewCombo({ ...newCombo, comboPrice: Number(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                      <input
+                        type="number"
+                        value={newCombo.stock}
+                        onChange={(e) => setNewCombo({ ...newCombo, stock: Number(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddProduct}
+                      className="w-full mt-8 flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
+                    >
+                      <Plus size={20} />
+                      Add Combo
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Existing Product Form */
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                      <input
+                        type="text"
+                        value={newProduct.name}
+                        onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                        placeholder="e.g., Mango Avakaya"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <textarea
+                        value={newProduct.description}
+                        onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                        placeholder="Describe your pickle..."
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select
+                        value={newProduct.category}
+                        onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="Mango">Mango</option>
+                        <option value="Lemon">Lemon</option>
+                        <option value="Mixed">Mixed</option>
+                        <option value="Ginger">Ginger</option>
+                        <option value="Garlic">Garlic</option>
+                        <option value="Fryums">Fryums</option>
+                        <option value="Powders">Powders</option>
+                        <option value="Specialty">Specialty</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
+                      <input
+                        type="text"
+                        value={newProduct.image}
+                        onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+                        placeholder="https://example.com/image.jpg or emoji 🥭"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {newProduct.image && (
+                      <div className="p-4 bg-gray-50 rounded-lg text-center">
+                        <p className="text-sm text-gray-500 mb-2">Preview:</p>
+                        {newProduct.image.startsWith('http') ? (
+                          <img
+                            src={newProduct.image}
+                            alt="Preview"
+                            className="w-24 h-24 object-cover rounded-lg mx-auto"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <span className="text-6xl">{newProduct.image}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column - Variants */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Weight Variants & Stock *</label>
+                      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                        {newProduct.variants.map((variant, index) => (
+                          <div key={variant.weight} className="flex items-center gap-4 bg-white p-3 rounded-lg border">
+                            <label className="flex items-center gap-2 w-24">
+                              <input
+                                type="checkbox"
+                                checked={variant.enabled}
+                                onChange={(e) => {
+                                  const newVariants = [...newProduct.variants];
+                                  newVariants[index].enabled = e.target.checked;
+                                  setNewProduct({ ...newProduct, variants: newVariants });
+                                }}
+                                className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                              />
+                              <span className="font-medium text-gray-700">{variant.weight}</span>
+                            </label>
+
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500">Price (₹)</label>
+                              <input
+                                type="number"
+                                value={variant.price}
+                                onChange={(e) => {
+                                  const newVariants = [...newProduct.variants];
+                                  newVariants[index].price = Number(e.target.value);
+                                  setNewProduct({ ...newProduct, variants: newVariants });
+                                }}
+                                disabled={!variant.enabled}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                              />
+                            </div>
+
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500">Stock</label>
+                              <input
+                                type="number"
+                                value={variant.stock}
+                                onChange={(e) => {
+                                  const newVariants = [...newProduct.variants];
+                                  newVariants[index].stock = Number(e.target.value);
+                                  setNewProduct({ ...newProduct, variants: newVariants });
+                                }}
+                                disabled={!variant.enabled}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.bestSeller}
+                        onChange={(e) => setNewProduct({ ...newProduct, bestSeller: e.target.checked })}
+                        className="w-5 h-5 text-yellow-600 rounded focus:ring-yellow-500"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-700">Mark as Best Seller</p>
+                        <p className="text-sm text-gray-500">Shows "Best Seller" badge on product</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleAddProduct}
+                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
+                    >
+                      <Plus size={20} />
+                      Add Product
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Products List */}

@@ -5,7 +5,10 @@ import { useStore } from '../store';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { cart, user, isAdmin, logout } = useStore();
+  const cart = useStore((state) => state.cart);
+  const user = useStore((state) => state.user);
+  const isAdmin = useStore((state) => state.isAdmin);
+  const logout = useStore((state) => state.logout);
   const navigate = useNavigate();
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -20,9 +23,9 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img 
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
-              alt="Vaddadi Pickles" 
+            <img
+              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              alt="Vaddadi Pickles"
               className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
             />
             <div>

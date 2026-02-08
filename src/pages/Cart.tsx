@@ -3,22 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, Tag, ShoppingBag } from 'lucide-react';
 import { useStore } from '../store';
 
+import { useCartTotals } from '../hooks/useCartTotals';
+
 export function Cart() {
   const { cart, user, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
+  const { subtotal, discount, total, shipping } = useCartTotals();
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const navigate = useNavigate();
-
-  const subtotal = cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
-  
-  let discount = 0;
-  if (appliedCoupon) {
-    discount = appliedCoupon.type === 'percentage'
-      ? (subtotal * appliedCoupon.discount) / 100
-      : appliedCoupon.discount;
-  }
-  
-  const total = subtotal - discount;
 
   const handleApplyCoupon = () => {
     const result = applyCoupon(couponCode);
@@ -98,7 +90,7 @@ export function Cart() {
         {/* Order Summary */}
         <div className="bg-white rounded-xl shadow-md p-6 h-fit">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
-          
+
           {/* Coupon Code */}
           <div className="mb-4">
             <div className="flex gap-2">
@@ -145,14 +137,14 @@ export function Cart() {
             )}
             <div className="flex justify-between text-gray-600">
               <span>Shipping</span>
-              <span>{subtotal >= 1000 ? <span className="text-green-600 font-medium">FREE</span> : '₹50'}</span>
+              <span>{shipping === 0 ? <span className="text-green-600 font-medium">FREE</span> : `₹${shipping}`}</span>
             </div>
             {subtotal < 1000 && (
               <p className="text-xs text-green-600">Add ₹{1000 - subtotal} more for FREE shipping!</p>
             )}
             <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
               <span>Total</span>
-              <span>₹{(total + (subtotal >= 1000 ? 0 : 50)).toFixed(0)}</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
           </div>
 

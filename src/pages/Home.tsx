@@ -5,7 +5,22 @@ import { useStore } from '../store';
 
 export function Home() {
   const products = useStore((state) => state.products);
+  const combos = useStore((state) => state.combos);
   const featuredProducts = products.slice(0, 4);
+
+  const calculateComboWeight = (comboProducts: { variantWeight: string }[]) => {
+    const totalGrams = comboProducts.reduce((sum, p) => {
+      const weight = p.variantWeight.toLowerCase();
+      if (weight.includes('kg')) {
+        return sum + parseFloat(weight) * 1000;
+      }
+      return sum + parseFloat(weight);
+    }, 0);
+
+    return totalGrams >= 1000
+      ? `${totalGrams / 1000} kg`
+      : `${totalGrams} g`;
+  };
 
   return (
     <div>
@@ -19,7 +34,7 @@ export function Home() {
                 <span className="block text-yellow-300">Pickles</span>
               </h1>
               <p className="text-xl text-green-100 mb-8">
-                Experience the taste of tradition with Vaddadi Pickles. Made with love, 
+                Experience the taste of tradition with Vaddadi Pickles. Made with love,
                 natural ingredients, and recipes passed down through generations.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
@@ -39,9 +54,9 @@ export function Home() {
             </div>
             <div className="flex-1 flex justify-center">
               <div className="relative">
-                <img 
-                  src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
-                  alt="Vaddadi Pickles" 
+                <img
+                  src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+                  alt="Vaddadi Pickles"
                   className="w-64 h-64 md:w-80 md:h-80 rounded-full object-cover border-8 border-yellow-400 shadow-2xl"
                 />
                 <div className="absolute -top-4 -right-4 text-5xl animate-bounce">🥭</div>
@@ -90,7 +105,7 @@ export function Home() {
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Bestsellers</h2>
             <p className="text-gray-600">Most loved pickles by our customers</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -101,6 +116,47 @@ export function Home() {
               className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-700 transition"
             >
               View All Products <ArrowRight size={20} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Special Combos */}
+      <section className="py-16 bg-purple-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Special Combos</h2>
+            <p className="text-gray-600">Great value packs for you and your family</p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {(combos || []).map((combo) => (
+              <ProductCard
+                key={combo.id}
+                product={{
+                  id: combo.id,
+                  name: combo.name,
+                  description: combo.description,
+                  image: combo.image,
+                  category: 'Combo',
+                  variants: [{
+                    weight: `Pack (${calculateComboWeight(combo.products)})`,
+                    price: combo.comboPrice,
+                    stock: combo.stock
+                  }],
+                  inStock: combo.stock > 0,
+                  rating: 5,
+                  reviews: 0,
+                  bestSeller: false,
+                }}
+              />
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link
+              to="/products?category=Combo"
+              className="inline-flex items-center gap-2 bg-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-700 transition"
+            >
+              View All Combos <ArrowRight size={20} />
             </Link>
           </div>
         </div>

@@ -6,9 +6,12 @@ import { useStore } from '../store';
 import { Order, Address } from '../types';
 import { statesAndCities } from '../data/locations';
 
+import { useCartTotals } from '../hooks/useCartTotals';
+
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart, settings } = useStore();
   const navigate = useNavigate();
+  const { subtotal, discount, total, shipping, displayAmount, displayAmountWhole } = useCartTotals();
 
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [transactionId, setTransactionId] = useState('');
@@ -45,23 +48,6 @@ export function Checkout() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const subtotal = cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
-  let discount = 0;
-  if (appliedCoupon) {
-    discount = appliedCoupon.type === 'percentage'
-      ? (subtotal * appliedCoupon.discount) / 100
-      : appliedCoupon.discount;
-  }
-  const shipping = subtotal >= 1000 ? 0 : 50;
-
-  // Calculate total and round to 2 decimal places to avoid floating point issues
-  const totalRaw = subtotal - discount + shipping;
-  const total = Math.round(totalRaw * 100) / 100; // Ensures exact 2 decimal precision
-
-  // Format amount for display (always show 2 decimal places for consistency)
-  const displayAmount = total.toFixed(2);
-  const displayAmountWhole = Math.round(total); // For display without decimals
 
   // UPI Payment details
   const upiId = settings.upiId;
