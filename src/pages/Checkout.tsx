@@ -485,7 +485,7 @@ export function Checkout() {
                           level="H"
                           includeMargin={true}
                           imageSettings={{
-                            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2316a34a'%3E%3Ccircle cx='12' cy='12' r='12'/%3E%3Ctext x='12' y='16' text-anchor='middle' fill='white' font-size='10' font-weight='bold'%3EV%3C/text%3E%3C/svg%3E",
+                            src: "https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg",
                             x: undefined,
                             y: undefined,
                             height: 40,
@@ -609,6 +609,14 @@ export function Checkout() {
                         size={180}
                         level="H"
                         includeMargin={true}
+                        imageSettings={{
+                          src: "https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg",
+                          x: undefined,
+                          y: undefined,
+                          height: 36,
+                          width: 36,
+                          excavate: true,
+                        }}
                       />
                     </div>
                     <div className="mt-3 text-center">

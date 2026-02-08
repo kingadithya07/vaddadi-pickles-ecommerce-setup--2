@@ -212,9 +212,9 @@ const sampleDisplayImages: DisplayImage[] = [
 ];
 
 const defaultSettings: StoreSettings = {
-  upiId: '9885192948@upi',
+  upiId: '9885192948@ptyes',
   businessAddress: {
-    name: 'V.A.V.VIJAYA (Prop)',
+    name: 'VADDADI PICKLES',
     street: 'SUJATHANAGAR',
     city: 'VISAKHAPATNAM',
     state: 'ANDHRA PRADESH',
@@ -567,7 +567,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'vaddadi-pickles-store',
-      version: 3,
+      version: 5,
       migrate: (persistedState: any, version) => {
         if (version === 0) {
           // Migration from version 0 to 2
@@ -591,6 +591,29 @@ export const useStore = create<StoreState>()(
           return {
             ...persistedState,
             combos: sampleCombos,
+          };
+        }
+        if (version === 3) {
+          // Migration from version 3 to 4 - Force update UPI ID
+          return {
+            ...persistedState,
+            settings: {
+              ...(persistedState.settings || defaultSettings),
+              upiId: '9885192948@ptyes',
+            },
+          };
+        }
+        if (version === 4) {
+          // Migration from version 4 to 5 - Force update Merchant Name
+          return {
+            ...persistedState,
+            settings: {
+              ...(persistedState.settings || defaultSettings),
+              businessAddress: {
+                ...(persistedState.settings?.businessAddress || defaultSettings.businessAddress),
+                name: 'VADDADI PICKLES',
+              },
+            },
           };
         }
         return persistedState;
