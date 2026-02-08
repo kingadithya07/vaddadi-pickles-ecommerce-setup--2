@@ -567,7 +567,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'vaddadi-pickles-store',
-      version: 5,
+      version: 6,
       migrate: (persistedState: any, version) => {
         if (version === 0) {
           // Migration from version 0 to 2
@@ -609,6 +609,20 @@ export const useStore = create<StoreState>()(
             ...persistedState,
             settings: {
               ...(persistedState.settings || defaultSettings),
+              businessAddress: {
+                ...(persistedState.settings?.businessAddress || defaultSettings.businessAddress),
+                name: 'VADDADI PICKLES',
+              },
+            },
+          };
+        }
+        if (version === 5) {
+          // Migration from version 5 to 6 - Force update payment details
+          return {
+            ...persistedState,
+            settings: {
+              ...(persistedState.settings || defaultSettings),
+              upiId: '9885192948@ptyes',
               businessAddress: {
                 ...(persistedState.settings?.businessAddress || defaultSettings.businessAddress),
                 name: 'VADDADI PICKLES',
