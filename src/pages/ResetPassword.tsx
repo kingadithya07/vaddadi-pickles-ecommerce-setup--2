@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -9,21 +9,21 @@ export function ResetPassword() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [expiredLink, setExpiredLink] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         // Check if we have an active recovery session
         const checkSession = async () => {
             // Small delay for Supabase to fully process the recovery session
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 800));
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                // If no session, we shouldn't be here
-                navigate('/login');
+                setExpiredLink(true);
             }
         };
         checkSession();
-    }, [navigate]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,46 +73,66 @@ export function ResetPassword() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                required
-                                placeholder="New Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                    {expiredLink ? (
+                        <div className="text-center space-y-6">
+                            <div className="bg-red-50 text-red-700 p-6 rounded-2xl border border-red-100">
+                                <h3 className="text-xl font-bold mb-2">Link Expired or Invalid</h3>
+                                <p className="text-sm opacity-90">
+                                    The password reset link you clicked is either incorrect, has already been used, or has expired for your security.
+                                </p>
+                            </div>
+                            <Link
+                                to="/forgot-password"
+                                className="inline-block w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md"
                             >
-                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                Request a New Link
+                            </Link>
+                            <p className="text-gray-500 text-sm">
+                                Need help? <Link to="/login" className="text-green-600 hover:underline">Contact Support</Link>
+                            </p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    placeholder="New Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    placeholder="Confirm New Password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
+                            >
+                                {loading ? 'Updating...' : 'Update Password'}
                             </button>
-                        </div>
-
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                required
-                                placeholder="Confirm New Password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
-                        >
-                            {loading ? 'Updating...' : 'Update Password'}
-                        </button>
-                    </form>
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
