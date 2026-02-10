@@ -104,9 +104,15 @@ export function Checkout() {
   };
 
   const handlePlaceOrder = () => {
-    if (!transactionId && paymentMethod !== 'cod') {
-      alert('Please enter transaction ID');
-      return;
+    if (paymentMethod !== 'cod') {
+      if (!transactionId) {
+        alert('Please enter transaction ID');
+        return;
+      }
+      if (!/^\d{12}$/.test(transactionId)) {
+        alert('Transaction ID must be exactly 12 numeric digits');
+        return;
+      }
     }
 
     // Get the selected address
@@ -393,7 +399,7 @@ export function Checkout() {
             <div className="space-y-3">
               {[
                 { id: 'upi', label: 'UPI Payment', icon: Smartphone, desc: 'GPay / PhonePe / Paytm' },
-                { id: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'NEFT / IMPS / RTGS' },
+                ...(settings.enableBankTransfer ? [{ id: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'NEFT / IMPS / RTGS' }] : []),
                 ...(settings.enableCOD ? [{ id: 'cod', label: 'Cash on Delivery', icon: CreditCard, desc: 'Pay when you receive' }] : []),
               ].map((method) => (
                 <label
@@ -566,10 +572,14 @@ export function Checkout() {
                   </p>
                   <input
                     type="text"
-                    placeholder="Enter UPI Transaction ID / UTR Number"
+                    placeholder="Enter UPI Transaction ID (12 digits)"
                     value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 bg-white"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setTransactionId(val);
+                    }}
+                    maxLength={12}
+                    className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 bg-white font-mono"
                   />
                   <p className="text-xs text-yellow-700 mt-2">
                     Your order will be processed after admin verifies the payment
@@ -649,10 +659,14 @@ export function Checkout() {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <input
                     type="text"
-                    placeholder="Enter Transaction Reference Number"
+                    placeholder="Enter Transaction Reference (12 digits)"
                     value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 bg-white"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      setTransactionId(val);
+                    }}
+                    maxLength={12}
+                    className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 bg-white font-mono"
                   />
                   <p className="text-xs text-yellow-700 mt-2">
                     ⚠️ Your order will be processed after admin verifies the payment
@@ -759,6 +773,6 @@ export function Checkout() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

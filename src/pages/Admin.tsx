@@ -691,7 +691,8 @@ Thank you for choosing Vaddadi Pickles!`;
           <div className="max-w-2xl">
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Store Settings</h3>
 
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-6 space-y-8">
+              {/* COD Toggle */}
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-lg font-semibold text-gray-800">Cash on Delivery (COD)</h4>
@@ -711,10 +712,37 @@ Thank you for choosing Vaddadi Pickles!`;
                 </label>
               </div>
 
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-                Current Status: <span className={`font-semibold ${settings.enableCOD ? 'text-green-600' : 'text-red-500'}`}>
-                  {settings.enableCOD ? 'Enabled (Customers can choose COD)' : 'Disabled (Prepaid only)'}
-                </span>
+              {/* Bank Transfer Toggle */}
+              <div className="flex items-center justify-between border-t pt-8">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">Bank Transfer</h4>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Enable or disable direct Bank Transfer option for customers.
+                  </p>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={settings.enableBankTransfer}
+                    onChange={() => updateSettings({ ...settings, enableBankTransfer: !settings.enableBankTransfer })}
+                  />
+                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 space-y-2">
+                <p>
+                  COD Status: <span className={`font-semibold ${settings.enableCOD ? 'text-green-600' : 'text-red-500'}`}>
+                    {settings.enableCOD ? 'Enabled' : 'Disabled'}
+                  </span>
+                </p>
+                <p>
+                  Bank Transfer Status: <span className={`font-semibold ${settings.enableBankTransfer ? 'text-blue-600' : 'text-red-500'}`}>
+                    {settings.enableBankTransfer ? 'Enabled' : 'Disabled'}
+                  </span>
+                </p>
               </div>
             </div>
           </div>

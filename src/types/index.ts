@@ -124,4 +124,5 @@ export interface StoreSettings {
     phone: string;
   };
   enableCOD: boolean;
+  enableBankTransfer: boolean;
 }

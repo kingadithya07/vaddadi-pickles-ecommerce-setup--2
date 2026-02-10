@@ -223,6 +223,7 @@ const defaultSettings: StoreSettings = {
     phone: '8008129309 (WhatsApp)',
   },
   enableCOD: true,
+  enableBankTransfer: true,
 };
 
 const sampleCoupons: Coupon[] = [
@@ -569,7 +570,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'vaddadi-pickles-store',
-      version: 6,
+      version: 7,
       migrate: (persistedState: any, version) => {
         if (version === 0) {
           // Migration from version 0 to 2
@@ -629,6 +630,16 @@ export const useStore = create<StoreState>()(
                 ...(persistedState.settings?.businessAddress || defaultSettings.businessAddress),
                 name: 'VADDADI PICKLES',
               },
+            },
+          };
+        }
+        if (version === 6) {
+          // Migration from version 6 to 7 - Add enableBankTransfer
+          return {
+            ...persistedState,
+            settings: {
+              ...(persistedState.settings || defaultSettings),
+              enableBankTransfer: true,
             },
           };
         }
