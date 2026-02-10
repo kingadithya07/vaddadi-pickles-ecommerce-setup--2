@@ -227,7 +227,7 @@ Thank you for choosing Vaddadi Pickles!`;
           .order-id { font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; text-align: center; letter-spacing: 3px; margin-bottom: 10px; padding: 8px; background: #f3f4f6; border-radius: 4px; }
           .order-details { display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; }
           .cod-badge { position: absolute; top: 70px; right: -5px; background: #dc2626; color: white; padding: 6px 15px; font-size: 14px; font-weight: bold; transform: rotate(15deg); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-          .handle-care { text-align: center; margin-top: 15px; padding: 8px; background: #fef2f2; border-radius: 4px; font-size: 12px; color: #991b1b; }
+          .handle-care { text-align: center; margin-top: 15px; padding: 8px; background: #fef2f2; border-radius: 4px; font-size: 16px; font-weight: bold; color: #991b1b; }
           @media print { 
             body { background: white; }
             .label { border: 2px solid #000; }
@@ -239,7 +239,7 @@ Thank you for choosing Vaddadi Pickles!`;
           <div class="label-header">
             <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
             <h1>VADDADI PICKLES</h1>
-            <p>Premium Handmade Pickles | Est. 1985</p>
+            <p>Premium Handmade Pickles | Est. 2026</p>
           </div>
           
           ${codBadge}
