@@ -210,7 +210,7 @@ Thank you for choosing Vaddadi Pickles!`;
           body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f3f4f6; }
           .label { width: 100mm; background: white; border: 3px solid #000; position: relative; }
           .label-header { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; padding: 15px; text-align: center; }
-          .label-header .logo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid white; margin-bottom: 8px; }
+          .label-header .logo { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid white; margin-bottom: 8px; }
           .label-header h1 { font-size: 22px; margin-bottom: 4px; }
           .label-header p { font-size: 11px; opacity: 0.9; }
           .content { padding: 15px; }
@@ -245,14 +245,6 @@ Thank you for choosing Vaddadi Pickles!`;
           ${codBadge}
           
           <div class="content">
-            <div class="from-box">
-              <div class="title">FROM:</div>
-              <div class="text">
-                ${settings.businessAddress.name}, ${settings.businessAddress.street}<br>
-                ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
-              </div>
-            </div>
-            
             <div class="to-box">
               <div class="title">📦 DELIVER TO:</div>
               <div class="name">${order.userName}</div>
@@ -262,6 +254,14 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <div class="pincode">📍 ${order.address.pincode}</div>
               <div class="phone">📱 ${order.userPhone}</div>
+            </div>
+            
+            <div class="from-box">
+              <div class="title">FROM:</div>
+              <div class="text">
+                ${settings.businessAddress.name}, ${settings.businessAddress.street}<br>
+                ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+              </div>
             </div>
             
             <div class="order-section">
