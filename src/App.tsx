@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
+import { useStore } from './store';
 
 // Lazy load pages for better performance
 const Products = React.lazy(() => import('./pages/Products').then(module => ({ default: module.Products })));
