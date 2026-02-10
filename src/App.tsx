@@ -17,6 +17,9 @@ const Admin = React.lazy(() => import('./pages/Admin').then(module => ({ default
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
 const RefundPolicy = React.lazy(() => import('./pages/RefundPolicy').then(module => ({ default: module.RefundPolicy })));
 const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions').then(module => ({ default: module.TermsAndConditions })));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
+const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -141,6 +144,30 @@ export function App() {
             element={
               <Layout>
                 <TermsAndConditions />
+              </Layout>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <Layout>
+                <ForgotPassword />
+              </Layout>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <Layout>
+                <ResetPassword />
+              </Layout>
+            }
+          />
+          <Route
+            path="/auth-success"
+            element={
+              <Layout>
+                <AuthSuccess />
               </Layout>
             }
           />

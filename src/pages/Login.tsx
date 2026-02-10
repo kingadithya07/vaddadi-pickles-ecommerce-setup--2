@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, Phone, MapPin } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../store';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -73,34 +74,7 @@ export function Login() {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          const newUser: User = {
-            id: data.user.id,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            address: {
-              street: formData.street,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-              country: formData.country,
-            },
-            addresses: [{
-              id: `addr-${Date.now()}`,
-              label: 'Home',
-              name: formData.name,
-              phone: formData.phone,
-              street: formData.street,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-              country: formData.country,
-              isDefault: true,
-            }],
-            role: role as 'admin' | 'customer',
-          };
-          loginInStore(newUser);
-          navigate(role === 'admin' ? '/admin' : redirect);
+          navigate('/auth-success', { state: { type: 'registration' } });
         }
       } else {
         // Sign In
@@ -159,11 +133,6 @@ export function Login() {
             </div>
           )}
 
-          {isAdminLogin && (
-            <div className="bg-blue-50 text-blue-800 p-3 rounded-lg mb-4 text-sm border border-blue-200">
-              <strong>ℹ️ Note:</strong> Admin login is now handled via Supabase. Registered admins can sign in here.
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
@@ -205,13 +174,31 @@ export function Login() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
+
+            {!isSignUp && (
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-green-600 hover:underline font-medium"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
 
             {isSignUp && (
               <>
