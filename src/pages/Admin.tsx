@@ -274,7 +274,7 @@ Thank you for choosing Vaddadi Pickles!`;
             </div>
             
             <div class="handle-care">
-              🫙 HANDLE WITH CARE - GLASS JARS INSIDE
+              ⚠️ HANDLE WITH CARE
             </div>
           </div>
         </div>
