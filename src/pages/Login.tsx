@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../store';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
@@ -14,11 +14,6 @@ export function Login() {
     password: '',
     name: '',
     phone: '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
-    country: 'India',
   });
   const [error, setError] = useState('');
 
@@ -38,7 +33,7 @@ export function Login() {
 
     try {
       if (isSignUp) {
-        if (!formData.name || !formData.phone || !formData.street || !formData.city || !formData.pincode) {
+        if (!formData.name || !formData.phone) {
           setError('Please fill all required fields');
           return;
         }
@@ -60,13 +55,7 @@ export function Login() {
               name: formData.name,
               phone: formData.phone,
               role: role,
-              address: {
-                street: formData.street,
-                city: formData.city,
-                state: formData.state,
-                pincode: formData.pincode,
-                country: formData.country,
-              }
+              address: {}
             }
           }
         });
@@ -217,45 +206,6 @@ export function Login() {
               </div>
             )}
 
-            {isSignUp && (
-              <>
-                <div className="border-t pt-4">
-                  <p className="text-sm text-gray-600 mb-3 flex items-center gap-2">
-                    <MapPin size={16} /> Delivery Address
-                  </p>
-                  <input
-                    type="text"
-                    placeholder="Street Address"
-                    value={formData.street}
-                    onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="City"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                    <input
-                      type="text"
-                      placeholder="State"
-                      value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Pincode"
-                    value={formData.pincode}
-                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mt-3"
-                  />
-                </div>
-              </>
-            )}
 
             <button
               type="submit"

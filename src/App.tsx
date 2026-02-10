@@ -50,6 +50,7 @@ export function App() {
 
   React.useEffect(() => {
     fetchInitialData();
+    const cleanupSettings = useStore.getState().initializeRealtimeSettings();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -58,7 +59,10 @@ export function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      cleanupSettings();
+    };
   }, [fetchInitialData]);
 
   if (isLoading) {

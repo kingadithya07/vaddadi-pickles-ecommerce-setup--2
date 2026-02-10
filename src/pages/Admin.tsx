@@ -518,22 +518,22 @@ Thank you for choosing Vaddadi Pickles!`;
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Admin Header */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-4 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-4 px-6 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
               src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
               alt="Vaddadi Pickles"
-              className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-green-500"
             />
-            <div>
-              <h1 className="text-xl font-bold">Vaddadi Pickles Admin</h1>
-              <p className="text-gray-400 text-sm">Manage orders, payments & coupons</p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-lg md:text-xl font-bold">Vaddadi Pickles Admin</h1>
+              <p className="text-gray-400 text-xs md:text-sm">Manage orders, payments & coupons</p>
             </div>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition text-sm"
+            className="w-full sm:w-auto bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition text-sm flex items-center justify-center gap-2"
           >
             Back to Store
           </button>
@@ -542,28 +542,28 @@ Thank you for choosing Vaddadi Pickles!`;
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto">
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sticky top-[80px] sm:top-[88px] bg-gray-100 z-40">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'products', label: 'Products', icon: ShoppingBag },
             { id: 'orders', label: 'Orders', icon: Package },
             { id: 'payments', label: 'Payments', icon: CreditCard, badge: pendingPayments },
-            { id: 'labels', label: 'Shipping Labels', icon: StickyNote },
+            { id: 'labels', label: 'Labels', icon: StickyNote },
             { id: 'coupons', label: 'Coupons', icon: Tag },
             { id: 'settings', label: 'Settings', icon: Settings },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition whitespace-nowrap ${activeTab === tab.id
+              className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition whitespace-nowrap ${activeTab === tab.id
                 ? 'bg-green-600 text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
             >
-              <tab.icon size={20} />
-              {tab.label}
+              <tab.icon size={18} className="md:w-5 md:h-5" />
+              <span className="text-sm md:text-base">{tab.label}</span>
               {tab.badge ? (
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{tab.badge}</span>
+                <span className="bg-red-500 text-white text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded-full">{tab.badge}</span>
               ) : null}
             </button>
           ))}
@@ -571,52 +571,52 @@ Thank you for choosing Vaddadi Pickles!`;
 
         {/* Dashboard */}
         {activeTab === 'dashboard' && (
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Package className="text-blue-500" size={32} />
-                <span className="text-3xl font-bold text-gray-800">{orders.length}</span>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <Package className="text-blue-500" size={24} />
+                <span className="text-xl md:text-3xl font-bold text-gray-800">{orders.length}</span>
               </div>
-              <p className="text-gray-600">Total Orders</p>
+              <p className="text-gray-600 text-sm md:text-base">Total Orders</p>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Clock className="text-yellow-500" size={32} />
-                <span className="text-3xl font-bold text-gray-800">{pendingPayments}</span>
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <Clock className="text-yellow-500" size={24} />
+                <span className="text-xl md:text-3xl font-bold text-gray-800">{pendingPayments}</span>
               </div>
-              <p className="text-gray-600">Pending Payments</p>
+              <p className="text-gray-600 text-sm md:text-base">Pending Payments</p>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <CreditCard className="text-green-500" size={32} />
-                <span className="text-3xl font-bold text-gray-800">₹{totalRevenue}</span>
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <CreditCard className="text-green-500" size={24} />
+                <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalRevenue}</span>
               </div>
-              <p className="text-gray-600">Total Revenue</p>
+              <p className="text-gray-600 text-sm md:text-base">Total Revenue</p>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Users className="text-purple-500" size={32} />
-                <span className="text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <Users className="text-purple-500" size={24} />
+                <span className="text-xl md:text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
               </div>
-              <p className="text-gray-600">Total Customers</p>
+              <p className="text-gray-600 text-sm md:text-base">Total Customers</p>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Tag className="text-red-500" size={32} />
-                <span className="text-3xl font-bold text-gray-800">
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <Tag className="text-red-500" size={24} />
+                <span className="text-xl md:text-3xl font-bold text-gray-800">
                   ₹{orders
                     .filter((o) => o.paymentStatus === 'approved')
                     .reduce((sum, o) => sum + (o.discount || 0), 0)
                     .toFixed(2)}
                 </span>
               </div>
-              <p className="text-gray-600">Total Coupon Discounts</p>
+              <p className="text-gray-600 text-sm md:text-base">Coupon Discounts</p>
             </div>
 
             {/* Recent Orders */}
             <div className="md:col-span-4 bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
-              <div className="overflow-x-auto">
+              <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="text-left text-gray-500 text-sm border-b">
@@ -681,6 +681,61 @@ Thank you for choosing Vaddadi Pickles!`;
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Recent Orders & Combos Card View */}
+              <div className="sm:hidden space-y-4">
+                {/* Recent Orders Cards */}
+                <div className="space-y-3">
+                  {sortedOrders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="p-4 border rounded-xl bg-gray-50/50 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono text-[10px] font-bold text-gray-400">{order.id}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${order.paymentStatus === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                          {order.status}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-end">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-800 truncate text-sm">{order.userName}</p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">{order.paymentStatus.replace('_', ' ')}</p>
+                        </div>
+                        <span className="font-bold text-green-700 text-lg ml-2">₹{order.finalAmount}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Combos Cards */}
+                {combos.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-purple-700 mt-6 mb-2">Active Combos</h4>
+                    {combos.map((combo) => (
+                      <div key={combo.id} className="p-4 border border-purple-100 rounded-xl bg-purple-50/30 space-y-3">
+                        <div className="flex gap-4">
+                          <span className="text-3xl">{combo.image}</span>
+                          <div className="flex-1">
+                            <h5 className="font-bold text-gray-800 text-sm">{combo.name}</h5>
+                            <span className="text-[10px] text-purple-600 font-semibold uppercase">Combo Item</span>
+                          </div>
+                          <button
+                            onClick={() => deleteCombo(combo.id)}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg h-fit"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-purple-100">
+                          <div className="text-xs">
+                            <span className="text-green-600 font-bold">₹{combo.comboPrice}</span>{' '}
+                            <span className="text-gray-400 line-through ml-1">₹{combo.originalPrice}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-500">{combo.stock} Packs in stock</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1068,91 +1123,169 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 text-left text-gray-600 text-sm">
-                      <th className="px-6 py-3">Image</th>
-                      <th className="px-6 py-3">Product Name</th>
-                      <th className="px-6 py-3">Category</th>
-                      <th className="px-6 py-3">Variants & Prices</th>
-                      <th className="px-6 py-3">Stock</th>
-                      <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id} className="border-b hover:bg-gray-50">
-                        <td className="px-6 py-4">
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 text-left text-gray-600 text-sm">
+                        <th className="px-6 py-3">Image</th>
+                        <th className="px-6 py-3">Product Name</th>
+                        <th className="px-6 py-3">Category</th>
+                        <th className="px-6 py-3">Variants & Prices</th>
+                        <th className="px-6 py-3">Stock</th>
+                        <th className="px-6 py-3">Status</th>
+                        <th className="px-6 py-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((product) => (
+                        <tr key={product.id} className="border-b hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            {product.image.startsWith('http') ? (
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <span className="text-3xl">{product.image}</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-medium text-gray-800">{product.name}</p>
+                              {product.bestSeller && (
+                                <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                                  ⭐ Best Seller
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                              {product.category}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              {product.variants.map((v) => (
+                                <div key={v.weight} className="text-sm">
+                                  <span className="font-medium">{v.weight}:</span>{' '}
+                                  <span className="text-green-600">₹{v.price}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              {product.variants.map((v) => (
+                                <div key={v.weight} className="text-sm flex items-center gap-2">
+                                  <span className="font-medium">{v.weight}:</span>
+                                  <span className={`px-2 py-0.5 rounded text-xs ${v.stock > 10 ? 'bg-green-100 text-green-700' :
+                                    v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-red-100 text-red-700'
+                                    }`}>
+                                    {v.stock} pcs
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1 rounded-full text-sm ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                              {product.inStock ? 'In Stock' : 'Out of Stock'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={() => deleteProduct(product.id)}
+                              className="flex items-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Product Cards */}
+                <div className="lg:hidden space-y-4">
+                  {products.map((product) => (
+                    <div key={product.id} className="bg-white border rounded-xl p-4 space-y-4 shadow-sm">
+                      <div className="flex gap-4">
+                        <div className="w-20 h-20 flex-shrink-0">
                           {product.image.startsWith('http') ? (
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-12 h-12 object-cover rounded-lg"
+                              className="w-full h-full object-cover rounded-lg"
                             />
                           ) : (
-                            <span className="text-3xl">{product.image}</span>
+                            <span className="text-4xl flex items-center justify-center h-full bg-gray-50 rounded-lg">
+                              {product.image}
+                            </span>
                           )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="font-medium text-gray-800">{product.name}</p>
-                            {product.bestSeller && (
-                              <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                ⭐ Best Seller
-                              </span>
-                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-bold text-gray-800 truncate">{product.name}</h4>
+                            <button
+                              onClick={() => deleteProduct(product.id)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                          <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full mt-1">
                             {product.category}
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
+                          {product.bestSeller && (
+                            <span className="ml-2 inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full">
+                              ⭐ Best Seller
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Variants & Prices</p>
                           <div className="space-y-1">
                             {product.variants.map((v) => (
-                              <div key={v.weight} className="text-sm">
-                                <span className="font-medium">{v.weight}:</span>{' '}
-                                <span className="text-green-600">₹{v.price}</span>
+                              <div key={v.weight} className="text-xs flex justify-between">
+                                <span className="text-gray-600">{v.weight}:</span>
+                                <span className="font-bold text-green-600">₹{v.price}</span>
                               </div>
                             ))}
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Stock Levels</p>
                           <div className="space-y-1">
                             {product.variants.map((v) => (
-                              <div key={v.weight} className="text-sm flex items-center gap-2">
-                                <span className="font-medium">{v.weight}:</span>
-                                <span className={`px-2 py-0.5 rounded text-xs ${v.stock > 10 ? 'bg-green-100 text-green-700' :
-                                  v.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
-                                    'bg-red-100 text-red-700'
-                                  }`}>
-                                  {v.stock} pcs
+                              <div key={v.weight} className="text-xs flex justify-between">
+                                <span className="text-gray-600">{v.weight}:</span>
+                                <span className={`font-bold ${v.stock > 10 ? 'text-green-600' : v.stock > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                  {v.stock}
                                 </span>
                               </div>
                             ))}
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                            }`}>
-                            {product.inStock ? 'In Stock' : 'Out of Stock'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <button
-                            onClick={() => deleteProduct(product.id)}
-                            className="flex items-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
-                          >
-                            <Trash2 size={16} />
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <span className={`w-full inline-block text-center py-1 rounded-lg text-xs font-semibold ${product.inStock ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'
+                          }`}>
+                          {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {products.length === 0 && (
@@ -1393,20 +1526,20 @@ Thank you for choosing Vaddadi Pickles!`;
                         <p className="text-sm text-gray-500">Method</p>
                         <p className="font-medium uppercase">{order.paymentMethod}</p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <button
                           onClick={() => {
                             updatePaymentStatus(order.id, 'approved');
                             sendWhatsAppUpdate(order, 'payment_approved');
                           }}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex-1 sm:flex-none"
                         >
                           <CheckCircle size={18} />
                           Approve
                         </button>
                         <button
                           onClick={() => updatePaymentStatus(order.id, 'rejected')}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex-1 sm:flex-none"
                         >
                           <XCircle size={18} />
                           Reject
@@ -1570,27 +1703,27 @@ Thank you for choosing Vaddadi Pickles!`;
         {activeTab === 'coupons' && (
           <div className="space-y-6">
             {/* Add Coupon */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Coupon</h3>
-              <div className="grid md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <input
                   type="text"
                   placeholder="Coupon Code"
                   value={newCoupon.code}
                   onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
                 />
                 <input
                   type="number"
                   placeholder="Discount"
                   value={newCoupon.discount}
                   onChange={(e) => setNewCoupon({ ...newCoupon, discount: Number(e.target.value) })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
                 />
                 <select
                   value={newCoupon.type}
                   onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value as 'percentage' | 'fixed' })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
                 >
                   <option value="percentage">Percentage (%)</option>
                   <option value="fixed">Fixed (₹)</option>
@@ -1600,11 +1733,11 @@ Thank you for choosing Vaddadi Pickles!`;
                   placeholder="Min Order"
                   value={newCoupon.minOrder}
                   onChange={(e) => setNewCoupon({ ...newCoupon, minOrder: Number(e.target.value) })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm"
                 />
                 <button
                   onClick={handleAddCoupon}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium text-sm"
                 >
                   Add Coupon
                 </button>
@@ -1613,45 +1746,75 @@ Thank you for choosing Vaddadi Pickles!`;
 
             {/* Coupon List */}
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50 text-left text-gray-600">
-                    <th className="px-6 py-3">Code</th>
-                    <th className="px-6 py-3">Discount</th>
-                    <th className="px-6 py-3">Min Order</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {coupons.map((coupon) => (
-                    <tr key={coupon.code} className="border-t">
-                      <td className="px-6 py-4 font-mono font-bold">{coupon.code}</td>
-                      <td className="px-6 py-4">
-                        {coupon.type === 'percentage' ? `${coupon.discount}%` : `₹${coupon.discount}`}
-                      </td>
-                      <td className="px-6 py-4">₹{coupon.minOrder}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-sm ${coupon.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
+              <div className="hidden md:block">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 text-left text-gray-600">
+                      <th className="px-6 py-3">Code</th>
+                      <th className="px-6 py-3">Discount</th>
+                      <th className="px-6 py-3">Min Order</th>
+                      <th className="px-6 py-3 text-center">Status</th>
+                      <th className="px-6 py-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map((coupon) => (
+                      <tr key={coupon.code} className="border-t hover:bg-gray-50 transition">
+                        <td className="px-6 py-4 font-mono font-bold">{coupon.code}</td>
+                        <td className="px-6 py-4">
+                          {coupon.type === 'percentage' ? `${coupon.discount}%` : `₹${coupon.discount}`}
+                        </td>
+                        <td className="px-6 py-4">₹{coupon.minOrder}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className={`px-3 py-1 rounded-full text-sm ${coupon.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                            {coupon.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => toggleCoupon(coupon.code)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium ${coupon.active
+                              ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                              }`}
+                          >
+                            {coupon.active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Coupon Cards */}
+              <div className="md:hidden divide-y">
+                {coupons.map((coupon) => (
+                  <div key={coupon.code} className="p-4 flex justify-between items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono font-bold text-gray-800">{coupon.code}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] ${coupon.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {coupon.active ? 'Active' : 'Inactive'}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => toggleCoupon(coupon.code)}
-                          className={`px-4 py-2 rounded-lg text-sm ${coupon.active
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                            }`}
-                        >
-                          {coupon.active ? 'Deactivate' : 'Activate'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {coupon.type === 'percentage' ? `${coupon.discount}%` : `₹${coupon.discount}`} off • Min. ₹{coupon.minOrder}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleCoupon(coupon.code)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${coupon.active
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-green-100 text-green-700'
+                        }`}
+                    >
+                      {coupon.active ? 'Stop' : 'Start'}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -216,9 +216,9 @@ const defaultSettings: StoreSettings = {
   upiId: '9885192948@ptyes',
   businessAddress: {
     name: 'Vaddadi Pickles',
-    street: 'SUJATHANAGAR',
-    city: 'VISAKHAPATNAM',
-    state: 'ANDHRA PRADESH',
+    street: 'Sujathanagar',
+    city: 'Visakhapatnam',
+    state: 'Andhra Pradesh',
     pincode: '530051',
     phone: '8008129309 (WhatsApp)',
   },
@@ -300,6 +300,7 @@ interface StoreState {
 
   // Sync actions
   fetchInitialData: () => Promise<void>;
+  initializeRealtimeSettings: () => () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -883,6 +884,36 @@ export const useStore = create<StoreState>()(
         } finally {
           set({ isLoading: false });
         }
+      },
+
+      initializeRealtimeSettings: () => {
+        const channel = supabase
+          .channel('public:store_settings')
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'store_settings',
+              filter: 'id=eq.1',
+            },
+            (payload) => {
+              const newSettings = payload.new;
+              set({
+                settings: {
+                  upiId: newSettings.upi_id || defaultSettings.upiId,
+                  businessAddress: newSettings.business_address || defaultSettings.businessAddress,
+                  enableCOD: newSettings.enable_cod ?? defaultSettings.enableCOD,
+                  enableBankTransfer: newSettings.enable_bank_transfer ?? defaultSettings.enableBankTransfer,
+                },
+              });
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
       },
     }),
     {
