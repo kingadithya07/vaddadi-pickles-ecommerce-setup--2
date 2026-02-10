@@ -14,6 +14,8 @@ export function ResetPassword() {
     useEffect(() => {
         // Check if we have an active recovery session
         const checkSession = async () => {
+            // Small delay for Supabase to fully process the recovery session
+            await new Promise(r => setTimeout(r, 500));
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 // If no session, we shouldn't be here

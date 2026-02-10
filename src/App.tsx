@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { useStore } from './store';
+import { supabase } from './lib/supabase';
 
 // Lazy load pages for better performance
 const Products = React.lazy(() => import('./pages/Products').then(module => ({ default: module.Products })));
@@ -49,6 +50,15 @@ export function App() {
 
   React.useEffect(() => {
     fetchInitialData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Redirect to reset password page using direct hash manipulation since we are outside the Router context
+        window.location.hash = '#/reset-password';
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [fetchInitialData]);
 
   if (isLoading) {
