@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, User as UserIcon, Phone, MapPin } from 'lucide-react';
 import { useStore } from '../store';
-import { User, Address } from '../types';
+import { User } from '../types';
+import { supabase } from '../lib/supabase';
 
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -20,110 +21,112 @@ export function Login() {
   });
   const [error, setError] = useState('');
 
-  const { login } = useStore();
+  const loginInStore = useStore((state) => state.login);
   const navigate = useNavigate();
   const location = useLocation();
   const redirect = (location.state as any)?.redirect || '/';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Admin Login
-    if (isAdminLogin) {
-      if (formData.email === 'admin@vaddadi.com' && formData.password === 'admin123') {
-        const adminUser: User = {
-          id: 'admin-1',
-          name: 'Admin',
-          email: 'admin@vaddadi.com',
-          phone: '+91 98765 43210',
-          address: {
-            street: 'SUJATHANAGAR',
-            city: 'VISAKHAPATNAM',
-            state: 'ANDHRA PRADESH',
-            pincode: '530051',
-            country: 'India',
-          },
-          addresses: [],
-          role: 'admin',
-        };
-        login(adminUser);
-        navigate('/admin');
-      } else {
-        setError('Invalid admin credentials. Use: admin@vaddadi.com / admin123');
-      }
+    if (!formData.email || !formData.password) {
+      setError('Please enter email and password');
       return;
     }
 
-    // Customer Sign Up
-    if (isSignUp) {
-      if (!formData.name || !formData.email || !formData.phone || !formData.street || !formData.city || !formData.pincode) {
-        setError('Please fill all required fields');
-        return;
-      }
-      const address: Address = {
-        street: formData.street,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode,
-        country: formData.country,
-      };
-      const user: User = {
-        id: `user-${Date.now()}`,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address,
-        addresses: [{
-          id: `addr-${Date.now()}`,
-          label: 'Home',
-          name: formData.name,
-          phone: formData.phone,
-          street: formData.street,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          country: formData.country,
-          isDefault: true,
-        }],
-        role: 'customer',
-      };
-      login(user);
-      navigate(redirect);
-    } else {
-      // Demo Customer Login
-      if (formData.email && formData.password) {
-        const user: User = {
-          id: `user-${Date.now()}`,
-          name: formData.email.split('@')[0],
+    try {
+      if (isSignUp) {
+        if (!formData.name || !formData.phone || !formData.street || !formData.city || !formData.pincode) {
+          setError('Please fill all required fields');
+          return;
+        }
+
+        // Check if this is the first user
+        const { count, error: _countError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+
+        const isFirstUser = count === 0;
+        const role = isFirstUser ? 'admin' : 'customer';
+
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
-          phone: '+91 99999 99999',
-          address: {
-            street: '123 Demo Street',
-            city: 'VISAKHAPATNAM',
-            state: 'ANDHRA PRADESH',
-            pincode: '530051',
-            country: 'India',
-          },
-          addresses: [{
-            id: `addr-${Date.now()}`,
-            label: 'Home',
-            name: formData.email.split('@')[0],
-            phone: '+91 99999 99999',
-            street: '123 Demo Street',
-            city: 'VISAKHAPATNAM',
-            state: 'ANDHRA PRADESH',
-            pincode: '530051',
-            country: 'India',
-            isDefault: true,
-          }],
-          role: 'customer',
-        };
-        login(user);
-        navigate(redirect);
+          password: formData.password,
+          options: {
+            data: {
+              name: formData.name,
+              phone: formData.phone,
+              role: role,
+              address: {
+                street: formData.street,
+                city: formData.city,
+                state: formData.state,
+                pincode: formData.pincode,
+                country: formData.country,
+              }
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (data.user) {
+          const newUser: User = {
+            id: data.user.id,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: {
+              street: formData.street,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+              country: formData.country,
+            },
+            addresses: [{
+              id: `addr-${Date.now()}`,
+              label: 'Home',
+              name: formData.name,
+              phone: formData.phone,
+              street: formData.street,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+              country: formData.country,
+              isDefault: true,
+            }],
+            role: role as 'admin' | 'customer',
+          };
+          loginInStore(newUser);
+          navigate(role === 'admin' ? '/admin' : redirect);
+        }
       } else {
-        setError('Please enter email and password');
+        // Sign In
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) throw signInError;
+
+        if (data.user) {
+          const metadata = data.user.user_metadata;
+          const user: User = {
+            id: data.user.id,
+            name: metadata.name || data.user.email?.split('@')[0],
+            email: data.user.email || '',
+            phone: metadata.phone || '',
+            address: metadata.address || {},
+            addresses: metadata.addresses || [],
+            role: metadata.role || 'customer',
+          };
+          loginInStore(user);
+          navigate(user.role === 'admin' ? '/admin' : redirect);
+        }
       }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during authentication');
     }
   };
 
@@ -156,8 +159,8 @@ export function Login() {
           )}
 
           {isAdminLogin && (
-            <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-sm border border-yellow-200">
-              <strong>⚠️ Security Warning:</strong> This is a demo admin login. Authentication is handled client-side. Do not use for production with real data.
+            <div className="bg-blue-50 text-blue-800 p-3 rounded-lg mb-4 text-sm border border-blue-200">
+              <strong>ℹ️ Note:</strong> Admin login is now handled via Supabase. Registered admins can sign in here.
             </div>
           )}
 

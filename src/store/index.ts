@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress } from '../types';
+import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
 const sampleProducts: Product[] = [
@@ -362,7 +363,8 @@ export const useStore = create<StoreState>()(
         set({ user, isAdmin: user.role === 'admin' });
       },
 
-      logout: () => {
+      logout: async () => {
+        await supabase.auth.signOut();
         set({ user: null, isAdmin: false });
       },
 
