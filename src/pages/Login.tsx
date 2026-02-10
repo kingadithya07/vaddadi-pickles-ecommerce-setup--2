@@ -55,6 +55,7 @@ export function Login() {
           password: formData.password,
           options: {
             data: {
+              full_name: formData.name,
               name: formData.name,
               phone: formData.phone,
               role: role,

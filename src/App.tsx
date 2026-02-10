@@ -40,6 +40,17 @@ function Loading() {
 }
 
 export function App() {
+  const fetchInitialData = useStore((state) => state.fetchInitialData);
+  const isLoading = useStore((state) => state.isLoading);
+
+  React.useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <BrowserRouter>
       <Suspense fallback={<Loading />}>

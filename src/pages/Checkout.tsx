@@ -103,7 +103,7 @@ export function Checkout() {
     }, 2000);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (paymentMethod !== 'cod') {
       if (!transactionId) {
         alert('Please enter transaction ID');
@@ -161,9 +161,14 @@ export function Checkout() {
       updatedAt: new Date().toISOString(),
     };
 
-    createOrder(order);
-    clearCart();
-    navigate('/order-success', { state: { orderId: order.id } });
+    try {
+      await createOrder(order);
+      clearCart();
+      navigate('/order-success', { state: { orderId: order.id } });
+    } catch (error) {
+      alert('Failed to place order. Please try again.');
+      console.error(error);
+    }
   };
 
   if (!user) {

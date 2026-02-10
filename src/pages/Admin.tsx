@@ -75,7 +75,7 @@ export function Admin() {
     stock: 0,
   });
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (isCombo) {
       if (!newCombo.name || !newCombo.image || newCombo.selectedProducts.length < 2) {
         alert('Please fill in name, image, and select at least 2 products with variants');
@@ -94,7 +94,7 @@ export function Admin() {
         active: true,
       };
 
-      addCombo(combo);
+      await addCombo(combo);
 
       setNewCombo({
         name: '',
@@ -137,7 +137,7 @@ export function Admin() {
       bestSeller: newProduct.bestSeller,
     };
 
-    addProduct(product);
+    await addProduct(product);
 
     // Reset form
     setNewProduct({

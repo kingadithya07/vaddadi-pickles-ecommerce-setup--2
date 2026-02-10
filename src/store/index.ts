@@ -243,6 +243,7 @@ interface StoreState {
   coupons: Coupon[];
   appliedCoupon: Coupon | null;
   isAdmin: boolean;
+  isLoading: boolean;
 
   // Cart actions
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
@@ -291,6 +292,9 @@ interface StoreState {
 
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
+
+  // Sync actions
+  fetchInitialData: () => Promise<void>;
 }
 
 export const useStore = create<StoreState>()(
@@ -306,6 +310,7 @@ export const useStore = create<StoreState>()(
       coupons: sampleCoupons,
       appliedCoupon: null,
       isAdmin: false,
+      isLoading: false,
 
       addToCart: (product, variant, quantity = 1) => {
         const cart = get().cart;
@@ -420,11 +425,30 @@ export const useStore = create<StoreState>()(
         });
       },
 
-      createOrder: (order) => {
+      createOrder: async (order) => {
         set({ orders: [...get().orders, order] });
+        await supabase.from('orders').insert({
+          id: order.id,
+          user_id: order.userId,
+          user_name: order.userName,
+          user_email: order.userEmail,
+          user_phone: order.userPhone,
+          items: order.items,
+          total: order.total,
+          discount: order.discount,
+          final_amount: order.finalAmount,
+          coupon_code: order.couponCode,
+          address: order.address,
+          status: order.status,
+          payment_status: order.paymentStatus,
+          payment_method: order.paymentMethod,
+          transaction_id: order.transactionId,
+          tracking_id: order.trackingId,
+          carrier: order.carrier,
+        });
       },
 
-      updateOrderStatus: (orderId, status) => {
+      updateOrderStatus: async (orderId, status) => {
         set({
           orders: get().orders.map((order) =>
             order.id === orderId
@@ -432,24 +456,35 @@ export const useStore = create<StoreState>()(
               : order
           ),
         });
+        await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
       },
 
-      updatePaymentStatus: (orderId, paymentStatus) => {
+      updatePaymentStatus: async (orderId, paymentStatus) => {
+        const updatedAt = new Date().toISOString();
+        const status = paymentStatus === 'approved' ? 'payment_approved' : get().orders.find(o => o.id === orderId)?.status;
+
         set({
           orders: get().orders.map((order) =>
             order.id === orderId
               ? {
                 ...order,
                 paymentStatus,
-                status: paymentStatus === 'approved' ? 'payment_approved' : order.status,
-                updatedAt: new Date().toISOString(),
+                status: status as Order['status'],
+                updatedAt,
               }
               : order
           ),
         });
+
+        await supabase.from('orders').update({
+          payment_status: paymentStatus,
+          status,
+          updated_at: updatedAt
+        }).eq('id', orderId);
       },
 
-      updateOrderTracking: (orderId, trackingId, carrier) => {
+      updateOrderTracking: async (orderId, trackingId, carrier) => {
+        const updatedAt = new Date().toISOString();
         set({
           orders: get().orders.map((order) =>
             order.id === orderId
@@ -457,12 +492,19 @@ export const useStore = create<StoreState>()(
                 ...order,
                 trackingId,
                 carrier,
-                status: 'shipped', // Auto-update status to shipped when tracking is added
-                updatedAt: new Date().toISOString(),
+                status: 'shipped',
+                updatedAt,
               }
               : order
           ),
         });
+
+        await supabase.from('orders').update({
+          tracking_id: trackingId,
+          carrier,
+          status: 'shipped',
+          updated_at: updatedAt
+        }).eq('id', orderId);
       },
 
       applyCoupon: (code) => {
@@ -490,54 +532,119 @@ export const useStore = create<StoreState>()(
         set({ appliedCoupon: null });
       },
 
-      addCoupon: (coupon) => {
+      addCoupon: async (coupon) => {
         set({ coupons: [...get().coupons, coupon] });
-      },
-
-      toggleCoupon: (code) => {
-        set({
-          coupons: get().coupons.map((c) =>
-            c.code === code ? { ...c, active: !c.active } : c
-          ),
+        await supabase.from('coupons').insert({
+          code: coupon.code,
+          discount: coupon.discount,
+          type: coupon.type,
+          min_order: coupon.minOrder,
+          active: coupon.active,
         });
       },
 
-      // Product actions
-      addProduct: (product) => {
-        set({ products: [...get().products, product] });
+      toggleCoupon: async (code) => {
+        const coupons = get().coupons;
+        const coupon = coupons.find(c => c.code === code);
+        if (!coupon) return;
+
+        const newActive = !coupon.active;
+        set({
+          coupons: coupons.map((c) =>
+            c.code === code ? { ...c, active: newActive } : c
+          ),
+        });
+
+        await supabase.from('coupons').update({ active: newActive }).eq('code', code);
       },
 
-      updateProduct: (product) => {
+      // Product actions
+      addProduct: async (product) => {
+        set({ products: [...get().products, product] });
+        await supabase.from('products').insert({
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          category: product.category,
+          image: product.image,
+          variants: product.variants,
+          in_stock: product.inStock,
+          rating: product.rating,
+          reviews: product.reviews,
+          best_seller: product.bestSeller,
+          is_combo: false,
+        });
+      },
+
+      updateProduct: async (product) => {
         set({
           products: get().products.map((p) =>
             p.id === product.id ? product : p
           ),
         });
+        await supabase.from('products').update({
+          name: product.name,
+          description: product.description,
+          category: product.category,
+          image: product.image,
+          variants: product.variants,
+          in_stock: product.inStock,
+          rating: product.rating,
+          reviews: product.reviews,
+          best_seller: product.bestSeller,
+          updated_at: new Date().toISOString(),
+        }).eq('id', product.id);
       },
 
-      deleteProduct: (productId) => {
+      deleteProduct: async (productId) => {
         set({
           products: get().products.filter((p) => p.id !== productId),
         });
+        await supabase.from('products').delete().eq('id', productId);
       },
 
       // Combo actions
-      addCombo: (combo) => {
+      addCombo: async (combo) => {
         set({ combos: [...get().combos, combo] });
+        await supabase.from('products').insert({
+          id: combo.id,
+          name: combo.name,
+          description: combo.description,
+          image: combo.image,
+          combo_products: combo.products,
+          original_price: combo.originalPrice,
+          combo_price: combo.comboPrice,
+          stock: combo.stock,
+          active: combo.active,
+          is_combo: true,
+          variants: [], // Empty variants for combos
+        });
       },
 
-      updateCombo: (combo) => {
+      updateCombo: async (combo) => {
         set({
           combos: get().combos.map((c) =>
             c.id === combo.id ? combo : c
           ),
         });
+        await supabase.from('products').update({
+          name: combo.name,
+          description: combo.description,
+          image: combo.image,
+          combo_products: combo.products,
+          original_price: combo.originalPrice,
+          combo_price: combo.comboPrice,
+          stock: combo.stock,
+          active: combo.active,
+          updated_at: new Date().toISOString(),
+        }).eq('id', combo.id);
       },
 
-      deleteCombo: (comboId) => {
+      deleteCombo: async (comboId) => {
         set({
           combos: get().combos.filter((c) => c.id !== comboId),
         });
+        await supabase.from('products').delete().eq('id', comboId);
       },
 
       // Display Image actions
@@ -560,12 +667,143 @@ export const useStore = create<StoreState>()(
       },
 
       // Settings actions
-      updateSettings: (settings) => {
+      updateSettings: async (settings) => {
         set({ settings });
+        await supabase.from('store_settings').update({
+          business_address: settings.businessAddress,
+          enable_cod: settings.enableCOD,
+          enable_bank_transfer: settings.enableBankTransfer,
+          upi_id: settings.upiId,
+          updated_at: new Date().toISOString(),
+        }).eq('id', 1);
       },
 
       setAdmin: (isAdmin) => {
         set({ isAdmin });
+      },
+
+      fetchInitialData: async () => {
+        set({ isLoading: true });
+        try {
+          // Fetch Products
+          const { data: productsData } = await supabase.from('products').select('*');
+          if (productsData) {
+            const products = productsData.filter(p => !p.is_combo).map(p => ({
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              category: p.category,
+              image: p.image,
+              variants: p.variants,
+              inStock: p.in_stock,
+              rating: Number(p.rating),
+              reviews: p.reviews,
+              bestSeller: p.best_seller,
+            }));
+            const combos = productsData.filter(p => p.is_combo).map(p => ({
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              image: p.image,
+              products: p.combo_products,
+              originalPrice: p.original_price, // Assuming these columns exist in my schema update or handled via JSON
+              comboPrice: p.combo_price,
+              stock: p.stock,
+              active: p.active,
+            }));
+            if (products.length > 0) set({ products });
+            if (combos.length > 0) set({ combos });
+          }
+
+          // Fetch Coupons
+          const { data: couponsData } = await supabase.from('coupons').select('*');
+          if (couponsData) {
+            set({
+              coupons: couponsData.map(c => ({
+                code: c.code,
+                discount: Number(c.discount),
+                type: c.type,
+                minOrder: Number(c.min_order),
+                active: c.active,
+              }))
+            });
+          }
+
+          // Fetch Settings
+          const { data: settingsData } = await supabase.from('store_settings').select('*').eq('id', 1).single();
+          if (settingsData) {
+            set({
+              settings: {
+                upiId: settingsData.upi_id || defaultSettings.upiId,
+                businessAddress: settingsData.business_address,
+                enableCOD: settingsData.enable_cod,
+                enableBankTransfer: settingsData.enable_bank_transfer,
+              }
+            });
+          }
+
+          // Fetch Orders (if admin)
+          if (get().isAdmin) {
+            const { data: ordersData } = await supabase.from('orders').select('*');
+            if (ordersData) {
+              set({
+                orders: ordersData.map(o => ({
+                  id: o.id,
+                  userId: o.user_id,
+                  userName: o.user_name,
+                  userEmail: o.user_email,
+                  userPhone: o.user_phone,
+                  items: o.items,
+                  total: Number(o.total),
+                  discount: Number(o.discount),
+                  finalAmount: Number(o.final_amount),
+                  couponCode: o.coupon_code,
+                  address: o.address,
+                  status: o.status,
+                  paymentStatus: o.payment_status,
+                  paymentMethod: o.payment_method,
+                  transactionId: o.transaction_id,
+                  trackingId: o.tracking_id,
+                  carrier: o.carrier,
+                  createdAt: o.created_at,
+                  updatedAt: o.updated_at,
+                }))
+              });
+            }
+          } else if (get().user) {
+            // Fetch personal orders
+            const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', get().user!.id);
+            if (ordersData) {
+              set({
+                orders: ordersData.map(o => ({
+                  id: o.id,
+                  userId: o.user_id,
+                  userName: o.user_name,
+                  userEmail: o.user_email,
+                  userPhone: o.user_phone,
+                  items: o.items,
+                  total: Number(o.total),
+                  discount: Number(o.discount),
+                  finalAmount: Number(o.final_amount),
+                  couponCode: o.coupon_code,
+                  address: o.address,
+                  status: o.status,
+                  paymentStatus: o.payment_status,
+                  paymentMethod: o.payment_method,
+                  transactionId: o.transaction_id,
+                  trackingId: o.tracking_id,
+                  carrier: o.carrier,
+                  createdAt: o.created_at,
+                  updatedAt: o.updated_at,
+                }))
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching initial data:', error);
+        } finally {
+          set({ isLoading: false });
+        }
       },
     }),
     {
