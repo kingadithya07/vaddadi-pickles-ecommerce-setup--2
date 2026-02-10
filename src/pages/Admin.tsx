@@ -357,7 +357,7 @@ Thank you for choosing Vaddadi Pickles!`;
         <div class="label">
           <div class="label-header">
             <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" class="bulk-logo" />
-            <h2>VADDADI PICKLES</h2>
+            <h2>Vaddadi Pickles</h2>
             <p>Premium Handmade Pickles | Est. 1985</p>
           </div>
           
@@ -466,7 +466,7 @@ Thank you for choosing Vaddadi Pickles!`;
         <div class="label">
           <div class="header">
             <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #16a34a;" />
-            <h2>${settings.businessAddress.name.toUpperCase()}</h2>
+            <h2>${settings.businessAddress.name}</h2>
             <p>${settings.businessAddress.city}, ${settings.businessAddress.state}</p>
           </div>
           

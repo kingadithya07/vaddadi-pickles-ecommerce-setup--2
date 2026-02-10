@@ -215,7 +215,7 @@ const sampleDisplayImages: DisplayImage[] = [
 const defaultSettings: StoreSettings = {
   upiId: '9885192948@ptyes',
   businessAddress: {
-    name: 'VADDADI PICKLES',
+    name: 'Vaddadi Pickles',
     street: 'SUJATHANAGAR',
     city: 'VISAKHAPATNAM',
     state: 'ANDHRA PRADESH',
