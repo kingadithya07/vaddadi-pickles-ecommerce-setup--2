@@ -74,7 +74,24 @@ export function Login() {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          navigate('/auth-success', { state: { type: 'registration' } });
+          // If session is returned, it means email verification is disabled in Supabase
+          if (data.session) {
+            const metadata = data.user.user_metadata;
+            const user: User = {
+              id: data.user.id,
+              name: metadata.name || data.user.email?.split('@')[0],
+              email: data.user.email || '',
+              phone: metadata.phone || '',
+              address: metadata.address || {},
+              addresses: metadata.addresses || [],
+              role: metadata.role || 'customer',
+            };
+            loginInStore(user);
+            navigate(user.role === 'admin' ? '/admin' : redirect);
+          } else {
+            // email verification is enabled
+            navigate('/auth-success', { state: { type: 'registration' } });
+          }
         }
       } else {
         // Sign In
