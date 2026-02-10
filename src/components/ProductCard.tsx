@@ -2,6 +2,7 @@ import { ShoppingCart, Star, Plus, Minus } from 'lucide-react';
 import { useState } from 'react';
 import { Product } from '../types';
 import { useStore } from '../store';
+import { ReviewModal } from './ReviewModal';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const removeFromCart = useStore((state) => state.removeFromCart);
   const cart = useStore((state) => state.cart);
   const [selectedWeight, setSelectedWeight] = useState<string>('');
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const selectedVariant = product.variants?.find(v => v.weight === selectedWeight);
 
@@ -64,19 +66,22 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-2 sm:p-4">
         <h3 className="text-sm sm:text-lg font-bold text-gray-800 mb-1 leading-tight">{product.name}</h3>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-1 sm:mb-2">
+        {/* Rating - Clickable to open reviews */}
+        <button
+          onClick={() => setIsReviewModalOpen(true)}
+          className="flex items-center gap-1 mb-1 sm:mb-2 hover:bg-gray-50 px-1 rounded transition-colors group/rating"
+        >
           <div className="flex">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 size={12}
-                className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}
+                className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 group-hover/rating:text-yellow-200'}
               />
             ))}
           </div>
-          <span className="text-[10px] sm:text-xs text-gray-500">({product.reviews})</span>
-        </div>
+          <span className="text-[10px] sm:text-xs text-gray-500 font-medium">({product.reviews})</span>
+        </button>
 
         <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2 hidden sm:block">{product.description}</p>
 
@@ -169,6 +174,12 @@ export function ProductCard({ product }: ProductCardProps) {
           </button>
         )}
       </div>
+
+      <ReviewModal
+        product={product}
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+      />
     </div>
   );
 }

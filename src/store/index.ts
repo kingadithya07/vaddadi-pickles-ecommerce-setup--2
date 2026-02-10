@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review } from '../types';
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
@@ -244,6 +244,7 @@ interface StoreState {
   appliedCoupon: Coupon | null;
   isAdmin: boolean;
   isLoading: boolean;
+  reviews: Record<string, Review[]>; // Product ID to Reviews mapping
 
   // Cart actions
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
@@ -290,6 +291,10 @@ interface StoreState {
   // Settings actions
   updateSettings: (settings: StoreSettings) => void;
 
+  // Review actions
+  addReview: (review: Omit<Review, 'id' | 'createdAt'>) => Promise<{ success: boolean; message: string }>;
+  fetchReviews: (productId: string) => Promise<void>;
+
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
 
@@ -311,6 +316,7 @@ export const useStore = create<StoreState>()(
       appliedCoupon: null,
       isAdmin: false,
       isLoading: false,
+      reviews: {},
 
       addToCart: (product, variant, quantity = 1) => {
         const cart = get().cart;
@@ -678,8 +684,81 @@ export const useStore = create<StoreState>()(
         }).eq('id', 1);
       },
 
-      setAdmin: (isAdmin) => {
+      setAdmin: (isAdmin: boolean) => {
         set({ isAdmin });
+      },
+
+      addReview: async (reviewData) => {
+        const { data, error } = await supabase.from('reviews').insert({
+          product_id: reviewData.productId,
+          user_id: reviewData.userId,
+          user_name: reviewData.userName,
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+        }).select().single();
+
+        if (error) {
+          return { success: false, message: error.message };
+        }
+
+        const newReview: Review = {
+          id: data.id,
+          productId: data.product_id,
+          userId: data.user_id,
+          userName: data.user_name,
+          rating: data.rating,
+          comment: data.comment,
+          createdAt: data.created_at,
+        };
+
+        const currentReviews = get().reviews[reviewData.productId] || [];
+        set({
+          reviews: {
+            ...get().reviews,
+            [reviewData.productId]: [newReview, ...currentReviews],
+          },
+        });
+
+        // Fetch product again to update its rating/reviews count (updated by DB trigger)
+        const { data: updatedProduct } = await supabase.from('products').select('*').eq('id', reviewData.productId).single();
+        if (updatedProduct) {
+          set({
+            products: get().products.map(p => p.id === reviewData.productId ? {
+              ...p,
+              rating: Number(updatedProduct.rating),
+              reviews: updatedProduct.reviews,
+            } : p)
+          });
+        }
+
+        return { success: true, message: 'Review submitted successfully!' };
+      },
+
+      fetchReviews: async (productId) => {
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('product_id', productId)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          const formattedReviews: Review[] = data.map(r => ({
+            id: r.id,
+            productId: r.product_id,
+            userId: r.user_id,
+            userName: r.user_name,
+            rating: r.rating,
+            comment: r.comment,
+            createdAt: r.created_at,
+          }));
+
+          set({
+            reviews: {
+              ...get().reviews,
+              [productId]: formattedReviews,
+            },
+          });
+        }
       },
 
       fetchInitialData: async () => {
