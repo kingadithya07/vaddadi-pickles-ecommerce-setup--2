@@ -76,6 +76,17 @@ export interface Address {
   country: string;
 }
 
+export interface DriverLocation {
+  orderId: string;
+  driverId: string;
+  driverName: string;
+  driverPhone: string;
+  lat: number;
+  lng: number;
+  timestamp: string;
+  isActive: boolean;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -88,12 +99,13 @@ export interface Order {
   finalAmount: number;
   couponCode?: string;
   address: Address;
-  status: 'pending' | 'payment_pending' | 'payment_approved' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'payment_pending' | 'payment_approved' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'awaiting_approval' | 'approved' | 'rejected';
   paymentMethod: string;
   transactionId?: string;
   trackingId?: string;
   carrier?: string;
+  driverId?: string;
   createdAt: string;
   updatedAt: string;
 }

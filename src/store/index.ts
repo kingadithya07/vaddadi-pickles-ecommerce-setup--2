@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, DriverLocation } from '../types';
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
@@ -245,6 +245,7 @@ interface StoreState {
   isAdmin: boolean;
   isLoading: boolean;
   reviews: Record<string, Review[]>; // Product ID to Reviews mapping
+  driverLocations: Record<string, DriverLocation>; // Order ID to DriverLocation mapping
 
   // Cart actions
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
@@ -298,6 +299,10 @@ interface StoreState {
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
 
+  // Driver tracking actions
+  fetchDriverLocation: (orderId: string) => Promise<DriverLocation | null>;
+  subscribeToDriverLocation: (orderId: string) => () => void;
+
   // Sync actions
   fetchInitialData: () => Promise<void>;
   initializeRealtimeSettings: () => () => void;
@@ -318,6 +323,7 @@ export const useStore = create<StoreState>()(
       isAdmin: false,
       isLoading: false,
       reviews: {},
+      driverLocations: {},
 
       addToCart: (product, variant, quantity = 1) => {
         const cart = get().cart;
@@ -687,6 +693,81 @@ export const useStore = create<StoreState>()(
 
       setAdmin: (isAdmin: boolean) => {
         set({ isAdmin });
+      },
+
+      fetchDriverLocation: async (orderId: string) => {
+        const { data, error } = await supabase
+          .from('driver_locations')
+          .select('*')
+          .eq('order_id', orderId)
+          .eq('is_active', true)
+          .single();
+
+        if (error || !data) return null;
+
+        const location: DriverLocation = {
+          orderId: data.order_id,
+          driverId: data.driver_id,
+          driverName: data.driver_name,
+          driverPhone: data.driver_phone,
+          lat: data.lat,
+          lng: data.lng,
+          timestamp: data.timestamp,
+          isActive: data.is_active,
+        };
+
+        set({
+          driverLocations: {
+            ...get().driverLocations,
+            [orderId]: location,
+          },
+        });
+
+        return location;
+      },
+
+      subscribeToDriverLocation: (orderId: string) => {
+        const channel = supabase
+          .channel(`driver-location-${orderId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'driver_locations',
+              filter: `order_id=eq.${orderId}`,
+            },
+            (payload) => {
+              if (payload.eventType === 'DELETE') {
+                const locations = { ...get().driverLocations };
+                delete locations[orderId];
+                set({ driverLocations: locations });
+              } else {
+                const data = payload.new;
+                const location: DriverLocation = {
+                  orderId: data.order_id,
+                  driverId: data.driver_id,
+                  driverName: data.driver_name,
+                  driverPhone: data.driver_phone,
+                  lat: data.lat,
+                  lng: data.lng,
+                  timestamp: data.timestamp,
+                  isActive: data.is_active,
+                };
+                set({
+                  driverLocations: {
+                    ...get().driverLocations,
+                    [orderId]: location,
+                  },
+                });
+              }
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
       },
 
       addReview: async (reviewData) => {

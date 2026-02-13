@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  font-family: inherit;
+}
+
+.custom-driver-icon,
+.custom-destination-icon {
+  background: transparent;
+  border: none;
+}
+
+/* Ensure map is visible */
+.leaflet-pane {
+  z-index: 1;
+}
+
+.leaflet-control {
+  z-index: 2;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2;
+}

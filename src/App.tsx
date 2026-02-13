@@ -21,6 +21,7 @@ const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions')
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
 const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
+const Driver = React.lazy(() => import('./pages/Driver').then(module => ({ default: module.Driver })));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -191,6 +192,12 @@ export function App() {
               <AdminLayout>
                 <Admin />
               </AdminLayout>
+            }
+          />
+          <Route
+            path="/driver"
+            element={
+              <Driver />
             }
           />
         </Routes>

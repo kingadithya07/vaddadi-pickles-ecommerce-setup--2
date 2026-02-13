@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Truck, CheckCircle, Clock, XCircle, FileText, MessageCircle, Printer } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, XCircle, FileText, MessageCircle, Printer, MapPin } from 'lucide-react';
 import { useStore } from '../store';
 import { Order } from '../types';
 import { getTrackingUrl } from '../utils/tracking';
+import { DriverMap } from '../components/DriverMap';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
@@ -11,13 +12,33 @@ const statusConfig: Record<Order['status'], { label: string; color: string; icon
   payment_approved: { label: 'Payment Approved', color: 'bg-blue-100 text-blue-700', icon: CheckCircle },
   processing: { label: 'Processing', color: 'bg-purple-100 text-purple-700', icon: Package },
   shipped: { label: 'Shipped', color: 'bg-indigo-100 text-indigo-700', icon: Truck },
+  out_for_delivery: { label: 'Out for Delivery', color: 'bg-orange-100 text-orange-700', icon: MapPin },
   delivered: { label: 'Delivered', color: 'bg-green-100 text-green-700', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
 };
 
 export function Orders() {
-  const { orders, user } = useStore();
+  const { orders, user, driverLocations, fetchDriverLocation, subscribeToDriverLocation } = useStore();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Subscribe to driver location updates for orders that are out for delivery
+  useEffect(() => {
+    const unsubscribers: (() => void)[] = [];
+    
+    orders.forEach(order => {
+      if (order.status === 'out_for_delivery' && order.driverId) {
+        // Fetch initial location
+        fetchDriverLocation(order.id);
+        // Subscribe to updates
+        const unsubscribe = subscribeToDriverLocation(order.id);
+        unsubscribers.push(unsubscribe);
+      }
+    });
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [orders, fetchDriverLocation, subscribeToDriverLocation]);
 
   const userOrders = orders.filter((o) => o.userId === user?.id).sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -202,23 +223,56 @@ export function Orders() {
                 <div className="relative mb-6">
                   <div className="flex justify-between">
                     {['Ordered', 'Payment', 'Processing', 'Shipped', 'Delivered'].map((step, i) => {
-                      const stepIndex = ['payment_pending', 'payment_approved', 'processing', 'shipped', 'delivered'].indexOf(order.status);
+                      const stepIndex = ['payment_pending', 'payment_approved', 'processing', 'shipped', 'delivered'].indexOf(order.status === 'out_for_delivery' ? 'shipped' : order.status);
                       const isCompleted = i <= stepIndex;
-                      const isCurrent = i === stepIndex;
+                      const isCurrent = i === stepIndex || (order.status === 'out_for_delivery' && i === 3);
 
                       return (
                         <div key={step} className="flex flex-col items-center flex-1">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isCompleted || (order.status === 'out_for_delivery' && i === 3) ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
                             } ${isCurrent ? 'ring-4 ring-green-200' : ''}`}>
-                            {isCompleted ? <CheckCircle size={16} /> : i + 1}
+                            {isCompleted || (order.status === 'out_for_delivery' && i === 3) ? <CheckCircle size={16} /> : i + 1}
                           </div>
-                          <p className="text-xs mt-1 text-center">{step}</p>
+                          <p className="text-xs mt-1 text-center">{order.status === 'out_for_delivery' && i === 3 ? 'Out for Delivery' : step}</p>
                         </div>
                       );
                     })}
                   </div>
                   <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 -z-10" />
                 </div>
+
+                {/* Live Driver Tracking */}
+                {order.status === 'out_for_delivery' && driverLocations[order.id] && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <MapPin size={18} className="text-green-600" />
+                        Live Driver Tracking
+                      </h4>
+                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full animate-pulse">
+                        Live
+                      </span>
+                    </div>
+                    <DriverMap
+                      driverLocation={driverLocations[order.id]}
+                      order={order}
+                      destinationCoords={null}
+                      showRoute={false}
+                      height="300px"
+                    />
+                  </div>
+                )}
+                {order.status === 'out_for_delivery' && !driverLocations[order.id] && (
+                  <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Truck size={24} className="text-orange-500" />
+                      <div>
+                        <p className="font-medium text-orange-800">Driver is on the way!</p>
+                        <p className="text-sm text-orange-600">Live tracking will appear once the driver starts sharing their location.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-3">
                   <button
