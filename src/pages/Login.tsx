@@ -73,11 +73,25 @@ export function Login() {
             addresses: metadata.addresses || [],
             role: metadata.role || 'customer',
           };
+
+          // Atomic Registration: Explicitly insert into profiles table
+          const { error: profileError } = await supabase.from('profiles').upsert({
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            role: user.role,
+            addresses: user.addresses,
+            cart: [],
+            updated_at: new Date().toISOString(),
+          });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+            setError('Account created but profile setup failed. Please try logging in.');
+            return;
+          }
+
           loginInStore(user);
-          // Wait for a small delay to ensure store is updated then sync
-          setTimeout(() => {
-            useStore.getState().syncProfileWithCloud();
-          }, 500);
           navigate(user.role === 'admin' ? '/admin' : redirect);
         }
       } else {

@@ -528,8 +528,9 @@ export const useStore = create<StoreState>()(
       },
 
       applyCoupon: (code) => {
+        const trimmedCode = code.trim().toUpperCase();
         const coupon = get().coupons.find(
-          (c) => c.code.toUpperCase() === code.toUpperCase() && c.active
+          (c) => c.code.toUpperCase() === trimmedCode && c.active
         );
         if (!coupon) {
           return { success: false, message: 'Invalid coupon code' };

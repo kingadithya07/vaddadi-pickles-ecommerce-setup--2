@@ -36,6 +36,8 @@ export function Checkout() {
   const [deliveryName, setDeliveryName] = useState(user?.name || '');
   const [deliveryPhone, setDeliveryPhone] = useState(user?.phone || '');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [pincodeBranches, setPincodeBranches] = useState<any[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState('');
 
   // Detect mobile device
   useEffect(() => {
@@ -59,10 +61,16 @@ export function Checkout() {
           setNewAddress(prev => ({
             ...prev,
             state: info.state,
-            city: info.city
+            city: info.city,
+            country: info.country
           }));
           setIsManualCity(false);
+          setPincodeBranches(info.branches);
+          setSelectedBranch('');
         }
+      } else {
+        setPincodeBranches([]);
+        setSelectedBranch('');
       }
     };
     fetchLocation();
@@ -383,7 +391,10 @@ export function Checkout() {
                     type="text"
                     placeholder="Pincode"
                     value={newAddress.pincode}
-                    onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setNewAddress({ ...newAddress, pincode: val });
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                   <input
@@ -394,6 +405,31 @@ export function Checkout() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
+
+                {pincodeBranches.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Select Post Office Branch</label>
+                    <select
+                      value={selectedBranch}
+                      onChange={(e) => {
+                        const branchName = e.target.value;
+                        setSelectedBranch(branchName);
+                        // Optional: auto-fill street with branch name if empty
+                        if (!newAddress.street) {
+                          setNewAddress(prev => ({ ...prev, street: branchName }));
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                    >
+                      <option value="">Select Local Branch</option>
+                      {pincodeBranches.map((branch, index) => (
+                        <option key={index} value={branch.name}>
+                          {branch.name} ({branch.branchType})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { useCartTotals } from '../hooks/useCartTotals';
 
 export function Cart() {
-  const { cart, user, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
+  const { cart, user, coupons, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
   const { subtotal, discount, total, shipping } = useCartTotals();
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -155,9 +155,11 @@ export function Cart() {
             Proceed to Checkout
           </button>
 
-          <p className="text-center text-sm text-gray-500 mt-4">
-            Available coupons: WELCOME10, PICKLE50, FESTIVE20
-          </p>
+          {coupons.length > 0 && (
+            <p className="text-center text-sm text-gray-500 mt-4">
+              Available coupons: {coupons.map(c => c.code).join(', ')}
+            </p>
+          )}
         </div>
       </div>
     </div>

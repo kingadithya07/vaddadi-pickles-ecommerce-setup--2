@@ -20,6 +20,8 @@ export function Profile() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
   const [isManualCity, setIsManualCity] = useState(false);
+  const [pincodeBranches, setPincodeBranches] = useState<any[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState('');
   const [addressForm, setAddressForm] = useState<Partial<UserAddress>>({
     label: '',
     name: '',
@@ -46,10 +48,16 @@ export function Profile() {
           setAddressForm(prev => ({
             ...prev,
             state: info.state,
-            city: info.city
+            city: info.city,
+            country: info.country
           }));
           setIsManualCity(false);
+          setPincodeBranches(info.branches);
+          setSelectedBranch('');
         }
+      } else {
+        setPincodeBranches([]);
+        setSelectedBranch('');
       }
     };
     fetchLocation();
@@ -123,6 +131,8 @@ export function Profile() {
     setShowAddressForm(false);
     setEditingAddress(null);
     setIsManualCity(false);
+    setPincodeBranches([]);
+    setSelectedBranch('');
     setAddressForm({
       label: '',
       name: '',
@@ -413,7 +423,10 @@ export function Profile() {
                       type="text"
                       placeholder="6-digit pincode"
                       value={addressForm.pincode}
-                      onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setAddressForm({ ...addressForm, pincode: val });
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -428,6 +441,30 @@ export function Profile() {
                     />
                   </div>
                 </div>
+
+                {pincodeBranches.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Select Post Office Branch</label>
+                    <select
+                      value={selectedBranch}
+                      onChange={(e) => {
+                        const branchName = e.target.value;
+                        setSelectedBranch(branchName);
+                        if (!addressForm.street) {
+                          setAddressForm(prev => ({ ...prev, street: branchName }));
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                    >
+                      <option value="">Select Local Branch</option>
+                      {pincodeBranches.map((branch, index) => (
+                        <option key={index} value={branch.name}>
+                          {branch.name} ({branch.branchType})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
