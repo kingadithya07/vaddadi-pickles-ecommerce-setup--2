@@ -571,50 +571,53 @@ Thank you for choosing Vaddadi Pickles!`;
 
         {/* Dashboard */}
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2 md:mb-4">
-                <Package className="text-blue-500" size={24} />
-                <span className="text-xl md:text-3xl font-bold text-gray-800">{orders.length}</span>
+          <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Package className="text-blue-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{orders.length}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Total Orders</p>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">Total Orders</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2 md:mb-4">
-                <Clock className="text-yellow-500" size={24} />
-                <span className="text-xl md:text-3xl font-bold text-gray-800">{pendingPayments}</span>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Clock className="text-yellow-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{pendingPayments}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Pending Payments</p>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">Pending Payments</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2 md:mb-4">
-                <CreditCard className="text-green-500" size={24} />
-                <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalRevenue}</span>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <CreditCard className="text-green-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalRevenue}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Total Revenue</p>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">Total Revenue</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2 md:mb-4">
-                <Users className="text-purple-500" size={24} />
-                <span className="text-xl md:text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Users className="text-purple-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Total Customers</p>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">Total Customers</p>
-            </div>
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
-              <div className="flex items-center justify-between mb-2 md:mb-4">
-                <Tag className="text-red-500" size={24} />
-                <span className="text-xl md:text-3xl font-bold text-gray-800">
-                  ₹{orders
-                    .filter((o) => o.paymentStatus === 'approved')
-                    .reduce((sum, o) => sum + (o.discount || 0), 0)
-                    .toFixed(2)}
-                </span>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6 col-span-2 lg:col-span-4">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Tag className="text-red-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">
+                    ₹{orders
+                      .filter((o) => o.paymentStatus === 'approved')
+                      .reduce((sum, o) => sum + (o.discount || 0), 0)
+                      .toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Coupon Discounts</p>
               </div>
-              <p className="text-gray-600 text-sm md:text-base">Coupon Discounts</p>
             </div>
 
             {/* Recent Orders */}
-            <div className="md:col-span-4 bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full">
@@ -761,7 +764,10 @@ Thank you for choosing Vaddadi Pickles!`;
                     type="checkbox"
                     className="sr-only peer"
                     checked={settings.enableCOD}
-                    onChange={() => updateSettings({ ...settings, enableCOD: !settings.enableCOD })}
+                    onChange={() => {
+                      const newSettings = { ...settings, enableCOD: !settings.enableCOD };
+                      set({ settings: newSettings });
+                    }}
                   />
                   <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
@@ -781,7 +787,10 @@ Thank you for choosing Vaddadi Pickles!`;
                     type="checkbox"
                     className="sr-only peer"
                     checked={settings.enableBankTransfer}
-                    onChange={() => updateSettings({ ...settings, enableBankTransfer: !settings.enableBankTransfer })}
+                    onChange={() => {
+                      const newSettings = { ...settings, enableBankTransfer: !settings.enableBankTransfer };
+                      set({ settings: newSettings });
+                    }}
                   />
                   <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
@@ -798,6 +807,22 @@ Thank you for choosing Vaddadi Pickles!`;
                     {settings.enableBankTransfer ? 'Enabled' : 'Disabled'}
                   </span>
                 </p>
+              </div>
+
+              {/* Save Button */}
+              <div className="border-t pt-6">
+                <button
+                  onClick={async () => {
+                    await updateSettings(settings);
+                    alert('Settings saved successfully!');
+                  }}
+                  className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+                  </svg>
+                  Save Settings
+                </button>
               </div>
             </div>
           </div>

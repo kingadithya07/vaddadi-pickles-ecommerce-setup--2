@@ -13,11 +13,10 @@ export const getTrackingUrl = (carrier: string, trackingId: string): string => {
             return `https://www.dtdc.in/tracking/shipment-tracking.asp?no=${id}`;
         case 'india post':
         case 'speed post':
-            // India Post is tricky for deep linking, but this is the tracking page.
-            return `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx`;
+            return `https://www.indiapost.gov.in/`;
         case 'professional couriers':
         case 'tpc':
-            return `http://www.tpcindia.com/track-consignment-search-details.aspx?obj=${id}`;
+            return `https://www.tpcindia.com/`;
         case 'trackon':
             return `https://trackon.in/Tracking/Tracking?consignmentNo=${id}`;
         default:

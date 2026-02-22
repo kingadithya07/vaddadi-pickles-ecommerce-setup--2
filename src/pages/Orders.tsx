@@ -113,7 +113,7 @@ export function Orders() {
         
         <div class="footer">
           <p>Thank you for shopping with Vaddadi Pickles!</p>
-          <p>Contact: +91 98765 43210 | info@vaddadipickles.com</p>
+          <p>Contact: 8008129309 (WhatsApp)</p>
         </div>
         
         <script>window.print();</script>

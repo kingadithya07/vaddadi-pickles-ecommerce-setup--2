@@ -675,14 +675,39 @@ export const useStore = create<StoreState>()(
 
       // Settings actions
       updateSettings: async (settings) => {
-        set({ settings });
-        await supabase.from('store_settings').update({
-          business_address: settings.businessAddress,
-          enable_cod: settings.enableCOD,
-          enable_bank_transfer: settings.enableBankTransfer,
-          upi_id: settings.upiId,
-          updated_at: new Date().toISOString(),
-        }).eq('id', 1);
+        try {
+          console.log('Updating settings:', settings);
+
+          const { data, error } = await supabase.from('store_settings').update({
+            business_address: settings.businessAddress,
+            enable_cod: settings.enableCOD,
+            enable_bank_transfer: settings.enableBankTransfer,
+            upi_id: settings.upiId,
+            updated_at: new Date().toISOString(),
+          }).eq('id', 1).select();
+
+          if (error) {
+            console.error('Error updating settings:', error);
+            throw error;
+          }
+
+          console.log('Settings updated successfully in database:', data);
+          set({ settings });
+        } catch (error) {
+          console.error('Failed to update settings:', error);
+          // Revert to previous settings on error
+          const { data: settingsData } = await supabase.from('store_settings').select('*').eq('id', 1).single();
+          if (settingsData) {
+            set({
+              settings: {
+                upiId: settingsData.upi_id || defaultSettings.upiId,
+                businessAddress: settingsData.business_address,
+                enableCOD: settingsData.enable_cod ?? defaultSettings.enableCOD,
+                enableBankTransfer: settingsData.enable_bank_transfer ?? defaultSettings.enableBankTransfer,
+              }
+            });
+          }
+        }
       },
 
       setAdmin: (isAdmin: boolean) => {
