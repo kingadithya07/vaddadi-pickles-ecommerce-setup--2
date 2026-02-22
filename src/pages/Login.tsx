@@ -63,24 +63,22 @@ export function Login() {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          // If session is returned, it means email verification is disabled in Supabase
-          if (data.session) {
-            const metadata = data.user.user_metadata;
-            const user: User = {
-              id: data.user.id,
-              name: metadata.name || data.user.email?.split('@')[0],
-              email: data.user.email || '',
-              phone: metadata.phone || '',
-              address: metadata.address || {},
-              addresses: metadata.addresses || [],
-              role: metadata.role || 'customer',
-            };
-            loginInStore(user);
-            navigate(user.role === 'admin' ? '/admin' : redirect);
-          } else {
-            // email verification is enabled
-            navigate('/auth-success', { state: { type: 'registration' } });
-          }
+          const metadata = data.user.user_metadata;
+          const user: User = {
+            id: data.user.id,
+            name: metadata.name || data.user.email?.split('@')[0],
+            email: data.user.email || '',
+            phone: metadata.phone || '',
+            address: metadata.address || {},
+            addresses: metadata.addresses || [],
+            role: metadata.role || 'customer',
+          };
+          loginInStore(user);
+          // Wait for a small delay to ensure store is updated then sync
+          setTimeout(() => {
+            useStore.getState().syncProfileWithCloud();
+          }, 500);
+          navigate(user.role === 'admin' ? '/admin' : redirect);
         }
       } else {
         // Sign In
@@ -92,6 +90,13 @@ export function Login() {
         if (signInError) throw signInError;
 
         if (data.user) {
+          // Fetch profile to get the most up-to-date role
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
           const metadata = data.user.user_metadata;
           const user: User = {
             id: data.user.id,
@@ -100,7 +105,7 @@ export function Login() {
             phone: metadata.phone || '',
             address: metadata.address || {},
             addresses: metadata.addresses || [],
-            role: metadata.role || 'customer',
+            role: profile?.role || metadata.role || 'customer',
           };
           loginInStore(user);
           navigate(user.role === 'admin' ? '/admin' : redirect);

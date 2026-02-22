@@ -301,6 +301,9 @@ interface StoreState {
   // Sync actions
   fetchInitialData: () => Promise<void>;
   initializeRealtimeSettings: () => () => void;
+  syncCartWithCloud: () => Promise<void>;
+  syncProfileWithCloud: () => Promise<void>;
+  initializeRealtimeUserSync: () => () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -344,6 +347,7 @@ export const useStore = create<StoreState>()(
         } else if (quantity > 0) {
           set({ cart: [...cart, { product, variant, quantity }] });
         }
+        get().syncCartWithCloud();
       },
 
       removeFromCart: (productId, weight) => {
@@ -352,6 +356,7 @@ export const useStore = create<StoreState>()(
             (item) => !(item.product.id === productId && item.variant.weight === weight)
           ),
         });
+        get().syncCartWithCloud();
       },
 
       updateQuantity: (productId, weight, quantity) => {
@@ -366,10 +371,12 @@ export const useStore = create<StoreState>()(
             ),
           });
         }
+        get().syncCartWithCloud();
       },
 
       clearCart: () => {
         set({ cart: [], appliedCoupon: null });
+        get().syncCartWithCloud();
       },
 
       login: (user) => {
@@ -383,6 +390,7 @@ export const useStore = create<StoreState>()(
 
       updateUser: (user) => {
         set({ user });
+        get().syncProfileWithCloud();
       },
 
       addUserAddress: (address) => {
@@ -392,9 +400,10 @@ export const useStore = create<StoreState>()(
         if (address.isDefault) {
           addresses.forEach(a => a.isDefault = false);
         }
-        set({ user: { ...user, addresses: [...addresses, address] } });
+        const updatedUser = { ...user, addresses: [...addresses, address] };
+        set({ user: updatedUser });
+        get().syncProfileWithCloud();
       },
-
       updateUserAddress: (address) => {
         const user = get().user;
         if (!user) return;
@@ -408,7 +417,9 @@ export const useStore = create<StoreState>()(
             addresses: addresses.map(a => a.id === address.id ? address : a)
           }
         });
+        get().syncProfileWithCloud();
       },
+
 
       deleteUserAddress: (addressId) => {
         const user = get().user;
@@ -419,6 +430,7 @@ export const useStore = create<StoreState>()(
             addresses: (user.addresses || []).filter(a => a.id !== addressId)
           }
         });
+        get().syncProfileWithCloud();
       },
 
       setDefaultAddress: (addressId) => {
@@ -430,6 +442,7 @@ export const useStore = create<StoreState>()(
             addresses: (user.addresses || []).map(a => ({ ...a, isDefault: a.id === addressId }))
           }
         });
+        get().syncProfileWithCloud();
       },
 
       createOrder: async (order) => {
@@ -904,11 +917,101 @@ export const useStore = create<StoreState>()(
               });
             }
           }
-        } catch (error) {
-          console.error('Error fetching initial data:', error);
         } finally {
           set({ isLoading: false });
         }
+
+        // Fetch user profile if logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (profile) {
+            set({
+              user: {
+                id: user.id,
+                email: user.email!,
+                name: profile.name || '',
+                phone: profile.phone || '',
+                addresses: profile.addresses || [],
+                role: profile.role || (user.app_metadata?.role as any) || 'customer',
+                address: profile.addresses?.find((a: any) => a.isDefault) || profile.addresses?.[0] || {
+                  street: '',
+                  city: '',
+                  state: '',
+                  pincode: '',
+                  country: 'India'
+                }
+              },
+              cart: profile.cart || get().cart, // Merge or overwrite? Let's overwrite for consistency
+            });
+          }
+        }
+      },
+
+      syncCartWithCloud: async () => {
+        const user = get().user;
+        if (!user) return;
+
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          cart: get().cart,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+      },
+
+      syncProfileWithCloud: async () => {
+        const user = get().user;
+        if (!user) return;
+
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+          addresses: user.addresses,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+      },
+
+      initializeRealtimeUserSync: () => {
+        const user = get().user;
+        if (!user) return () => { };
+
+        const channel = supabase
+          .channel(`public:profiles:id=eq.${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${user.id}`,
+            },
+            (payload) => {
+              const newProfile = payload.new;
+              set((state) => ({
+                user: state.user ? {
+                  ...state.user,
+                  name: newProfile.name,
+                  phone: newProfile.phone,
+                  role: newProfile.role || state.user.role,
+                  addresses: newProfile.addresses,
+                } : null,
+                cart: newProfile.cart || state.cart,
+                isAdmin: (newProfile.role || state.user?.role) === 'admin',
+              }));
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
       },
 
       initializeRealtimeSettings: () => {

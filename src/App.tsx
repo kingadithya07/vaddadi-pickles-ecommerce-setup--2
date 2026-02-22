@@ -51,17 +51,31 @@ export function App() {
   React.useEffect(() => {
     fetchInitialData();
     const cleanupSettings = useStore.getState().initializeRealtimeSettings();
+    let cleanupUserSync = () => { };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Redirect to reset password page using direct hash manipulation since we are outside the Router context
         window.location.hash = '#/reset-password';
+      }
+
+      // Re-initialize user sync on auth change
+      cleanupUserSync();
+      if (session?.user) {
+        cleanupUserSync = useStore.getState().initializeRealtimeUserSync();
+      }
+    });
+
+    // Initial check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        cleanupUserSync = useStore.getState().initializeRealtimeUserSync();
       }
     });
 
     return () => {
       subscription.unsubscribe();
       cleanupSettings();
+      cleanupUserSync();
     };
   }, [fetchInitialData]);
 
