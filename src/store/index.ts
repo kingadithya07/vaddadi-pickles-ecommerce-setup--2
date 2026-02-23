@@ -304,6 +304,8 @@ interface StoreState {
   syncCartWithCloud: () => Promise<void>;
   syncProfileWithCloud: () => Promise<void>;
   initializeRealtimeUserSync: () => () => void;
+  initializeRealtimeProducts: () => () => void;
+  initializeRealtimeCoupons: () => () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -1041,6 +1043,103 @@ export const useStore = create<StoreState>()(
                   enableBankTransfer: newSettings.enable_bank_transfer ?? defaultSettings.enableBankTransfer,
                 },
               });
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
+
+      initializeRealtimeProducts: () => {
+        const channel = supabase
+          .channel('public:products')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'products' },
+            (payload) => {
+              const { eventType, new: newRecord, old: oldRecord } = payload;
+
+              if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                if (newRecord.is_combo) {
+                  const combo = {
+                    id: newRecord.id,
+                    name: newRecord.name,
+                    description: newRecord.description,
+                    image: newRecord.image,
+                    products: newRecord.combo_products,
+                    originalPrice: newRecord.original_price,
+                    comboPrice: newRecord.combo_price,
+                    stock: newRecord.stock,
+                    active: newRecord.active,
+                  };
+                  set((state) => ({
+                    combos: eventType === 'INSERT'
+                      ? [...state.combos, combo]
+                      : state.combos.map(c => c.id === combo.id ? combo : c)
+                  }));
+                } else {
+                  const product = {
+                    id: newRecord.id,
+                    name: newRecord.name,
+                    description: newRecord.description,
+                    category: newRecord.category,
+                    image: newRecord.image,
+                    variants: newRecord.variants,
+                    inStock: newRecord.in_stock,
+                    rating: Number(newRecord.rating),
+                    reviews: newRecord.reviews,
+                    bestSeller: newRecord.best_seller,
+                  };
+                  set((state) => ({
+                    products: eventType === 'INSERT'
+                      ? [...state.products, product]
+                      : state.products.map(p => p.id === product.id ? product : p)
+                  }));
+                }
+              } else if (eventType === 'DELETE') {
+                set((state) => ({
+                  products: state.products.filter(p => p.id !== oldRecord.id),
+                  combos: state.combos.filter(c => c.id !== oldRecord.id)
+                }));
+              }
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
+
+      initializeRealtimeCoupons: () => {
+        const channel = supabase
+          .channel('public:coupons')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'coupons' },
+            (payload) => {
+              const { eventType, new: newRecord, old: oldRecord } = payload;
+
+              if (eventType === 'INSERT' || eventType === 'UPDATE') {
+                const coupon = {
+                  code: newRecord.code.trim(),
+                  discount: Number(newRecord.discount),
+                  type: newRecord.type,
+                  minOrder: Number(newRecord.min_order),
+                  active: newRecord.active,
+                };
+                set((state) => ({
+                  coupons: eventType === 'INSERT'
+                    ? [...state.coupons, coupon]
+                    : state.coupons.map(c => c.code === coupon.code ? coupon : c)
+                }));
+              } else if (eventType === 'DELETE') {
+                set((state) => ({
+                  coupons: state.coupons.filter(c => c.code !== oldRecord.code)
+                }));
+              }
             }
           )
           .subscribe();

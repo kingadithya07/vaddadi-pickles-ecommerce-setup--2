@@ -51,6 +51,8 @@ export function App() {
   React.useEffect(() => {
     fetchInitialData();
     const cleanupSettings = useStore.getState().initializeRealtimeSettings();
+    const cleanupProducts = useStore.getState().initializeRealtimeProducts();
+    const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();
     let cleanupUserSync = () => { };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
@@ -75,6 +77,8 @@ export function App() {
     return () => {
       subscription.unsubscribe();
       cleanupSettings();
+      cleanupProducts();
+      cleanupCoupons();
       cleanupUserSync();
     };
   }, [fetchInitialData]);
