@@ -1,6 +1,7 @@
 export interface ProductVariant {
   weight: string;
   price: number;
+  mrp: number;
   stock: number;
 }
 

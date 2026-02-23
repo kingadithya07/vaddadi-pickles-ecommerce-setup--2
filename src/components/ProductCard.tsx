@@ -49,7 +49,15 @@ export function ProductCard({ product }: ProductCardProps) {
     <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       {/* Product Image */}
       <div className="relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
-        <span className="text-6xl sm:text-8xl group-hover:scale-110 transition-transform">{product.image}</span>
+        {product.image.startsWith('http') || product.image.startsWith('/') ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+          />
+        ) : (
+          <span className="text-6xl sm:text-8xl group-hover:scale-110 transition-transform">{product.image}</span>
+        )}
         {product.bestSeller && (
           <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
             Best Seller
@@ -122,8 +130,10 @@ export function ProductCard({ product }: ProductCardProps) {
           {selectedVariant ? (
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <span className="text-lg sm:text-2xl font-bold text-green-600">₹{selectedVariant.price}</span>
-              <span className="text-xs sm:text-sm text-gray-400 line-through">₹{Math.round(selectedVariant.price * 1.2)}</span>
-              <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">20% OFF</span>
+              <span className="text-xs sm:text-sm text-gray-400 line-through">₹{selectedVariant.mrp}</span>
+              <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                {Math.round(((selectedVariant.mrp - selectedVariant.price) / selectedVariant.mrp) * 100)}% OFF
+              </span>
             </div>
           ) : (
             <p className="text-[10px] sm:text-sm text-gray-500">Select weight</p>

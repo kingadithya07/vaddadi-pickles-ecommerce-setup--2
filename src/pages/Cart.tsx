@@ -51,8 +51,16 @@ export function Cart() {
         <div className="lg:col-span-2 space-y-4">
           {cart.map((item) => (
             <div key={`${item.product.id}-${item.variant.weight}`} className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4">
-              <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center text-4xl">
-                {item.product.image}
+              <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center text-4xl overflow-hidden">
+                {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
+                  <img
+                    src={item.product.image}
+                    alt={item.product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  item.product.image
+                )}
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-800">{item.product.name}</h3>

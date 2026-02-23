@@ -747,7 +747,17 @@ export function Checkout() {
             <div className="space-y-4 max-h-60 overflow-y-auto mb-4">
               {cart.map((item) => (
                 <div key={`${item.product.id}-${item.variant.weight}`} className="flex items-center gap-3">
-                  <span className="text-2xl">{item.product.image}</span>
+                  <div className="w-10 h-10 flex-shrink-0 bg-gray-50 rounded flex items-center justify-center text-2xl overflow-hidden text-center">
+                    {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
+                      <img
+                        src={item.product.image}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      item.product.image
+                    )}
+                  </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{item.product.name}</p>
                     <p className="text-sm text-gray-500">{item.variant.weight} × {item.quantity}</p>

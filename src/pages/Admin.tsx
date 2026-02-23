@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
@@ -39,6 +39,12 @@ export function Admin() {
   const settings = useStore((state) => state.settings);
   const updateSettings = useStore((state) => state.updateSettings);
   const navigate = useNavigate();
+  const [draftSettings, setDraftSettings] = useState(settings);
+
+  // Sync draft settings with store settings when they change externally
+  useEffect(() => {
+    setDraftSettings(settings);
+  }, [settings]);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [newCoupon, setNewCoupon] = useState<Partial<Coupon>>({
@@ -57,9 +63,9 @@ export function Admin() {
     category: 'mango',
     image: '',
     variants: [
-      { weight: '250g', price: 149, stock: 50, enabled: true },
-      { weight: '500g', price: 279, stock: 50, enabled: true },
-      { weight: '1kg', price: 529, stock: 30, enabled: true },
+      { weight: '250g', price: 149, mrp: 199, stock: 50, enabled: true },
+      { weight: '500g', price: 279, mrp: 349, stock: 50, enabled: true },
+      { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
     ],
     bestSeller: false,
   });
@@ -117,7 +123,7 @@ export function Admin() {
 
     const enabledVariants: ProductVariant[] = newProduct.variants
       .filter(v => v.enabled)
-      .map(v => ({ weight: v.weight, price: v.price, stock: v.stock }));
+      .map(v => ({ weight: v.weight, price: v.price, mrp: v.mrp, stock: v.stock }));
 
     if (enabledVariants.length === 0) {
       alert('Please enable at least one weight variant');
@@ -146,9 +152,9 @@ export function Admin() {
       category: 'mango',
       image: '',
       variants: [
-        { weight: '250g', price: 149, stock: 50, enabled: true },
-        { weight: '500g', price: 279, stock: 50, enabled: true },
-        { weight: '1kg', price: 529, stock: 30, enabled: true },
+        { weight: '250g', price: 149, mrp: 199, stock: 50, enabled: true },
+        { weight: '500g', price: 279, mrp: 349, stock: 50, enabled: true },
+        { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
       ],
       bestSeller: false,
     });
@@ -653,7 +659,17 @@ Thank you for choosing Vaddadi Pickles!`;
                     {combos.map((combo) => (
                       <tr key={combo.id} className="border-b hover:bg-gray-50 bg-purple-50">
                         <td className="px-6 py-3">
-                          <span className="text-2xl">{combo.image}</span>
+                          <div className="w-12 h-12 flex-shrink-0 bg-white rounded flex items-center justify-center text-2xl overflow-hidden border">
+                            {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
+                              <img
+                                src={combo.image}
+                                alt={combo.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              combo.image
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-3">
                           <div className="font-medium text-gray-800">{combo.name}</div>
@@ -716,7 +732,17 @@ Thank you for choosing Vaddadi Pickles!`;
                     {combos.map((combo) => (
                       <div key={combo.id} className="p-4 border border-purple-100 rounded-xl bg-purple-50/30 space-y-3">
                         <div className="flex gap-4">
-                          <span className="text-3xl">{combo.image}</span>
+                          <div className="w-16 h-16 flex-shrink-0 bg-white rounded-lg flex items-center justify-center text-3xl overflow-hidden border">
+                            {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
+                              <img
+                                src={combo.image}
+                                alt={combo.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              combo.image
+                            )}
+                          </div>
                           <div className="flex-1">
                             <h5 className="font-bold text-gray-800 text-sm">{combo.name}</h5>
                             <span className="text-[10px] text-purple-600 font-semibold uppercase">Combo Item</span>
@@ -763,10 +789,9 @@ Thank you for choosing Vaddadi Pickles!`;
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={settings.enableCOD}
+                    checked={draftSettings.enableCOD}
                     onChange={() => {
-                      const newSettings = { ...settings, enableCOD: !settings.enableCOD };
-                      updateSettings(newSettings);
+                      setDraftSettings(prev => ({ ...prev, enableCOD: !prev.enableCOD }));
                     }}
                   />
                   <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-600"></div>
@@ -786,10 +811,9 @@ Thank you for choosing Vaddadi Pickles!`;
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={settings.enableBankTransfer}
+                    checked={draftSettings.enableBankTransfer}
                     onChange={() => {
-                      const newSettings = { ...settings, enableBankTransfer: !settings.enableBankTransfer };
-                      updateSettings(newSettings);
+                      setDraftSettings(prev => ({ ...prev, enableBankTransfer: !prev.enableBankTransfer }));
                     }}
                   />
                   <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
@@ -798,13 +822,13 @@ Thank you for choosing Vaddadi Pickles!`;
 
               <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 space-y-2">
                 <p>
-                  COD Status: <span className={`font-semibold ${settings.enableCOD ? 'text-green-600' : 'text-red-500'}`}>
-                    {settings.enableCOD ? 'Enabled' : 'Disabled'}
+                  COD Status: <span className={`font-semibold ${draftSettings.enableCOD ? 'text-green-600' : 'text-red-500'}`}>
+                    {draftSettings.enableCOD ? 'Enabled' : 'Disabled'}
                   </span>
                 </p>
                 <p>
-                  Bank Transfer Status: <span className={`font-semibold ${settings.enableBankTransfer ? 'text-blue-600' : 'text-red-500'}`}>
-                    {settings.enableBankTransfer ? 'Enabled' : 'Disabled'}
+                  Bank Transfer Status: <span className={`font-semibold ${draftSettings.enableBankTransfer ? 'text-blue-600' : 'text-red-500'}`}>
+                    {draftSettings.enableBankTransfer ? 'Enabled' : 'Disabled'}
                   </span>
                 </p>
               </div>
@@ -813,7 +837,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div className="border-t pt-6">
                 <button
                   onClick={async () => {
-                    await updateSettings(settings);
+                    await updateSettings(draftSettings);
                     alert('Settings saved successfully!');
                   }}
                   className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
@@ -1081,7 +1105,22 @@ Thank you for choosing Vaddadi Pickles!`;
                             </label>
 
                             <div className="flex-1">
-                              <label className="text-xs text-gray-500">Price (₹)</label>
+                              <label className="text-xs text-gray-500">MRP (₹)</label>
+                              <input
+                                type="number"
+                                value={variant.mrp}
+                                onChange={(e) => {
+                                  const newVariants = [...newProduct.variants];
+                                  newVariants[index].mrp = Number(e.target.value);
+                                  setNewProduct({ ...newProduct, variants: newVariants });
+                                }}
+                                disabled={!variant.enabled}
+                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                              />
+                            </div>
+
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500">Selling (₹)</label>
                               <input
                                 type="number"
                                 value={variant.price}
@@ -1165,7 +1204,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       {products.map((product) => (
                         <tr key={product.id} className="border-b hover:bg-gray-50">
                           <td className="px-6 py-4">
-                            {product.image.startsWith('http') ? (
+                            {product.image.startsWith('http') || product.image.startsWith('/') ? (
                               <img
                                 src={product.image}
                                 alt={product.name}
@@ -1195,7 +1234,8 @@ Thank you for choosing Vaddadi Pickles!`;
                               {product.variants.map((v) => (
                                 <div key={v.weight} className="text-sm">
                                   <span className="font-medium">{v.weight}:</span>{' '}
-                                  <span className="text-green-600">₹{v.price}</span>
+                                  <span className="text-green-600">₹{v.price}</span>{' '}
+                                  <span className="text-gray-400 line-through text-xs">₹{v.mrp}</span>
                                 </div>
                               ))}
                             </div>
@@ -1242,7 +1282,7 @@ Thank you for choosing Vaddadi Pickles!`;
                     <div key={product.id} className="bg-white border rounded-xl p-4 space-y-4 shadow-sm">
                       <div className="flex gap-4">
                         <div className="w-20 h-20 flex-shrink-0">
-                          {product.image.startsWith('http') ? (
+                          {product.image.startsWith('http') || product.image.startsWith('/') ? (
                             <img
                               src={product.image}
                               alt={product.name}
@@ -1280,9 +1320,12 @@ Thank you for choosing Vaddadi Pickles!`;
                           <p className="text-xs text-gray-500 mb-2">Variants & Prices</p>
                           <div className="space-y-1">
                             {product.variants.map((v) => (
-                              <div key={v.weight} className="text-xs flex justify-between">
+                              <div key={v.weight} className="text-xs flex justify-between gap-1">
                                 <span className="text-gray-600">{v.weight}:</span>
-                                <span className="font-bold text-green-600">₹{v.price}</span>
+                                <div className="flex gap-1">
+                                  <span className="text-gray-400 line-through">₹{v.mrp}</span>
+                                  <span className="font-bold text-green-600">₹{v.price}</span>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -1375,8 +1418,18 @@ Thank you for choosing Vaddadi Pickles!`;
                           <div className="space-y-2">
                             {order.items.map((item, idx) => (
                               <div key={`${item.product.id}-${item.variant.weight}-${idx}`} className="flex items-center gap-2 text-sm">
-                                <span>{item.product.image}</span>
-                                <span>{item.product.name} ({item.variant.weight})</span>
+                                <div className="w-8 h-8 flex-shrink-0 bg-white rounded flex items-center justify-center text-lg overflow-hidden border">
+                                  {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
+                                    <img
+                                      src={item.product.image}
+                                      alt={item.product.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    item.product.image
+                                  )}
+                                </div>
+                                <span className="flex-1 truncate">{item.product.name} ({item.variant.weight})</span>
                                 <span className="text-gray-500">×{item.quantity}</span>
                                 <span className="ml-auto font-medium">₹{item.variant.price * item.quantity}</span>
                               </div>

@@ -69,7 +69,17 @@ export function ReviewModal({ product, isOpen, onClose }: ReviewModalProps) {
                 {/* Header */}
                 <div className="p-4 border-b flex items-center justify-between bg-green-50 rounded-t-2xl">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">{product.image}</span>
+                        <div className="w-12 h-12 flex-shrink-0 bg-white rounded-lg flex items-center justify-center text-3xl overflow-hidden shadow-sm">
+                            {product.image.startsWith('http') || product.image.startsWith('/') ? (
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                product.image
+                            )}
+                        </div>
                         <div>
                             <h3 className="font-bold text-gray-800">{product.name} Reviews</h3>
                             <div className="flex items-center gap-2">
