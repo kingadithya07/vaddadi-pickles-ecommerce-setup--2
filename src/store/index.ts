@@ -558,20 +558,29 @@ export const useStore = create<StoreState>()(
       },
 
       addCoupon: async (coupon) => {
+        console.log('Attempting to add coupon:', coupon);
         const trimmedCode = coupon.code.trim().toUpperCase();
         const newCoupon = { ...coupon, code: trimmedCode };
 
         set({ coupons: [...get().coupons, newCoupon] });
-        await supabase.from('coupons').insert({
+        const { data, error } = await supabase.from('coupons').insert({
           code: trimmedCode,
           discount: coupon.discount,
           type: coupon.type,
           min_order: coupon.minOrder,
           active: coupon.active,
-        });
+        }).select();
+
+        if (error) {
+          console.error('Error adding coupon to Supabase:', error);
+          alert('Error adding coupon: ' + error.message);
+        } else {
+          console.log('Coupon added successfully to Supabase:', data);
+        }
       },
 
       toggleCoupon: async (code) => {
+        console.log('Attempting to toggle coupon:', code);
         const coupons = get().coupons;
         const coupon = coupons.find(c => c.code === code);
         if (!coupon) return;
@@ -583,13 +592,20 @@ export const useStore = create<StoreState>()(
           ),
         });
 
-        await supabase.from('coupons').update({ active: newActive }).eq('code', code);
+        const { error } = await supabase.from('coupons').update({ active: newActive }).eq('code', code);
+        if (error) {
+          console.error('Error toggling coupon in Supabase:', error);
+          alert('Error updating coupon: ' + error.message);
+        } else {
+          console.log('Coupon toggled successfully in Supabase');
+        }
       },
 
       // Product actions
       addProduct: async (product) => {
+        console.log('Attempting to add product:', product);
         set({ products: [...get().products, product] });
-        await supabase.from('products').insert({
+        const { data, error } = await supabase.from('products').insert({
           id: product.id,
           name: product.name,
           description: product.description,
@@ -601,16 +617,24 @@ export const useStore = create<StoreState>()(
           reviews: product.reviews,
           best_seller: product.bestSeller,
           is_combo: false,
-        });
+        }).select();
+
+        if (error) {
+          console.error('Error adding product to Supabase:', error);
+          alert('Error adding product: ' + error.message);
+        } else {
+          console.log('Product added successfully to Supabase:', data);
+        }
       },
 
       updateProduct: async (product) => {
+        console.log('Attempting to update product:', product);
         set({
           products: get().products.map((p) =>
             p.id === product.id ? product : p
           ),
         });
-        await supabase.from('products').update({
+        const { data, error } = await supabase.from('products').update({
           name: product.name,
           description: product.description,
           category: product.category,
@@ -621,20 +645,35 @@ export const useStore = create<StoreState>()(
           reviews: product.reviews,
           best_seller: product.bestSeller,
           updated_at: new Date().toISOString(),
-        }).eq('id', product.id);
+        }).eq('id', product.id).select();
+
+        if (error) {
+          console.error('Error updating product in Supabase:', error);
+          alert('Error updating product: ' + error.message);
+        } else {
+          console.log('Product updated successfully in Supabase:', data);
+        }
       },
 
       deleteProduct: async (productId) => {
+        console.log('Attempting to delete product:', productId);
         set({
           products: get().products.filter((p) => p.id !== productId),
         });
-        await supabase.from('products').delete().eq('id', productId);
+        const { error } = await supabase.from('products').delete().eq('id', productId);
+        if (error) {
+          console.error('Error deleting product from Supabase:', error);
+          alert('Error deleting product: ' + error.message);
+        } else {
+          console.log('Product deleted successfully from Supabase');
+        }
       },
 
       // Combo actions
       addCombo: async (combo) => {
+        console.log('Attempting to add combo:', combo);
         set({ combos: [...get().combos, combo] });
-        await supabase.from('products').insert({
+        const { data, error } = await supabase.from('products').insert({
           id: combo.id,
           name: combo.name,
           description: combo.description,
@@ -646,16 +685,24 @@ export const useStore = create<StoreState>()(
           active: combo.active,
           is_combo: true,
           variants: [], // Empty variants for combos
-        });
+        }).select();
+
+        if (error) {
+          console.error('Error adding combo to Supabase:', error);
+          alert('Error adding combo: ' + error.message);
+        } else {
+          console.log('Combo added successfully to Supabase:', data);
+        }
       },
 
       updateCombo: async (combo) => {
+        console.log('Attempting to update combo:', combo);
         set({
           combos: get().combos.map((c) =>
             c.id === combo.id ? combo : c
           ),
         });
-        await supabase.from('products').update({
+        const { data, error } = await supabase.from('products').update({
           name: combo.name,
           description: combo.description,
           image: combo.image,
@@ -665,14 +712,28 @@ export const useStore = create<StoreState>()(
           stock: combo.stock,
           active: combo.active,
           updated_at: new Date().toISOString(),
-        }).eq('id', combo.id);
+        }).eq('id', combo.id).select();
+
+        if (error) {
+          console.error('Error updating combo in Supabase:', error);
+          alert('Error updating combo: ' + error.message);
+        } else {
+          console.log('Combo updated successfully in Supabase:', data);
+        }
       },
 
       deleteCombo: async (comboId) => {
+        console.log('Attempting to delete combo:', comboId);
         set({
           combos: get().combos.filter((c) => c.id !== comboId),
         });
-        await supabase.from('products').delete().eq('id', comboId);
+        const { error } = await supabase.from('products').delete().eq('id', comboId);
+        if (error) {
+          console.error('Error deleting combo from Supabase:', error);
+          alert('Error deleting combo: ' + error.message);
+        } else {
+          console.log('Combo deleted successfully from Supabase');
+        }
       },
 
       // Display Image actions
