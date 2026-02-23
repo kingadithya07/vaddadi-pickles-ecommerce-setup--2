@@ -872,7 +872,40 @@ export const useStore = create<StoreState>()(
       fetchInitialData: async () => {
         set({ isLoading: true });
         try {
-          // Fetch Products
+          // 1. Fetch user profile first to determine role
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single();
+
+            if (profile) {
+              const role = profile.role || (user.app_metadata?.role as any) || 'customer';
+              set({
+                user: {
+                  id: user.id,
+                  email: user.email!,
+                  name: profile.name || '',
+                  phone: profile.phone || '',
+                  addresses: profile.addresses || [],
+                  role,
+                  address: profile.addresses?.find((a: any) => a.isDefault) || profile.addresses?.[0] || {
+                    street: '',
+                    city: '',
+                    state: '',
+                    pincode: '',
+                    country: 'India'
+                  }
+                },
+                cart: profile.cart || get().cart,
+                isAdmin: role === 'admin',
+              });
+            }
+          }
+
+          // 2. Fetch Products & Combos
           const { data: productsData } = await supabase.from('products').select('*');
           if (productsData) {
             const products = productsData.filter(p => !p.is_combo).map(p => ({
@@ -893,16 +926,16 @@ export const useStore = create<StoreState>()(
               description: p.description,
               image: p.image,
               products: p.combo_products,
-              originalPrice: p.original_price, // Assuming these columns exist in my schema update or handled via JSON
+              originalPrice: p.original_price,
               comboPrice: p.combo_price,
               stock: p.stock,
               active: p.active,
             }));
-            if (products.length > 0) set({ products });
-            if (combos.length > 0) set({ combos });
+            // Always update state even if arrays items are empty, to reflect DB state
+            set({ products, combos });
           }
 
-          // Fetch Coupons
+          // 3. Fetch Coupons
           const { data: couponsData } = await supabase.from('coupons').select('*');
           if (couponsData) {
             set({
@@ -916,7 +949,7 @@ export const useStore = create<StoreState>()(
             });
           }
 
-          // Fetch Settings
+          // 4. Fetch Settings
           const { data: settingsData } = await supabase.from('store_settings').select('*').eq('id', 1).single();
           if (settingsData) {
             set({
@@ -929,7 +962,7 @@ export const useStore = create<StoreState>()(
             });
           }
 
-          // Fetch Orders (if admin)
+          // 5. Fetch Orders
           if (get().isAdmin) {
             const { data: ordersData } = await supabase.from('orders').select('*');
             if (ordersData) {
@@ -958,7 +991,6 @@ export const useStore = create<StoreState>()(
               });
             }
           } else if (get().user) {
-            // Fetch personal orders
             const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', get().user!.id);
             if (ordersData) {
               set({
@@ -986,39 +1018,10 @@ export const useStore = create<StoreState>()(
               });
             }
           }
+        } catch (err) {
+          console.error('Error fetching initial data:', err);
         } finally {
           set({ isLoading: false });
-        }
-
-        // Fetch user profile if logged in
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-          if (profile) {
-            set({
-              user: {
-                id: user.id,
-                email: user.email!,
-                name: profile.name || '',
-                phone: profile.phone || '',
-                addresses: profile.addresses || [],
-                role: profile.role || (user.app_metadata?.role as any) || 'customer',
-                address: profile.addresses?.find((a: any) => a.isDefault) || profile.addresses?.[0] || {
-                  street: '',
-                  city: '',
-                  state: '',
-                  pincode: '',
-                  country: 'India'
-                }
-              },
-              cart: profile.cart || get().cart, // Merge or overwrite? Let's overwrite for consistency
-            });
-          }
         }
       },
 

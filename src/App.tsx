@@ -60,8 +60,9 @@ export function App() {
         window.location.hash = '#/reset-password';
       }
 
-      // Re-initialize user sync on auth change
+      // Re-initialize user sync and re-fetch data on auth change
       cleanupUserSync();
+      fetchInitialData(); // Re-fetch all data to ensure correct permissions/role view
       if (session?.user) {
         cleanupUserSync = useStore.getState().initializeRealtimeUserSync();
       }
