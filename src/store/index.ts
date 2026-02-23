@@ -529,8 +529,10 @@ export const useStore = create<StoreState>()(
 
       applyCoupon: (code) => {
         const trimmedCode = code.trim().toUpperCase();
+        if (!trimmedCode) return { success: false, message: 'Please enter a coupon code' };
+
         const coupon = get().coupons.find(
-          (c) => c.code.toUpperCase() === trimmedCode && c.active
+          (c) => c.code.trim().toUpperCase() === trimmedCode && c.active
         );
         if (!coupon) {
           return { success: false, message: 'Invalid coupon code' };
@@ -554,9 +556,12 @@ export const useStore = create<StoreState>()(
       },
 
       addCoupon: async (coupon) => {
-        set({ coupons: [...get().coupons, coupon] });
+        const trimmedCode = coupon.code.trim().toUpperCase();
+        const newCoupon = { ...coupon, code: trimmedCode };
+
+        set({ coupons: [...get().coupons, newCoupon] });
         await supabase.from('coupons').insert({
-          code: coupon.code,
+          code: trimmedCode,
           discount: coupon.discount,
           type: coupon.type,
           min_order: coupon.minOrder,
@@ -839,7 +844,7 @@ export const useStore = create<StoreState>()(
           if (couponsData) {
             set({
               coupons: couponsData.map(c => ({
-                code: c.code,
+                code: c.code.trim(),
                 discount: Number(c.discount),
                 type: c.type,
                 minOrder: Number(c.min_order),

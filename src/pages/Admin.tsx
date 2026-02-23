@@ -510,8 +510,9 @@ Thank you for choosing Vaddadi Pickles!`;
   };
 
   const handleAddCoupon = () => {
-    if (!newCoupon.code) return;
-    addCoupon(newCoupon as Coupon);
+    const trimmedCode = newCoupon.code?.trim();
+    if (!trimmedCode) return;
+    addCoupon({ ...newCoupon, code: trimmedCode } as Coupon);
     setNewCoupon({
       code: '',
       discount: 10,
