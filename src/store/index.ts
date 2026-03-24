@@ -299,7 +299,7 @@ interface StoreState {
   setAdmin: (isAdmin: boolean) => void;
 
   // Sync actions
-  fetchInitialData: () => Promise<void>;
+  fetchInitialData: (showLoading?: boolean) => Promise<void>;
   initializeRealtimeSettings: () => () => void;
   syncCartWithCloud: () => Promise<void>;
   syncProfileWithCloud: () => Promise<void>;
@@ -869,8 +869,8 @@ export const useStore = create<StoreState>()(
         }
       },
 
-      fetchInitialData: async () => {
-        set({ isLoading: true });
+      fetchInitialData: async (showLoading = true) => {
+        if (showLoading) set({ isLoading: true });
         try {
           // 1. Fetch user profile first to determine role
           const { data: { user } } = await supabase.auth.getUser();

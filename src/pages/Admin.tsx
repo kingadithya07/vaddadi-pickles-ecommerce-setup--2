@@ -133,7 +133,7 @@ export function Admin() {
     }
 
     const product: Product = {
-      id: `prod_${Date.now()}`,
+      id: editingProductId || `prod_${Date.now()}`,
       name: newProduct.name,
       description: newProduct.description,
       category: newProduct.category,

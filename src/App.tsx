@@ -62,7 +62,11 @@ export function App() {
 
       // Re-initialize user sync and re-fetch data on auth change
       cleanupUserSync();
-      fetchInitialData(); // Re-fetch all data to ensure correct permissions/role view
+      if (event !== 'INITIAL_SESSION') {
+        fetchInitialData(false); // Re-fetch all data without showing global loading spinner
+      } else {
+        fetchInitialData(true);
+      }
       if (session?.user) {
         cleanupUserSync = useStore.getState().initializeRealtimeUserSync();
       }
