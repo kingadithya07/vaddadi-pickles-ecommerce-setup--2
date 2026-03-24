@@ -4,7 +4,7 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image, Settings
+  Plus, Trash2, ShoppingBag, Image, Settings, Edit
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
@@ -32,6 +32,7 @@ export function Admin() {
   const addCoupon = useStore((state) => state.addCoupon);
   const toggleCoupon = useStore((state) => state.toggleCoupon);
   const addProduct = useStore((state) => state.addProduct);
+  const updateProduct = useStore((state) => state.updateProduct);
   const deleteProduct = useStore((state) => state.deleteProduct);
   const addCombo = useStore((state) => state.addCombo);
   const combos = useStore((state) => state.combos);
@@ -56,6 +57,7 @@ export function Admin() {
   });
 
   // Product Form State
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [isCombo, setIsCombo] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -138,12 +140,19 @@ export function Admin() {
       image: newProduct.image,
       variants: enabledVariants,
       inStock: enabledVariants.some(v => v.stock > 0),
-      rating: 4.5,
-      reviews: 0,
+      rating: editingProductId ? (products.find(p => p.id === editingProductId)?.rating || 4.5) : 4.5,
+      reviews: editingProductId ? (products.find(p => p.id === editingProductId)?.reviews || 0) : 0,
       bestSeller: newProduct.bestSeller,
     };
 
-    await addProduct(product);
+    if (editingProductId) {
+      await updateProduct(product);
+      setEditingProductId(null);
+      alert('Product updated successfully!');
+    } else {
+      await addProduct(product);
+      alert('Product added successfully!');
+    }
 
     // Reset form
     setNewProduct({
@@ -158,8 +167,20 @@ export function Admin() {
       ],
       bestSeller: false,
     });
+  };
 
-    alert('Product added successfully!');
+  const handleEditProduct = (product: Product) => {
+    setIsCombo(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setNewProduct({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      image: product.image,
+      variants: product.variants.map(v => ({...v, enabled: true})),
+      bestSeller: product.bestSeller || false,
+    });
+    setEditingProductId(product.id);
   };
 
   if (!isAdmin) {
@@ -861,7 +882,9 @@ Thank you for choosing Vaddadi Pickles!`;
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <Plus className="text-green-600" size={24} />
-                  <h3 className="text-xl font-semibold text-gray-800">Add New Item</h3>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    {editingProductId ? 'Edit Product' : 'Add New Item'}
+                  </h3>
                 </div>
                 <div className="bg-gray-100 p-1 rounded-lg flex">
                   <button
@@ -1045,6 +1068,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       >
                         <option value="Mango">Mango</option>
                         <option value="Lemon">Lemon</option>
+                        <option value="Pickles">Pickles</option>
                         <option value="Mixed">Mixed</option>
                         <option value="Ginger">Ginger</option>
                         <option value="Garlic">Garlic</option>
@@ -1167,13 +1191,37 @@ Thank you for choosing Vaddadi Pickles!`;
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleAddProduct}
-                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
-                    >
-                      <Plus size={20} />
-                      Add Product
-                    </button>
+                    <div className="flex gap-4">
+                      {editingProductId && (
+                        <button
+                          onClick={() => {
+                            setEditingProductId(null);
+                            setNewProduct({
+                              name: '',
+                              description: '',
+                              category: 'mango',
+                              image: '',
+                              variants: [
+                                { weight: '250g', price: 149, mrp: 199, stock: 50, enabled: true },
+                                { weight: '500g', price: 279, mrp: 349, stock: 50, enabled: true },
+                                { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
+                              ],
+                              bestSeller: false,
+                            });
+                          }}
+                          className="w-full flex items-center justify-center gap-2 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        onClick={handleAddProduct}
+                        className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
+                      >
+                        {editingProductId ? <Edit size={20} /> : <Plus size={20} />}
+                        {editingProductId ? 'Update Product' : 'Add Product'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1263,13 +1311,22 @@ Thank you for choosing Vaddadi Pickles!`;
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <button
-                              onClick={() => deleteProduct(product.id)}
-                              className="flex items-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="flex items-center gap-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm"
+                              >
+                                <Edit size={16} />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteProduct(product.id)}
+                                className="flex items-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1298,12 +1355,20 @@ Thank you for choosing Vaddadi Pickles!`;
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
                             <h4 className="font-bold text-gray-800 truncate">{product.name}</h4>
-                            <button
-                              onClick={() => deleteProduct(product.id)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleEditProduct(product)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => deleteProduct(product.id)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
                           </div>
                           <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full mt-1">
                             {product.category}
