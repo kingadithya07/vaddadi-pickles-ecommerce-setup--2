@@ -73,4 +73,3 @@ This will compile the application into the `dist` folder, optimizing assets and 
 Please ensure you do not commit your `.env` file containing actual production secrets to version control. Use the `.env.example` file to denote required environment variables.
 
 ---
-*vp 369*
