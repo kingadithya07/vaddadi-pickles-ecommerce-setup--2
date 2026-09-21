@@ -45,26 +45,38 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  const totalStock = (product.variants || []).reduce((sum, variant) => sum + variant.stock, 0);
+  const isOutOfStock = !product.inStock || totalStock <= 0;
+
   return (
-    <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden transition-all duration-300 transform ${isOutOfStock ? 'opacity-80' : 'hover:shadow-xl hover:-translate-y-1'}`}>
       {/* Product Image */}
-      <div className="relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+      <div className="relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden">
         {product.image.startsWith('http') || product.image.startsWith('/') ? (
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+            className={`w-full h-full object-cover transition-transform ${isOutOfStock ? 'opacity-50 grayscale' : 'group-hover:scale-110'}`}
           />
         ) : (
-          <span className="text-6xl sm:text-8xl group-hover:scale-110 transition-transform">{product.image}</span>
+          <span className={`text-6xl sm:text-8xl transition-transform ${isOutOfStock ? 'opacity-50 grayscale' : 'group-hover:scale-110'}`}>{product.image}</span>
         )}
-        {product.bestSeller && (
-          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full">
+        
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="bg-red-600/90 text-white px-4 py-2 sm:px-6 sm:py-3 rounded shadow-xl transform -rotate-12 border-2 border-white backdrop-blur-sm">
+              <span className="font-black text-sm sm:text-lg tracking-wider">OUT OF STOCK</span>
+            </div>
+          </div>
+        )}
+
+        {!isOutOfStock && product.bestSeller && (
+          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full z-10">
             Best Seller
           </span>
         )}
         {totalInCart > 0 && (
-          <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center">
+          <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10">
             {totalInCart}
           </span>
         )}
@@ -101,20 +113,25 @@ export function ProductCard({ product }: ProductCardProps) {
               const variantInCart = cart.find(
                 item => item.product.id === product.id && item.variant.weight === variant.weight
               );
+              const isVariantOutOfStock = variant.stock <= 0;
 
               return (
                 <button
                   key={variant.weight}
-                  onClick={() => handleWeightSelect(variant.weight)}
-                  className={`relative flex-shrink-0 min-w-[50px] sm:flex-1 py-1 sm:py-2 px-1 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg border transition-all ${selectedWeight === variant.weight
-                    ? 'border-green-600 bg-green-600 text-white'
-                    : variantInCart
-                      ? 'border-green-200 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-green-400 text-gray-700'
+                  onClick={() => !isVariantOutOfStock && handleWeightSelect(variant.weight)}
+                  disabled={isVariantOutOfStock}
+                  className={`relative flex-shrink-0 min-w-[50px] sm:flex-1 py-1 sm:py-2 px-1 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg border transition-all ${
+                    isVariantOutOfStock
+                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through opacity-70'
+                      : selectedWeight === variant.weight
+                      ? 'border-green-600 bg-green-600 text-white'
+                      : variantInCart
+                        ? 'border-green-200 bg-green-50 text-green-700'
+                        : 'border-gray-200 hover:border-green-400 text-gray-700'
                     }`}
                 >
                   {variant.weight}
-                  {variantInCart && (
+                  {variantInCart && !isVariantOutOfStock && (
                     <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[8px] sm:text-[10px] w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center">
                       {variantInCart.quantity}
                     </span>
@@ -141,14 +158,21 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Add to Cart / Quantity Controls */}
-        {selectedWeight && selectedVariant ? (
+        {isOutOfStock ? (
+           <button
+             disabled
+             className="w-full bg-gray-300 text-gray-500 py-2 sm:py-3 rounded-lg sm:rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-base uppercase"
+           >
+             Out of Stock
+           </button>
+        ) : selectedWeight && selectedVariant ? (
           <div>
             {cartItem ? (
               /* Show only +/- controls when item is in cart */
               <div className="flex items-center justify-center bg-green-600 rounded-lg sm:rounded-xl overflow-hidden h-8 sm:h-auto">
                 <button
                   onClick={handleDecrement}
-                  className="flex-1 h-full text-white hover:bg-green-700 transition-colors flex items-center justify-center"
+                  className="flex-1 h-full text-white hover:bg-green-700 transition-colors flex items-center justify-center py-2"
                 >
                   <Minus size={16} strokeWidth={3} />
                 </button>
@@ -157,7 +181,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 </div>
                 <button
                   onClick={handleIncrement}
-                  className="flex-1 h-full text-white hover:bg-green-700 transition-colors flex items-center justify-center"
+                  disabled={cartItem.quantity >= selectedVariant.stock}
+                  className={`flex-1 h-full text-white transition-colors flex items-center justify-center py-2 ${cartItem.quantity >= selectedVariant.stock ? 'bg-green-500 opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                  title={cartItem.quantity >= selectedVariant.stock ? 'Max stock reached' : ''}
                 >
                   <Plus size={16} strokeWidth={3} />
                 </button>
