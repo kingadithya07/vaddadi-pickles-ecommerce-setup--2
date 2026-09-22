@@ -480,71 +480,128 @@ Thank you for choosing Vaddadi Pickles!`;
       <head>
         <title>Shipping Label - ${order.id}</title>
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f3f4f6; display: flex; justify-content: center; }
-          .label { background: white; border: 2px solid #000; width: 100mm; position: relative; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-          .header { background: #111827; color: white; padding: 15px; display: flex; align-items: center; gap: 15px; }
-          .header img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; }
-          .header-text h2 { margin: 0; font-size: 18px; letter-spacing: 1px; }
-          .header-text p { margin: 2px 0 0 0; font-size: 12px; color: #9ca3af; }
-          .content { padding: 20px; }
-          .section { margin-bottom: 20px; }
-          .section-title { font-weight: 700; font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-          .address-box { border: 2px solid #16a34a; border-radius: 6px; padding: 15px; background: #f0fdf4; }
-          .address { font-size: 15px; line-height: 1.6; color: #1f2937; }
-          .address strong { font-size: 18px; color: #111827; }
-          .pin-badge { display: inline-block; background: #fef08a; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-top: 8px; font-size: 16px; }
-          .order-details { display: flex; justify-content: space-between; border-top: 1px dashed #d1d5db; border-bottom: 1px dashed #d1d5db; padding: 15px 0; font-size: 13px; color: #4b5563; }
-          .order-details strong { color: #111827; }
-          .handle-care { margin-top: 15px; text-align: center; background: #fee2e2; border: 2px dashed #ef4444; color: #b91c1c; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 16px; letter-spacing: 1px; }
-          .barcode { text-align: center; font-family: monospace; font-size: 18px; letter-spacing: 4px; margin-top: 15px; font-weight: bold; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&family=Inter:wght@400;600;700;800;900&display=swap');
+          body { font-family: 'Inter', sans-serif; padding: 20px; background: #e5e7eb; display: flex; justify-content: center; margin: 0; }
+          .label { background: white; width: 4in; min-height: 6in; border: 3px solid #000; box-sizing: border-box; display: flex; flex-direction: column; color: #000; }
+          .row { border-bottom: 2px solid #000; display: flex; width: 100%; box-sizing: border-box; }
+          .col { border-right: 2px solid #000; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; }
+          .col:last-child { border-right: none; }
+          
+          .courier-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #000; color: #fff; }
+          .courier-header h1 { margin: 0; font-size: 24px; font-weight: 900; font-style: italic; letter-spacing: 1px; }
+          .courier-header p { margin: 0; font-size: 14px; font-weight: 700; border: 2px solid #fff; padding: 2px 8px; border-radius: 4px; }
+          
+          .routing-code { font-size: 48px; font-weight: 900; text-align: center; padding: 10px; letter-spacing: 2px; }
+          
+          .barcode-container { padding: 15px 10px; text-align: center; }
+          .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 64px; line-height: 1; margin-bottom: 5px; font-weight: normal; }
+          .barcode-text { font-size: 14px; font-weight: 600; letter-spacing: 2px; font-family: monospace; }
+          
+          .address-block { padding: 12px; flex: 1; }
+          .address-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+          
+          .from-address { font-size: 11px; line-height: 1.4; }
+          .from-address strong { font-size: 12px; }
+          
+          .to-address { font-size: 14px; line-height: 1.5; }
+          .to-address strong { font-size: 20px; display: block; margin-bottom: 4px; }
+          .to-phone { font-size: 16px; font-weight: 800; margin-top: 8px; display: inline-block; border: 2px solid #000; padding: 4px 8px; }
+          
+          .details-grid { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+          .detail-item { padding: 8px 12px; border-bottom: 2px solid #000; border-right: 2px solid #000; }
+          .detail-item:nth-child(even) { border-right: none; }
+          .detail-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #4b5563; }
+          .detail-value { font-size: 14px; font-weight: 800; }
+          
+          .payment-box { padding: 15px; text-align: center; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+          .payment-prepaid { background: #000; color: #fff; }
+          .payment-cod { background: #fff; color: #000; border: 4px solid #000; margin: 10px; }
+          
+          .footer-warning { background: #000; color: #fff; text-align: center; padding: 12px; font-size: 20px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; margin-top: auto; }
+          
           @media print { 
             body { background: white; padding: 0; }
-            .label { box-shadow: none; border-radius: 0; }
+            .label { border: none; width: 100%; height: auto; }
+            .payment-prepaid { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .courier-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .footer-warning { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           }
         </style>
       </head>
       <body>
         <div class="label">
-          <div class="header">
-            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" />
-            <div class="header-text">
-              <h2>${settings.businessAddress.name.toUpperCase()}</h2>
-              <p>${settings.businessAddress.city}, ${settings.businessAddress.state}</p>
+          <div class="courier-header">
+            <h1>VP EXPRESS</h1>
+            <p>STANDARD</p>
+          </div>
+          
+          <div class="row">
+            <div class="routing-code" style="width: 100%;">${order.address.pincode}</div>
+          </div>
+          
+          <div class="row">
+            <div class="barcode-container" style="width: 100%;">
+              <div class="barcode-font">*${order.id.slice(0, 8).toUpperCase()}*</div>
+              <div class="barcode-text">${order.id.toUpperCase()}</div>
             </div>
           </div>
           
-          <div class="content">
-            <div class="section">
-              <div class="address-box">
-                <div class="section-title" style="color: #16a34a;">📦 SHIP TO</div>
-                <div class="address">
-                  <strong>${order.userName}</strong><br>
-                  ${order.address.street}<br>
-                  ${order.address.city}, ${order.address.state}<br>
-                  <div class="pin-badge">PIN: ${order.address.pincode}</div><br>
-                  <div style="margin-top: 8px; font-weight: 600;">📱 ${order.userPhone}</div>
-                </div>
+          <div class="row" style="flex: 1;">
+            <div class="col" style="flex: 1; padding: 15px;">
+              <div class="address-title">SHIP TO:</div>
+              <div class="to-address">
+                <strong>${order.userName.toUpperCase()}</strong>
+                ${order.address.street.toUpperCase()}<br>
+                ${order.address.city.toUpperCase()}, ${order.address.state.toUpperCase()}<br>
+                PIN: ${order.address.pincode}<br>
+                <div class="to-phone">PH: ${order.userPhone}</div>
               </div>
             </div>
-            
-            <div class="order-details">
-              <div>
-                <strong>Order ID:</strong><br>
-                ${order.id}
+          </div>
+          
+          <div class="row">
+            <div class="col" style="flex: 1; padding: 15px;">
+              <div class="address-title">RETURN TO:</div>
+              <div class="from-address">
+                <strong>${settings.businessAddress.name.toUpperCase()}</strong><br>
+                Sujathanagar, Visakhapatnam<br>
+                Andhra Pradesh - 530051<br>
+                PH: 8008129309
               </div>
-              <div style="text-align: right;">
-                <strong>Items:</strong> ${order.items.length}<br>
-                <strong>Total:</strong> ₹${order.finalAmount} (${order.paymentMethod.toUpperCase()})
+            </div>
+          </div>
+          
+          <div class="row" style="border-bottom: none;">
+            <div class="details-grid">
+              <div class="detail-item">
+                <div class="detail-label">Order Date</div>
+                <div class="detail-value">${new Date(order.createdAt).toLocaleDateString()}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Weight (Est)</div>
+                <div class="detail-value">0.5 KG</div>
+              </div>
+              <div class="detail-item" style="border-bottom: none;">
+                <div class="detail-label">Items</div>
+                <div class="detail-value">${order.items.reduce((acc, item) => acc + item.quantity, 0)}</div>
+              </div>
+              <div class="detail-item" style="border-bottom: none;">
+                <div class="detail-label">Invoice Value</div>
+                <div class="detail-value">₹${order.finalAmount}</div>
               </div>
             </div>
-
-            <div class="handle-care">
-              ⚠️ HANDLE WITH CARE ⚠️
+          </div>
+          
+          <div class="row" style="border-top: 2px solid #000;">
+            <div style="width: 100%;">
+              ${order.paymentMethod === 'cod' 
+                ? `<div class="payment-box payment-cod">COD: ₹${order.finalAmount}</div>` 
+                : `<div class="payment-box payment-prepaid">PREPAID</div>`}
             </div>
-            
-            <div class="barcode">
-              *${order.id}*
-            </div>
+          </div>
+          
+          <div class="footer-warning">
+            ⚠️ HANDLE WITH CARE ⚠️
           </div>
         </div>
         <script>window.print();</script>
@@ -1658,7 +1715,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                     <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
                                     <div class="brand">
                                       <h1>Vaddadi Pickles</h1>
-                                      <p>Authentic Homemade Pickles</p>
+                                      <p>Authentic Homemade Pickles<br>Sujathanagar, Visakhapatnam, Andhra Pradesh - 530051</p>
                                     </div>
                                   </div>
                                   <div class="invoice-title">

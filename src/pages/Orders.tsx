@@ -103,7 +103,7 @@ export function Orders() {
             <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
             <div class="brand">
               <h1>Vaddadi Pickles</h1>
-              <p>Authentic Homemade Pickles</p>
+              <p>Authentic Homemade Pickles<br>Sujathanagar, Visakhapatnam, Andhra Pradesh - 530051</p>
             </div>
           </div>
           <div class="invoice-title">
