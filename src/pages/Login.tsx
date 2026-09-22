@@ -44,13 +44,7 @@ export function Login() {
           return;
         }
 
-        // Check if this is the first user
-        const { count, error: _countError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        const isFirstUser = count === 0;
-        const role = isFirstUser ? 'admin' : 'customer';
+        const role = 'customer';
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
