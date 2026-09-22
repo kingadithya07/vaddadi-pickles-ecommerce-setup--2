@@ -80,6 +80,17 @@ export function App() {
       }
     });
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Re-fetch data when app comes back to foreground (especially for mobile)
+        fetchInitialData(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Also listen to window focus as a fallback
+    window.addEventListener('focus', handleVisibilityChange);
+
     return () => {
       subscription.unsubscribe();
       cleanupSettings();
@@ -87,6 +98,8 @@ export function App() {
       cleanupCoupons();
       cleanupOrders();
       cleanupUserSync();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
     };
   }, [fetchInitialData]);
 

@@ -37,74 +37,14 @@ function ProductImage({ image, name }: { image: string; name: string }) {
 }
 
 export function Orders() {
-  const { user } = useStore();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, orders: globalOrders, isLoading } = useStore();
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
-  // Fetch orders directly from Supabase so we always have fresh data
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchOrders = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching orders:", error);
-      }
-      
-      if (!error && data) {
-        setOrders(
-          data.map((o) => ({
-            id: o.id,
-            userId: o.user_id,
-            userName: o.user_name,
-            userEmail: o.user_email,
-            userPhone: o.user_phone,
-            items: o.items,
-            total: Number(o.total),
-            discount: Number(o.discount),
-            finalAmount: Number(o.final_amount),
-            couponCode: o.coupon_code,
-            address: o.address,
-            status: o.status,
-            paymentStatus: o.payment_status,
-            paymentMethod: o.payment_method,
-            transactionId: o.transaction_id,
-            trackingId: o.tracking_id,
-            carrier: o.carrier,
-            createdAt: o.created_at,
-            updatedAt: o.updated_at,
-          }))
-        );
-      }
-      setLoading(false);
-    };
-
-    fetchOrders();
-
-    // Real-time: listen for new or updated orders for this user
-    const channelId = `orders-user-${user.id}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${user.id}` },
-        () => {
-          fetchOrders(); // Refresh on any change
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  // The global store fetches the orders. Filter them to only show the current user's orders,
+  // and sort them by date descending.
+  const orders = globalOrders
+    .filter(o => o.userId === user?.id)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const generateWhatsAppMessage = (order: Order) => {
     const message = `Hi! I want to check the status of my order.\n\nOrder ID: ${order.id}\nName: ${order.userName}\nAmount: ₹${order.finalAmount}\n\nThank you!`;
@@ -209,7 +149,7 @@ export function Orders() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4" />
