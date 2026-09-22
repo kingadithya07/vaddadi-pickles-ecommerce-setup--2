@@ -4,7 +4,7 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Truck, Eye, ShoppingCart, Repeat
+  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
