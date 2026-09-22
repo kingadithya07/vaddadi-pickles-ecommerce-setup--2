@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useStore } from '../store';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,7 @@ export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,10 +25,14 @@ export function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+    
     setError('');
+    setIsLoading(true);
 
     if (!formData.email || !formData.password) {
       setError('Please enter email and password');
+      setIsLoading(false);
       return;
     }
 
@@ -35,6 +40,7 @@ export function Login() {
       if (isSignUp) {
         if (!formData.name || !formData.phone) {
           setError('Please fill all required fields');
+          setIsLoading(false);
           return;
         }
 
@@ -88,6 +94,7 @@ export function Login() {
           if (profileError) {
             console.error('Error creating profile:', profileError);
             setError('Account created but profile setup failed. Please try logging in.');
+            setIsLoading(false);
             return;
           }
 
@@ -127,6 +134,8 @@ export function Login() {
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,6 +179,7 @@ export function Login() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="relative">
@@ -180,6 +190,7 @@ export function Login() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    disabled={isLoading}
                   />
                 </div>
               </>
@@ -193,6 +204,7 @@ export function Login() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
             </div>
 
@@ -204,11 +216,13 @@ export function Login() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                disabled={isLoading}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -228,9 +242,18 @@ export function Login() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+              disabled={isLoading}
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center disabled:opacity-70"
             >
-              {isAdminLogin ? 'Login as Admin' : isSignUp ? 'Create Account' : 'Sign In'}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isAdminLogin ? (
+                'Login as Admin'
+              ) : isSignUp ? (
+                'Create Account'
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
@@ -241,6 +264,7 @@ export function Login() {
                 <button
                   onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
                   className="text-green-600 font-semibold hover:underline"
+                  disabled={isLoading}
                 >
                   {isSignUp ? 'Sign In' : 'Sign Up'}
                 </button>
@@ -250,6 +274,7 @@ export function Login() {
               <button
                 onClick={() => { setIsAdminLogin(!isAdminLogin); setError(''); setIsSignUp(false); }}
                 className="text-sm text-gray-500 hover:text-green-600"
+                disabled={isLoading}
               >
                 {isAdminLogin ? '← Back to Customer Login' : 'Admin Login →'}
               </button>
