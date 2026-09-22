@@ -62,19 +62,19 @@ export function Header() {
             </Link>
 
             {user ? (
-              <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <Link to="/profile" className="flex items-center gap-2 hover:text-green-200 transition">
                   <User size={20} />
-                  <span className="text-sm">{user.name}</span>
+                  <span className="hidden md:inline text-sm">{user.name}</span>
                 </Link>
-                <button onClick={handleLogout} className="hover:text-green-200 transition">
+                <button onClick={handleLogout} className="hidden md:block hover:text-green-200 transition">
                   <LogOut size={20} />
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="hidden md:flex items-center gap-1 hover:text-green-200 transition">
+              <Link to="/login" className="flex items-center gap-1 hover:text-green-200 transition">
                 <User size={20} />
-                <span>Sign In</span>
+                <span className="text-sm hidden sm:inline">Sign In</span>
               </Link>
             )}
 
@@ -99,13 +99,11 @@ export function Header() {
               {isAdmin && (
                 <Link to="/admin" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
               )}
-              {user ? (
+              {user && (
                 <>
                   <Link to="/profile" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Profile</Link>
                   <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left hover:text-green-200">Logout</button>
                 </>
-              ) : (
-                <Link to="/login" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Sign In</Link>
               )}
             </nav>
           </div>
