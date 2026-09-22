@@ -10,7 +10,7 @@ import { useCartTotals } from '../hooks/useCartTotals';
 import { lookupPincode } from '../utils/pincode';
 
 export function Checkout() {
-  const { cart, user, appliedCoupon, createOrder, clearCart, settings } = useStore();
+  const { cart, user, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
   const navigate = useNavigate();
   const { subtotal, discount, total, shipping, displayAmount, displayAmountWhole } = useCartTotals();
 
@@ -132,6 +132,20 @@ export function Checkout() {
       finalAddress = newAddress;
       finalName = deliveryName;
       finalPhone = deliveryPhone;
+
+      // Auto-save the new address to the user's profile
+      addUserAddress({
+        id: `addr-${Date.now()}`,
+        label: 'Other',
+        name: finalName,
+        phone: finalPhone,
+        street: finalAddress.street,
+        city: finalAddress.city,
+        state: finalAddress.state,
+        pincode: finalAddress.pincode,
+        country: finalAddress.country || 'India',
+        isDefault: userAddresses.length === 0, // Make it default if it's their first address
+      });
     } else {
       const selectedAddr = userAddresses.find(addr => addr.id === selectedAddressId);
       if (!selectedAddr) {
