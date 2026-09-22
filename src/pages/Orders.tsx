@@ -55,12 +55,14 @@ export function Orders() {
     if (!invoiceWindow) return;
 
     const itemsHtml = order.items.map(item => `
-      <tr>
-        <td>${item.product.name}</td>
-        <td>${item.variant.weight}</td>
-        <td>${item.quantity}</td>
-        <td>₹${item.variant.price}</td>
-        <td>₹${item.variant.price * item.quantity}</td>
+      <tr class="item-row">
+        <td>
+          <div class="item-name">${item.product.name}</div>
+          <div class="item-weight">${item.variant.weight}</div>
+        </td>
+        <td style="text-align: center;">${item.quantity}</td>
+        <td style="text-align: right;">₹${item.variant.price}</td>
+        <td style="text-align: right; font-weight: 600;">₹${item.variant.price * item.quantity}</td>
       </tr>
     `).join('');
 
@@ -70,61 +72,95 @@ export function Orders() {
       <head>
         <title>Invoice - ${order.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px solid #16a34a; padding-bottom: 20px; margin-bottom: 20px; }
-          .header img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #16a34a; }
-          .header h1 { color: #16a34a; margin: 10px 0 0 0; }
-          .details { display: flex; justify-content: space-between; margin-bottom: 30px; }
-          .details div { flex: 1; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-          th { background: #f3f4f6; }
-          .total { text-align: right; font-size: 1.2em; font-weight: bold; }
-          .footer { text-align: center; margin-top: 40px; color: #666; }
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+          body { font-family: 'Inter', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1f2937; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #f3f4f6; }
+          .logo-container { display: flex; align-items: center; gap: 15px; }
+          .logo { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
+          .brand h1 { margin: 0; font-size: 24px; color: #111827; letter-spacing: -0.5px; }
+          .brand p { margin: 0; font-size: 14px; color: #6b7280; }
+          .invoice-title h2 { margin: 0; font-size: 32px; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
+          .invoice-title p { margin: 4px 0 0 0; font-size: 14px; color: #6b7280; text-align: right; }
+          .details-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+          .detail-box h3 { margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+          .detail-box p { margin: 0; font-size: 14px; color: #374151; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+          th { padding: 12px 16px; background: #f9fafb; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb; }
+          td { padding: 16px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+          .item-name { font-weight: 600; color: #111827; }
+          .item-weight { font-size: 12px; color: #6b7280; margin-top: 2px; }
+          .summary { width: 300px; margin-left: auto; }
+          .summary-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; color: #4b5563; }
+          .summary-row.total { font-size: 18px; font-weight: 700; color: #16a34a; border-top: 2px solid #e5e7eb; padding-top: 15px; margin-top: 5px; }
+          .discount { color: #dc2626; }
+          .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #f3f4f6; text-align: center; font-size: 14px; color: #6b7280; }
           @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
         </style>
       </head>
       <body>
         <div class="header">
-          <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" />
-          <h1>Vaddadi Pickles</h1>
-          <p>Authentic Homemade Pickles</p>
-        </div>
-        <h2>INVOICE</h2>
-        <div class="details">
-          <div>
-            <strong>Invoice To:</strong><br>
-            ${order.userName}<br>
-            ${order.userEmail}<br>
-            ${order.userPhone}<br><br>
-            <strong>Delivery Address:</strong><br>
-            ${order.address.street}<br>
-            ${order.address.city}, ${order.address.state}<br>
-            ${order.address.pincode}
+          <div class="logo-container">
+            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
+            <div class="brand">
+              <h1>Vaddadi Pickles</h1>
+              <p>Authentic Homemade Pickles</p>
+            </div>
           </div>
-          <div style="text-align: right;">
-            <strong>Invoice No:</strong> INV-${order.id}<br>
-            <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br>
-            <strong>Order ID:</strong> ${order.id}
+          <div class="invoice-title">
+            <h2>INVOICE</h2>
+            <p>#INV-${order.id.slice(-8).toUpperCase()}</p>
           </div>
         </div>
+
+        <div class="details-grid">
+          <div class="detail-box">
+            <h3>Billed To</h3>
+            <p><strong>${order.userName}</strong><br>${order.userEmail}<br>${order.userPhone}</p>
+          </div>
+          <div class="detail-box">
+            <h3>Shipped To</h3>
+            <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>${order.address.pincode}</p>
+          </div>
+          <div class="detail-box">
+            <h3>Order Details</h3>
+            <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${order.id}<br><strong>Payment:</strong> ${order.paymentMethod.toUpperCase()}</p>
+          </div>
+        </div>
+
         <table>
           <thead>
             <tr>
-              <th>Item</th><th>Weight</th><th>Qty</th><th>Price</th><th>Total</th>
+              <th>Description</th>
+              <th style="text-align: center;">Qty</th>
+              <th style="text-align: right;">Price</th>
+              <th style="text-align: right;">Total</th>
             </tr>
           </thead>
           <tbody>${itemsHtml}</tbody>
         </table>
-        <div class="total">
-          <p>Subtotal: ₹${order.total}</p>
-          ${order.discount > 0 ? `<p style="color: green;">Discount (${order.couponCode}): -₹${order.discount}</p>` : ''}
-          <p>Shipping: ${order.total >= 500 ? 'FREE' : '₹50'}</p>
-          <p style="font-size: 1.3em; color: #16a34a;">Grand Total: ₹${order.finalAmount}</p>
+
+        <div class="summary">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>₹${order.total}</span>
+          </div>
+          ${order.discount > 0 ? `
+          <div class="summary-row discount">
+            <span>Discount (${order.couponCode})</span>
+            <span>-₹${order.discount}</span>
+          </div>` : ''}
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span>${order.total >= 500 ? 'Free' : '₹50'}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Grand Total</span>
+            <span>₹${order.finalAmount}</span>
+          </div>
         </div>
+
         <div class="footer">
-          <p>Thank you for shopping with Vaddadi Pickles!</p>
-          <p>Contact: 8008129309 (WhatsApp)</p>
+          <p>Thank you for your business!<br>For any inquiries, WhatsApp us at <strong>8008129309</strong></p>
         </div>
         <script>window.print();</script>
       </body>
