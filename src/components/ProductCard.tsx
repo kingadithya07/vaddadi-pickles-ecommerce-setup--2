@@ -71,37 +71,41 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
 
         {!isOutOfStock && product.bestSeller && (
-          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full z-10">
+          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full z-10 shadow-sm">
             Best Seller
           </span>
         )}
         {totalInCart > 0 && (
-          <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10">
+          <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-sm">
             {totalInCart}
           </span>
         )}
-      </div>
 
-      {/* Product Info */}
-      <div className="p-2 sm:p-4">
-        <h3 className="text-sm sm:text-lg font-bold text-gray-800 mb-1 leading-tight">{product.name}</h3>
-
-        {/* Rating - Clickable to open reviews */}
+        {/* Rating overlay on image */}
         <button
-          onClick={() => setIsReviewModalOpen(true)}
-          className="flex items-center gap-1 mb-1 sm:mb-2 hover:bg-gray-50 px-1 rounded transition-colors group/rating"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsReviewModalOpen(true);
+          }}
+          className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 z-10 shadow-sm hover:bg-white transition-colors group/rating"
         >
           <div className="flex">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 size={12}
-                className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 group-hover/rating:text-yellow-200'}
+                className={i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 group-hover/rating:text-yellow-300'}
               />
             ))}
           </div>
-          <span className="text-[10px] sm:text-xs text-gray-500 font-medium">({product.reviews})</span>
+          <span className="text-[10px] sm:text-xs text-gray-700 font-bold">({product.reviews})</span>
         </button>
+      </div>
+
+      {/* Product Info */}
+      <div className="p-2 sm:p-4">
+        <h3 className="text-sm sm:text-lg font-bold text-gray-800 mb-1 leading-tight">{product.name}</h3>
 
         <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2 hidden sm:block">{product.description}</p>
 
