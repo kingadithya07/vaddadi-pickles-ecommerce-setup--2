@@ -480,47 +480,71 @@ Thank you for choosing Vaddadi Pickles!`;
       <head>
         <title>Shipping Label - ${order.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .label { border: 3px solid #000; padding: 20px; max-width: 400px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
-          .header h2 { margin: 0; }
-          .section { margin-bottom: 15px; }
-          .section-title { font-weight: bold; font-size: 12px; color: #666; margin-bottom: 5px; }
-          .address { font-size: 16px; line-height: 1.5; }
-          .barcode { text-align: center; font-family: monospace; font-size: 24px; letter-spacing: 5px; margin-top: 15px; padding-top: 15px; border-top: 2px dashed #000; }
-          @media print { body { print-color-adjust: exact; } }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f3f4f6; display: flex; justify-content: center; }
+          .label { background: white; border: 2px solid #000; width: 100mm; position: relative; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+          .header { background: #111827; color: white; padding: 15px; display: flex; align-items: center; gap: 15px; }
+          .header img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; }
+          .header-text h2 { margin: 0; font-size: 18px; letter-spacing: 1px; }
+          .header-text p { margin: 2px 0 0 0; font-size: 12px; color: #9ca3af; }
+          .content { padding: 20px; }
+          .section { margin-bottom: 20px; }
+          .section-title { font-weight: 700; font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+          .address-box { border: 2px solid #16a34a; border-radius: 6px; padding: 15px; background: #f0fdf4; }
+          .address { font-size: 15px; line-height: 1.6; color: #1f2937; }
+          .address strong { font-size: 18px; color: #111827; }
+          .pin-badge { display: inline-block; background: #fef08a; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-top: 8px; font-size: 16px; }
+          .order-details { display: flex; justify-content: space-between; border-top: 1px dashed #d1d5db; border-bottom: 1px dashed #d1d5db; padding: 15px 0; font-size: 13px; color: #4b5563; }
+          .order-details strong { color: #111827; }
+          .handle-care { margin-top: 15px; text-align: center; background: #fee2e2; border: 2px dashed #ef4444; color: #b91c1c; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 16px; letter-spacing: 1px; }
+          .barcode { text-align: center; font-family: monospace; font-size: 18px; letter-spacing: 4px; margin-top: 15px; font-weight: bold; }
+          @media print { 
+            body { background: white; padding: 0; }
+            .label { box-shadow: none; border-radius: 0; }
+          }
         </style>
       </head>
       <body>
         <div class="label">
           <div class="header">
-            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #16a34a;" />
-            <h2>${settings.businessAddress.name}</h2>
-            <p>${settings.businessAddress.city}, ${settings.businessAddress.state}</p>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">SHIP TO:</div>
-            <div class="address">
-              <strong>${order.userName}</strong><br>
-              ${order.address.street}<br>
-              ${order.address.city}, ${order.address.state}<br>
-              PIN: ${order.address.pincode}<br>
-              📱 ${order.userPhone}
+            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" />
+            <div class="header-text">
+              <h2>${settings.businessAddress.name.toUpperCase()}</h2>
+              <p>${settings.businessAddress.city}, ${settings.businessAddress.state}</p>
             </div>
           </div>
           
-          <div class="section">
-            <div class="section-title">ORDER DETAILS:</div>
-            <div class="address">
-              Order ID: ${order.id}<br>
-              Items: ${order.items.length}<br>
-              Amount: ₹${order.finalAmount} (${order.paymentMethod.toUpperCase()})
+          <div class="content">
+            <div class="section">
+              <div class="address-box">
+                <div class="section-title" style="color: #16a34a;">📦 SHIP TO</div>
+                <div class="address">
+                  <strong>${order.userName}</strong><br>
+                  ${order.address.street}<br>
+                  ${order.address.city}, ${order.address.state}<br>
+                  <div class="pin-badge">PIN: ${order.address.pincode}</div><br>
+                  <div style="margin-top: 8px; font-weight: 600;">📱 ${order.userPhone}</div>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div class="barcode">
-            ${order.id}
+            
+            <div class="order-details">
+              <div>
+                <strong>Order ID:</strong><br>
+                ${order.id}
+              </div>
+              <div style="text-align: right;">
+                <strong>Items:</strong> ${order.items.length}<br>
+                <strong>Total:</strong> ₹${order.finalAmount} (${order.paymentMethod.toUpperCase()})
+              </div>
+            </div>
+
+            <div class="handle-care">
+              ⚠️ HANDLE WITH CARE ⚠️
+            </div>
+            
+            <div class="barcode">
+              *${order.id}*
+            </div>
           </div>
         </div>
         <script>window.print();</script>
