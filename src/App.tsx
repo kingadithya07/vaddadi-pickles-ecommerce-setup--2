@@ -52,6 +52,15 @@ export function App() {
 
   React.useEffect(() => {
     fetchInitialData();
+
+    // Increment daily visit on first load per session per day
+    const today = new Date().toISOString().split('T')[0];
+    const visitedToday = sessionStorage.getItem(`visited_${today}`);
+    if (!visitedToday) {
+      useStore.getState().incrementDailyVisit();
+      sessionStorage.setItem(`visited_${today}`, 'true');
+    }
+
     const cleanupSettings = useStore.getState().initializeRealtimeSettings();
     const cleanupProducts = useStore.getState().initializeRealtimeProducts();
     const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();

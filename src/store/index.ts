@@ -313,6 +313,11 @@ interface StoreState {
   initializeRealtimeProducts: () => () => void;
   initializeRealtimeCoupons: () => () => void;
   initializeRealtimeOrders: () => () => void;
+
+  // Analytics actions
+  dailyVisits: number;
+  fetchDailyVisits: () => Promise<void>;
+  incrementDailyVisit: () => Promise<void>;
 }
 
 export const useStore = create<StoreState>()(
@@ -331,6 +336,7 @@ export const useStore = create<StoreState>()(
       isLoading: false,
       reviews: {},
       siteFeedbacks: [],
+      dailyVisits: 0,
 
       addToCart: (product, variant, quantity = 1) => {
         const cart = get().cart;
@@ -945,6 +951,35 @@ export const useStore = create<StoreState>()(
         });
         
         await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
+      },
+
+      fetchDailyVisits: async () => {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const { data, error } = await supabase
+            .from('daily_visits')
+            .select('visit_count')
+            .eq('date', today)
+            .single();
+
+          if (!error && data) {
+            set({ dailyVisits: data.visit_count });
+          }
+        } catch (error) {
+          console.error('Error fetching daily visits:', error);
+        }
+      },
+
+      incrementDailyVisit: async () => {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const { error } = await supabase.rpc('increment_daily_visit', { visit_date: today });
+          if (!error) {
+            get().fetchDailyVisits();
+          }
+        } catch (error) {
+          console.error('Error incrementing daily visits:', error);
+        }
       },
 
       fetchInitialData: async (showLoading = true) => {

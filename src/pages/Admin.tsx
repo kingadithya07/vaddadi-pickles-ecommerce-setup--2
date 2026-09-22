@@ -4,7 +4,7 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image, Settings, Edit
+  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Truck, Eye, ShoppingCart, Repeat
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
@@ -43,6 +43,13 @@ export function Admin() {
   const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
   const navigate = useNavigate();
   const [draftSettings, setDraftSettings] = useState(settings);
+
+  const dailyVisits = useStore((state) => state.dailyVisits);
+  const fetchDailyVisits = useStore((state) => state.fetchDailyVisits);
+
+  useEffect(() => {
+    fetchDailyVisits();
+  }, [fetchDailyVisits]);
 
   // Sync draft settings with store settings when they change externally
   useEffect(() => {
@@ -198,6 +205,17 @@ export function Admin() {
   const totalRevenue = orders
     .filter((o) => o.paymentStatus === 'approved')
     .reduce((sum, o) => sum + o.finalAmount, 0);
+
+  // Analytics calculations
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todaysOrdersCount = orders.filter(o => new Date(o.createdAt) >= todayStart).length;
+  
+  const customerOrderCounts = orders.reduce((acc, order) => {
+    acc[order.userPhone] = (acc[order.userPhone] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const repeatCustomersCount = Object.values(customerOrderCounts).filter(count => count > 1).length;
 
   const sendWhatsAppUpdate = (order: Order, status: string) => {
     const message = `🥒 *Vaddadi Pickles - Order Update*
@@ -714,7 +732,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Total Customers</p>
               </div>
-              <div className="bg-white rounded-xl shadow-md p-4 md:p-6 col-span-2 lg:col-span-4">
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">
                   <Tag className="text-red-500" size={24} />
                   <span className="text-xl md:text-3xl font-bold text-gray-800">
@@ -725,6 +743,29 @@ Thank you for choosing Vaddadi Pickles!`;
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Coupon Discounts</p>
+              </div>
+
+              {/* Analytics Section */}
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Eye className="text-teal-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{dailyVisits}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's Visits</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <ShoppingCart className="text-indigo-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{todaysOrdersCount}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's Orders</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Repeat className="text-orange-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{repeatCustomersCount}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Repeat Customers</p>
               </div>
             </div>
 
