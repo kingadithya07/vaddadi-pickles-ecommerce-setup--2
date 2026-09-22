@@ -306,6 +306,7 @@ interface StoreState {
   initializeRealtimeUserSync: () => () => void;
   initializeRealtimeProducts: () => () => void;
   initializeRealtimeCoupons: () => () => void;
+  initializeRealtimeOrders: () => () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -1166,6 +1167,64 @@ export const useStore = create<StoreState>()(
                 set((state) => ({
                   products: state.products.filter(p => p.id !== oldRecord.id),
                   combos: state.combos.filter(c => c.id !== oldRecord.id)
+                }));
+              }
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
+
+      initializeRealtimeOrders: () => {
+        const channel = supabase
+          .channel('public:orders')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'orders' },
+            (payload) => {
+              const { eventType, new: newRecord, old: oldRecord } = payload;
+              const mapOrder = (o: any) => ({
+                id: o.id,
+                userId: o.user_id,
+                userName: o.user_name,
+                userEmail: o.user_email,
+                userPhone: o.user_phone,
+                items: o.items,
+                total: Number(o.total),
+                discount: Number(o.discount),
+                finalAmount: Number(o.final_amount),
+                couponCode: o.coupon_code,
+                address: o.address,
+                status: o.status,
+                paymentStatus: o.payment_status,
+                paymentMethod: o.payment_method,
+                transactionId: o.transaction_id,
+                trackingId: o.tracking_id,
+                carrier: o.carrier,
+                createdAt: o.created_at,
+                updatedAt: o.updated_at,
+              });
+
+              if (eventType === 'INSERT') {
+                // Admin: add to full list; Customer: add only their own orders
+                const state = get();
+                if (state.isAdmin) {
+                  set((s) => ({ orders: [mapOrder(newRecord), ...s.orders] }));
+                } else if (state.user && newRecord.user_id === state.user.id) {
+                  set((s) => ({ orders: [mapOrder(newRecord), ...s.orders] }));
+                }
+              } else if (eventType === 'UPDATE') {
+                set((s) => ({
+                  orders: s.orders.map((o) =>
+                    o.id === newRecord.id ? mapOrder(newRecord) : o
+                  ),
+                }));
+              } else if (eventType === 'DELETE') {
+                set((s) => ({
+                  orders: s.orders.filter((o) => o.id !== oldRecord.id),
                 }));
               }
             }
