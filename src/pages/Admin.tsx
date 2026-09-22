@@ -31,6 +31,7 @@ export function Admin() {
   const updateOrderTracking = useStore((state) => state.updateOrderTracking);
   const addCoupon = useStore((state) => state.addCoupon);
   const toggleCoupon = useStore((state) => state.toggleCoupon);
+  const deleteCoupon = useStore((state) => state.deleteCoupon);
   const addProduct = useStore((state) => state.addProduct);
   const updateProduct = useStore((state) => state.updateProduct);
   const deleteProduct = useStore((state) => state.deleteProduct);
@@ -2120,15 +2121,28 @@ Thank you for choosing Vaddadi Pickles!`;
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => toggleCoupon(coupon.code)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium ${coupon.active
-                              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                              : 'bg-green-100 text-green-700 hover:bg-green-200'
-                              }`}
-                          >
-                            {coupon.active ? 'Deactivate' : 'Activate'}
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => toggleCoupon(coupon.code)}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium ${coupon.active
+                                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
+                            >
+                              {coupon.active ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete coupon ${coupon.code}?`)) {
+                                  deleteCoupon(coupon.code);
+                                }
+                              }}
+                              className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition"
+                              title="Delete Coupon"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2151,15 +2165,27 @@ Thank you for choosing Vaddadi Pickles!`;
                         {coupon.type === 'percentage' ? `${coupon.discount}%` : `₹${coupon.discount}`} off • Min. ₹{coupon.minOrder}
                       </div>
                     </div>
-                    <button
-                      onClick={() => toggleCoupon(coupon.code)}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${coupon.active
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-green-100 text-green-700'
-                        }`}
-                    >
-                      {coupon.active ? 'Stop' : 'Start'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => toggleCoupon(coupon.code)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${coupon.active
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-green-100 text-green-700'
+                          }`}
+                      >
+                        {coupon.active ? 'Stop' : 'Start'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete coupon ${coupon.code}?`)) {
+                            deleteCoupon(coupon.code);
+                          }
+                        }}
+                        className="px-2 py-1.5 bg-red-100 text-red-700 rounded-lg"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

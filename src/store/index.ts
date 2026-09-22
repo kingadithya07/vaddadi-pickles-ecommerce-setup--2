@@ -273,6 +273,7 @@ interface StoreState {
   removeCoupon: () => void;
   addCoupon: (coupon: Coupon) => void;
   toggleCoupon: (code: string) => void;
+  deleteCoupon: (code: string) => void;
 
   // Product actions
   addProduct: (product: Product) => void;
@@ -619,6 +620,15 @@ export const useStore = create<StoreState>()(
           alert('Error updating coupon: ' + error.message);
         } else {
           console.log('Coupon toggled successfully in Supabase');
+        }
+      },
+
+      deleteCoupon: async (code) => {
+        set({ coupons: get().coupons.filter((c) => c.code !== code) });
+        const { error } = await supabase.from('coupons').delete().eq('code', code);
+        if (error) {
+          console.error('Error deleting coupon in Supabase:', error);
+          alert('Error deleting coupon: ' + error.message);
         }
       },
 

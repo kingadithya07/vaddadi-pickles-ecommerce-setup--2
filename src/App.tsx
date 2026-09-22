@@ -25,7 +25,7 @@ const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module =
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden w-full relative">
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
