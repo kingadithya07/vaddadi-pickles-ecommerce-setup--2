@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Package, Truck, CheckCircle, Clock, XCircle,
-  FileText, MessageCircle, Printer, ChevronDown, ChevronUp
+  MessageCircle, Printer, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order } from '../types';
