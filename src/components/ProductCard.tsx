@@ -1,5 +1,6 @@
 import { ShoppingCart, Star, Plus, Minus } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { useStore } from '../store';
 import { ReviewModal } from './ReviewModal';
@@ -9,6 +10,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate();
+  const user = useStore((state) => state.user);
   const addToCart = useStore((state) => state.addToCart);
   const removeFromCart = useStore((state) => state.removeFromCart);
   const cart = useStore((state) => state.cart);
@@ -86,7 +89,12 @@ export function ProductCard({ product }: ProductCardProps) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setIsReviewModalOpen(true);
+            if (!user) {
+              alert('Please login to review');
+              navigate('/login');
+            } else {
+              setIsReviewModalOpen(true);
+            }
           }}
           className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 z-10 shadow-sm hover:bg-white transition-colors group/rating"
         >
