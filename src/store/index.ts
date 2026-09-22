@@ -449,8 +449,7 @@ export const useStore = create<StoreState>()(
       },
 
       createOrder: async (order) => {
-        set({ orders: [...get().orders, order] });
-        await supabase.from('orders').insert({
+        const { error } = await supabase.from('orders').insert({
           id: order.id,
           user_id: order.userId,
           user_name: order.userName,
@@ -469,6 +468,14 @@ export const useStore = create<StoreState>()(
           tracking_id: order.trackingId,
           carrier: order.carrier,
         });
+
+        if (error) {
+          console.error("Error creating order in Supabase:", error);
+          throw error;
+        }
+        
+        // Only set locally if insert succeeded
+        set({ orders: [...get().orders, order] });
       },
 
       updateOrderStatus: async (orderId, status) => {
