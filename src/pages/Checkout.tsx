@@ -173,8 +173,8 @@ export function Checkout() {
       await createOrder(order);
       clearCart();
       navigate('/order-success', { state: { orderId: order.id } });
-    } catch (error) {
-      alert('Failed to place order. Please try again.');
+    } catch (error: any) {
+      alert(`Failed to place order. Error: ${error?.message || JSON.stringify(error)}`);
       console.error(error);
     }
   };
