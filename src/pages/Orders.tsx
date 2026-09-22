@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Package, Truck, CheckCircle, Clock, XCircle,
@@ -7,7 +7,6 @@ import {
 import { useStore } from '../store';
 import { Order } from '../types';
 import { getTrackingUrl } from '../utils/tracking';
-import { supabase } from '../lib/supabase';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
