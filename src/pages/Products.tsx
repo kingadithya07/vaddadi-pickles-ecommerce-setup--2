@@ -36,6 +36,7 @@ export function Products() {
     variants: [{
       weight: `Pack (${calculateComboWeight(combo.products)})`,
       price: combo.comboPrice,
+      mrp: combo.originalPrice,
       stock: combo.stock
     }],
     inStock: combo.stock > 0,
