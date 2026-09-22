@@ -85,8 +85,9 @@ export function Orders() {
     fetchOrders();
 
     // Real-time: listen for new or updated orders for this user
+    const channelId = `orders-user-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel(`orders-user-${user.id}`)
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${user.id}` },

@@ -1062,8 +1062,9 @@ export const useStore = create<StoreState>()(
         const user = get().user;
         if (!user) return () => { };
 
+        const channelId = `user-sync-${user.id}-${Date.now()}`;
         const channel = supabase
-          .channel(`public:profiles:id=eq.${user.id}`)
+          .channel(channelId)
           .on(
             'postgres_changes',
             {
@@ -1095,8 +1096,9 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeSettings: () => {
+        const channelId = `settings-${Date.now()}`;
         const channel = supabase
-          .channel('public:store_settings')
+          .channel(channelId)
           .on(
             'postgres_changes',
             {
@@ -1125,8 +1127,9 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeProducts: () => {
+        const channelId = `products-sync-${Date.now()}`;
         const channel = supabase
-          .channel('public:products')
+          .channel(channelId)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'products' },
@@ -1186,8 +1189,9 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeOrders: () => {
+        const channelId = `orders-sync-${Date.now()}`;
         const channel = supabase
-          .channel('public:orders')
+          .channel(channelId)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'orders' },
@@ -1244,8 +1248,9 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeCoupons: () => {
+        const channelId = `coupons-sync-${Date.now()}`;
         const channel = supabase
-          .channel('public:coupons')
+          .channel(channelId)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'coupons' },
