@@ -1609,23 +1609,23 @@ Thank you for choosing Vaddadi Pickles!`;
                           onClick={() => {
                             const invoiceWindow = window.open('', '_blank');
                             if (!invoiceWindow) return;
-                            const itemsHtml = order.items.map(item => \`
+                            const itemsHtml = order.items.map(item => `
                               <tr class="item-row">
                                 <td>
-                                  <div class="item-name">\${item.product.name}</div>
-                                  <div class="item-weight">\${item.variant.weight}</div>
+                                  <div class="item-name">${item.product.name}</div>
+                                  <div class="item-weight">${item.variant.weight}</div>
                                 </td>
-                                <td style="text-align: center;">\${item.quantity}</td>
-                                <td style="text-align: right;">₹\${item.variant.price}</td>
-                                <td style="text-align: right; font-weight: 600;">₹\${item.variant.price * item.quantity}</td>
+                                <td style="text-align: center;">${item.quantity}</td>
+                                <td style="text-align: right;">₹${item.variant.price}</td>
+                                <td style="text-align: right; font-weight: 600;">₹${item.variant.price * item.quantity}</td>
                               </tr>
-                            \`).join('');
+                            `).join('');
 
-                            const invoiceHtml = \`
+                            const invoiceHtml = `
                               <!DOCTYPE html>
                               <html>
                               <head>
-                                <title>Invoice - \${order.id}</title>
+                                <title>Invoice - ${order.id}</title>
                                 <style>
                                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
                                   body { font-family: 'Inter', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1f2937; line-height: 1.5; }
@@ -1663,22 +1663,22 @@ Thank you for choosing Vaddadi Pickles!`;
                                   </div>
                                   <div class="invoice-title">
                                     <h2>INVOICE</h2>
-                                    <p>#INV-\${order.id.slice(-8).toUpperCase()}</p>
+                                    <p>#INV-${order.id.slice(-8).toUpperCase()}</p>
                                   </div>
                                 </div>
 
                                 <div class="details-grid">
                                   <div class="detail-box">
                                     <h3>Billed To</h3>
-                                    <p><strong>\${order.userName}</strong><br>\${order.userEmail}<br>\${order.userPhone}</p>
+                                    <p><strong>${order.userName}</strong><br>${order.userEmail}<br>${order.userPhone}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>\${order.address.street}<br>\${order.address.city}, \${order.address.state}<br>\${order.address.pincode}</p>
+                                    <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>${order.address.pincode}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>
-                                    <p><strong>Date:</strong> \${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> \${order.id}<br><strong>Payment:</strong> \${order.paymentMethod.toUpperCase()}</p>
+                                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${order.id}<br><strong>Payment:</strong> ${order.paymentMethod.toUpperCase()}</p>
                                   </div>
                                 </div>
 
@@ -1691,26 +1691,26 @@ Thank you for choosing Vaddadi Pickles!`;
                                       <th style="text-align: right;">Total</th>
                                     </tr>
                                   </thead>
-                                  <tbody>\${itemsHtml}</tbody>
+                                  <tbody>${itemsHtml}</tbody>
                                 </table>
 
                                 <div class="summary">
                                   <div class="summary-row">
                                     <span>Subtotal</span>
-                                    <span>₹\${order.total}</span>
+                                    <span>₹${order.total}</span>
                                   </div>
-                                  \${order.discount > 0 ? \`
+                                  ${order.discount > 0 ? `
                                   <div class="summary-row discount">
-                                    <span>Discount (\${order.couponCode})</span>
-                                    <span>-₹\${order.discount}</span>
-                                  </div>\` : ''}
+                                    <span>Discount (${order.couponCode})</span>
+                                    <span>-₹${order.discount}</span>
+                                  </div>` : ''}
                                   <div class="summary-row">
                                     <span>Shipping</span>
-                                    <span>\${order.total >= 500 ? 'Free' : '₹50'}</span>
+                                    <span>${order.total >= 500 ? 'Free' : '₹50'}</span>
                                   </div>
                                   <div class="summary-row total">
                                     <span>Grand Total</span>
-                                    <span>₹\${order.finalAmount}</span>
+                                    <span>₹${order.finalAmount}</span>
                                   </div>
                                 </div>
 
@@ -1720,7 +1720,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                 <script>window.print();</script>
                               </body>
                               </html>
-                            \`;
+                            `;
                             invoiceWindow.document.write(invoiceHtml);
                             invoiceWindow.document.close();
                           }}
