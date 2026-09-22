@@ -137,3 +137,13 @@ export interface StoreSettings {
   enableCOD: boolean;
   enableBankTransfer: boolean;
 }
+
+export interface SiteFeedback {
+  id: string;
+  userId?: string;
+  name: string;
+  email: string;
+  message: string;
+  status: 'new' | 'read' | 'resolved';
+  createdAt: string;
+}

@@ -5,6 +5,7 @@ import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { useStore } from './store';
 import { supabase } from './lib/supabase';
+import { FeedbackWidget } from './components/FeedbackWidget';
 
 // Lazy load pages for better performance
 const Products = React.lazy(() => import('./pages/Products').then(module => ({ default: module.Products })));
@@ -28,6 +29,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <FeedbackWidget />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings';
+type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback';
 
 const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'payment_pending', label: 'Payment Pending' },
@@ -39,6 +39,8 @@ export function Admin() {
   const deleteCombo = useStore((state) => state.deleteCombo);
   const settings = useStore((state) => state.settings);
   const updateSettings = useStore((state) => state.updateSettings);
+  const siteFeedbacks = useStore((state) => state.siteFeedbacks);
+  const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
   const navigate = useNavigate();
   const [draftSettings, setDraftSettings] = useState(settings);
 
@@ -579,6 +581,7 @@ Thank you for choosing Vaddadi Pickles!`;
             { id: 'labels', label: 'Labels', icon: StickyNote },
             { id: 'coupons', label: 'Coupons', icon: Tag },
             { id: 'settings', label: 'Settings', icon: Settings },
+            { id: 'feedback', label: 'Feedback', icon: MessageCircle, badge: siteFeedbacks.filter(f => f.status === 'new').length || undefined },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1960,6 +1963,52 @@ Thank you for choosing Vaddadi Pickles!`;
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Feedback Tab */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800">Customer Feedback</h2>
+            
+            {siteFeedbacks.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
+                No feedback received yet.
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {siteFeedbacks.map((feedback) => (
+                  <div key={feedback.id} className="bg-white rounded-xl shadow-sm p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-lg text-gray-800">{feedback.name}</h3>
+                        <span className="text-sm text-gray-500">({feedback.email})</span>
+                      </div>
+                      <p className="text-gray-700 whitespace-pre-wrap">{feedback.message}</p>
+                      <div className="text-xs text-gray-400">
+                        {new Date(feedback.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                    
+                    <div className="flex sm:flex-col gap-2">
+                      <select
+                        value={feedback.status}
+                        onChange={(e) => updateFeedbackStatus(feedback.id, e.target.value as any)}
+                        className={`text-sm rounded-lg px-3 py-1.5 border font-medium outline-none ${
+                          feedback.status === 'new' ? 'bg-red-50 text-red-700 border-red-200' :
+                          feedback.status === 'read' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-green-50 text-green-700 border-green-200'
+                        }`}
+                      >
+                        <option value="new">New</option>
+                        <option value="read">Read</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

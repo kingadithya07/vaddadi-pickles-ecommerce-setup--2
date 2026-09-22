@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback } from '../types';
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
@@ -245,6 +245,7 @@ interface StoreState {
   isAdmin: boolean;
   isLoading: boolean;
   reviews: Record<string, Review[]>; // Product ID to Reviews mapping
+  siteFeedbacks: SiteFeedback[];
 
   // Cart actions
   addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
@@ -295,6 +296,11 @@ interface StoreState {
   addReview: (review: Omit<Review, 'id' | 'createdAt'>) => Promise<{ success: boolean; message: string }>;
   fetchReviews: (productId: string) => Promise<void>;
 
+  // Feedback actions
+  submitFeedback: (feedback: Omit<SiteFeedback, 'id' | 'createdAt' | 'status'>) => Promise<{ success: boolean; message: string }>;
+  fetchFeedbacks: () => Promise<void>;
+  updateFeedbackStatus: (feedbackId: string, status: SiteFeedback['status']) => Promise<void>;
+
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
 
@@ -324,6 +330,7 @@ export const useStore = create<StoreState>()(
       isAdmin: false,
       isLoading: false,
       reviews: {},
+      siteFeedbacks: [],
 
       addToCart: (product, variant, quantity = 1) => {
         const cart = get().cart;
@@ -877,6 +884,69 @@ export const useStore = create<StoreState>()(
         }
       },
 
+      submitFeedback: async (feedback) => {
+        const { data, error } = await supabase.from('site_feedback').insert({
+          user_id: feedback.userId || null,
+          name: feedback.name,
+          email: feedback.email,
+          message: feedback.message,
+          status: 'new'
+        }).select().single();
+
+        if (error) {
+          console.error("Error submitting feedback:", error);
+          return { success: false, message: error.message };
+        }
+
+        // Add to local state if admin
+        if (get().isAdmin && data) {
+          const newFeedback: SiteFeedback = {
+            id: data.id,
+            userId: data.user_id,
+            name: data.name,
+            email: data.email,
+            message: data.message,
+            status: data.status,
+            createdAt: data.created_at,
+          };
+          set({ siteFeedbacks: [newFeedback, ...get().siteFeedbacks] });
+        }
+
+        return { success: true, message: 'Thank you for your feedback!' };
+      },
+
+      fetchFeedbacks: async () => {
+        if (!get().isAdmin) return;
+        
+        const { data, error } = await supabase
+          .from('site_feedback')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          const formatted: SiteFeedback[] = data.map(f => ({
+            id: f.id,
+            userId: f.user_id,
+            name: f.name,
+            email: f.email,
+            message: f.message,
+            status: f.status,
+            createdAt: f.created_at,
+          }));
+          set({ siteFeedbacks: formatted });
+        }
+      },
+
+      updateFeedbackStatus: async (feedbackId, status) => {
+        set({
+          siteFeedbacks: get().siteFeedbacks.map(f => 
+            f.id === feedbackId ? { ...f, status } : f
+          )
+        });
+        
+        await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
+      },
+
       fetchInitialData: async (showLoading = true) => {
         if (showLoading) set({ isLoading: true });
         try {
@@ -910,6 +980,11 @@ export const useStore = create<StoreState>()(
                 cart: profile.cart || get().cart,
                 isAdmin: role === 'admin',
               });
+
+              // If admin, load additional admin data
+              if (role === 'admin') {
+                get().fetchFeedbacks();
+              }
             }
           }
 
