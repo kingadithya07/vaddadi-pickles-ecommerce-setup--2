@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../store';
 import { Order, Address } from '../types';
@@ -19,6 +19,7 @@ export function Checkout() {
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showQR, setShowQR] = useState(true);
+  const [showUtrHelp, setShowUtrHelp] = useState(false);
 
   // Address selection state
   const userAddresses = user?.addresses || [];
@@ -624,10 +625,19 @@ export function Checkout() {
 
                 {/* Transaction ID Input */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800 mb-3 flex items-center gap-2">
-                    <span className="text-lg">⚠️</span>
-                    After payment, copy or enter the UPI REF Number/ UTR Number below
-                  </p>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <p className="text-sm text-yellow-800 flex items-center gap-2">
+                      <span className="text-lg">⚠️</span>
+                      After payment, copy or enter the UPI REF Number/ UTR Number below
+                    </p>
+                    <button 
+                      onClick={() => setShowUtrHelp(true)}
+                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs whitespace-nowrap bg-blue-50 px-2 py-1 rounded-md"
+                      type="button"
+                    >
+                      <HelpCircle size={14} /> Where to find?
+                    </button>
+                  </div>
                   <input
                     type="text"
                     placeholder="Enter UPI REF / UTR Number (12 digits)"
@@ -715,6 +725,19 @@ export function Checkout() {
 
                 {/* Transaction ID Input */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <p className="text-sm text-yellow-800 flex items-center gap-2">
+                      <span className="text-lg">⚠️</span>
+                      Enter your Bank Transaction Reference Number
+                    </p>
+                    <button 
+                      onClick={() => setShowUtrHelp(true)}
+                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs whitespace-nowrap bg-blue-50 px-2 py-1 rounded-md"
+                      type="button"
+                    >
+                      <HelpCircle size={14} /> Where to find?
+                    </button>
+                  </div>
                   <input
                     type="text"
                     placeholder="Enter Transaction Reference (12 digits)"
@@ -841,6 +864,51 @@ export function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* UTR Help Modal */}
+      {showUtrHelp && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-800">How to find UTR / UPI Ref Number?</h3>
+              <button onClick={() => setShowUtrHelp(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                The UTR (Unique Transaction Reference) or UPI Reference number is a <strong>12-digit number</strong> that uniquely identifies your transaction.
+              </p>
+              <div className="space-y-3 mt-4">
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                  <p className="font-semibold text-blue-800 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-gradient-to-br from-blue-500 via-red-500 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-xs">G</span> Google Pay
+                  </p>
+                  <p className="text-sm text-gray-700 mt-1">Open transaction details. Look for <strong>UPI Transaction ID</strong>.</p>
+                </div>
+                <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                  <p className="font-semibold text-purple-800 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs">Pe</span> PhonePe
+                  </p>
+                  <p className="text-sm text-gray-700 mt-1">Open history, click on the transaction. Look for <strong>UTR</strong> number.</p>
+                </div>
+                <div className="bg-sky-50 p-3 rounded-lg border border-sky-100">
+                  <p className="font-semibold text-sky-800 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">Pt</span> Paytm
+                  </p>
+                  <p className="text-sm text-gray-700 mt-1">Open payment details. Look for <strong>UPI Ref No</strong>.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowUtrHelp(false)}
+                className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition mt-6"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 }
