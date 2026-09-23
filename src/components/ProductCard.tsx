@@ -172,20 +172,18 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* No Garlic Option */}
-          {product.hasNoGarlicOption && (
-            <div className="mb-2 sm:mb-3 flex items-center gap-2">
-              <input
-                type="checkbox"
-                id={`no-garlic-${product.id}`}
-                checked={noGarlic}
-                onChange={(e) => setNoGarlic(e.target.checked)}
-                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"
-              />
-              <label htmlFor={`no-garlic-${product.id}`} className="text-xs sm:text-sm text-gray-700 cursor-pointer select-none font-medium">
-                No Garlic (Without Garlic)
-              </label>
-            </div>
-          )}
+          <div className="mb-2 sm:mb-3 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id={`no-garlic-${product.id}`}
+              checked={noGarlic}
+              onChange={(e) => setNoGarlic(e.target.checked)}
+              className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"
+            />
+            <label htmlFor={`no-garlic-${product.id}`} className="text-xs sm:text-sm text-gray-700 cursor-pointer select-none font-medium">
+              No Garlic (Without Garlic)
+            </label>
+          </div>
 
           {/* Add to Cart / Quantity Controls */}
           {isOutOfStock ? (
