@@ -1268,8 +1268,8 @@ Thank you for choosing Vaddadi Pickles!`;
                       <label className="block text-sm font-medium text-gray-700 mb-3">Weight Variants & Stock *</label>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                         {newProduct.variants.map((variant, index) => (
-                          <div key={variant.weight} className="flex items-center gap-4 bg-white p-3 rounded-lg border">
-                            <label className="flex items-center gap-2 w-24">
+                          <div key={variant.weight} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 bg-white p-3 rounded-lg border">
+                            <label className="flex items-center gap-2 w-full sm:w-24">
                               <input
                                 type="checkbox"
                                 checked={variant.enabled}
@@ -1283,49 +1283,51 @@ Thank you for choosing Vaddadi Pickles!`;
                               <span className="font-medium text-gray-700">{variant.weight}</span>
                             </label>
 
-                            <div className="flex-1">
-                              <label className="text-xs text-gray-500">MRP (₹)</label>
-                              <input
-                                type="number"
-                                value={variant.mrp}
-                                onChange={(e) => {
-                                  const newVariants = [...newProduct.variants];
-                                  newVariants[index].mrp = Number(e.target.value);
-                                  setNewProduct({ ...newProduct, variants: newVariants });
-                                }}
-                                disabled={!variant.enabled}
-                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
-                              />
-                            </div>
+                            <div className="flex w-full gap-2 sm:flex-1">
+                              <div className="flex-1">
+                                <label className="text-xs text-gray-500">MRP (₹)</label>
+                                <input
+                                  type="number"
+                                  value={variant.mrp}
+                                  onChange={(e) => {
+                                    const newVariants = [...newProduct.variants];
+                                    newVariants[index].mrp = Number(e.target.value);
+                                    setNewProduct({ ...newProduct, variants: newVariants });
+                                  }}
+                                  disabled={!variant.enabled}
+                                  className="w-full px-2 sm:px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                                />
+                              </div>
 
-                            <div className="flex-1">
-                              <label className="text-xs text-gray-500">Selling (₹)</label>
-                              <input
-                                type="number"
-                                value={variant.price}
-                                onChange={(e) => {
-                                  const newVariants = [...newProduct.variants];
-                                  newVariants[index].price = Number(e.target.value);
-                                  setNewProduct({ ...newProduct, variants: newVariants });
-                                }}
-                                disabled={!variant.enabled}
-                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
-                              />
-                            </div>
+                              <div className="flex-1">
+                                <label className="text-xs text-gray-500">Selling (₹)</label>
+                                <input
+                                  type="number"
+                                  value={variant.price}
+                                  onChange={(e) => {
+                                    const newVariants = [...newProduct.variants];
+                                    newVariants[index].price = Number(e.target.value);
+                                    setNewProduct({ ...newProduct, variants: newVariants });
+                                  }}
+                                  disabled={!variant.enabled}
+                                  className="w-full px-2 sm:px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                                />
+                              </div>
 
-                            <div className="flex-1">
-                              <label className="text-xs text-gray-500">Stock</label>
-                              <input
-                                type="number"
-                                value={variant.stock}
-                                onChange={(e) => {
-                                  const newVariants = [...newProduct.variants];
-                                  newVariants[index].stock = Number(e.target.value);
-                                  setNewProduct({ ...newProduct, variants: newVariants });
-                                }}
-                                disabled={!variant.enabled}
-                                className="w-full px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
-                              />
+                              <div className="flex-1">
+                                <label className="text-xs text-gray-500">Stock</label>
+                                <input
+                                  type="number"
+                                  value={variant.stock}
+                                  onChange={(e) => {
+                                    const newVariants = [...newProduct.variants];
+                                    newVariants[index].stock = Number(e.target.value);
+                                    setNewProduct({ ...newProduct, variants: newVariants });
+                                  }}
+                                  disabled={!variant.enabled}
+                                  className="w-full px-2 sm:px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                                />
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1717,7 +1719,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                 sendWhatsAppUpdate(order, 'shipped');
                               }
                             }}
-                            className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition"
+                            className="w-full md:w-auto bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition"
                           >
                             Update Tracking
                           </button>
@@ -1727,7 +1729,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
                         <button
                           onClick={() => printOrderLabel(order)}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+                          className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
                         >
                           <Printer size={16} />
                           Print Label
@@ -1851,14 +1853,14 @@ Thank you for choosing Vaddadi Pickles!`;
                             invoiceWindow.document.write(invoiceHtml);
                             invoiceWindow.document.close();
                           }}
-                          className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition text-sm"
+                          className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition text-sm"
                         >
                           <FileText size={16} />
                           Invoice
                         </button>
                         <button
                           onClick={() => sendWhatsAppUpdate(order, order.status)}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm"
+                          className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm"
                         >
                           <MessageCircle size={16} />
                           WhatsApp Update

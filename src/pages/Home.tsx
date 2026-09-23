@@ -6,7 +6,18 @@ import { useStore } from '../store';
 export function Home() {
   const products = useStore((state) => state.products);
   const combos = useStore((state) => state.combos);
-  const featuredProducts = products.slice(0, 4);
+  
+  const sortedProducts = [...products].sort((a, b) => {
+    const aTotalStock = (a.variants || []).reduce((sum, v) => sum + v.stock, 0);
+    const bTotalStock = (b.variants || []).reduce((sum, v) => sum + v.stock, 0);
+    const aIsOutOfStock = !a.inStock || aTotalStock <= 0;
+    const bIsOutOfStock = !b.inStock || bTotalStock <= 0;
+    
+    if (aIsOutOfStock === bIsOutOfStock) return 0;
+    return aIsOutOfStock ? 1 : -1;
+  });
+
+  const featuredProducts = sortedProducts.slice(0, 4);
 
   const calculateComboWeight = (comboProducts: { variantWeight: string }[]) => {
     const totalGrams = comboProducts.reduce((sum, p) => {
@@ -129,7 +140,12 @@ export function Home() {
             <p className="text-gray-600">Great value packs for you and your family</p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-            {(combos || []).map((combo) => (
+            {[...(combos || [])].sort((a, b) => {
+              const aIsOutOfStock = a.stock <= 0;
+              const bIsOutOfStock = b.stock <= 0;
+              if (aIsOutOfStock === bIsOutOfStock) return 0;
+              return aIsOutOfStock ? 1 : -1;
+            }).map((combo) => (
               <ProductCard
                 key={combo.id}
                 product={{

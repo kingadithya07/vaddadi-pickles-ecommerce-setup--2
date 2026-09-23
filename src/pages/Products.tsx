@@ -51,6 +51,14 @@ export function Products() {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = category === 'all' || product.category.toLowerCase() === category.toLowerCase();
     return matchesSearch && matchesCategory;
+  }).sort((a, b) => {
+    const aTotalStock = (a.variants || []).reduce((sum, v) => sum + v.stock, 0);
+    const bTotalStock = (b.variants || []).reduce((sum, v) => sum + v.stock, 0);
+    const aIsOutOfStock = !a.inStock || aTotalStock <= 0;
+    const bIsOutOfStock = !b.inStock || bTotalStock <= 0;
+    
+    if (aIsOutOfStock === bIsOutOfStock) return 0;
+    return aIsOutOfStock ? 1 : -1;
   }), [allItems, search, category]);
 
   return (
