@@ -1285,7 +1285,7 @@ export const useStore = create<StoreState>()(
                   };
                   set((state) => ({
                     combos: eventType === 'INSERT'
-                      ? [...state.combos, combo]
+                      ? (state.combos.some(c => c.id === combo.id) ? state.combos : [...state.combos, combo])
                       : state.combos.map(c => c.id === combo.id ? combo : c)
                   }));
                 } else {
@@ -1303,7 +1303,7 @@ export const useStore = create<StoreState>()(
                   };
                   set((state) => ({
                     products: eventType === 'INSERT'
-                      ? [...state.products, product]
+                      ? (state.products.some(p => p.id === product.id) ? state.products : [...state.products, product])
                       : state.products.map(p => p.id === product.id ? product : p)
                   }));
                 }
@@ -1357,9 +1357,17 @@ export const useStore = create<StoreState>()(
                 // Admin: add to full list; Customer: add only their own orders
                 const state = get();
                 if (state.isAdmin) {
-                  set((s) => ({ orders: [mapOrder(newRecord), ...s.orders] }));
+                  set((s) => ({
+                    orders: s.orders.some((o) => o.id === newRecord.id)
+                      ? s.orders
+                      : [mapOrder(newRecord), ...s.orders],
+                  }));
                 } else if (state.user && newRecord.user_id === state.user.id) {
-                  set((s) => ({ orders: [mapOrder(newRecord), ...s.orders] }));
+                  set((s) => ({
+                    orders: s.orders.some((o) => o.id === newRecord.id)
+                      ? s.orders
+                      : [mapOrder(newRecord), ...s.orders],
+                  }));
                 }
               } else if (eventType === 'UPDATE') {
                 set((s) => ({
@@ -1401,7 +1409,7 @@ export const useStore = create<StoreState>()(
                 };
                 set((state) => ({
                   coupons: eventType === 'INSERT'
-                    ? [...state.coupons, coupon]
+                    ? (state.coupons.some(c => c.code === coupon.code) ? state.coupons : [...state.coupons, coupon])
                     : state.coupons.map(c => c.code === coupon.code ? coupon : c)
                 }));
               } else if (eventType === 'DELETE') {
