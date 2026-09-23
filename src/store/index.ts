@@ -248,9 +248,9 @@ interface StoreState {
   siteFeedbacks: SiteFeedback[];
 
   // Cart actions
-  addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
-  removeFromCart: (productId: string, weight: string) => void;
-  updateQuantity: (productId: string, weight: string, quantity: number) => void;
+  addToCart: (product: Product, variant: ProductVariant, quantity?: number, noGarlic?: boolean) => void;
+  removeFromCart: (productId: string, weight: string, noGarlic?: boolean) => void;
+  updateQuantity: (productId: string, weight: string, quantity: number, noGarlic?: boolean) => void;
   clearCart: () => void;
 
   // User actions
@@ -339,38 +339,38 @@ export const useStore = create<StoreState>()(
       siteFeedbacks: [],
       dailyVisits: 0,
 
-      addToCart: (product, variant, quantity = 1) => {
+      addToCart: (product, variant, quantity = 1, noGarlic = false) => {
         const cart = get().cart;
         const existing = cart.find(
-          (item) => item.product.id === product.id && item.variant.weight === variant.weight
+          (item) => item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
         );
         if (existing) {
           const newQuantity = existing.quantity + quantity;
           if (newQuantity <= 0) {
             set({
               cart: cart.filter(
-                (item) => !(item.product.id === product.id && item.variant.weight === variant.weight)
+                (item) => !(item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic)
               ),
             });
           } else {
             set({
               cart: cart.map((item) =>
-                item.product.id === product.id && item.variant.weight === variant.weight
+                item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
                   ? { ...item, quantity: newQuantity }
                   : item
               ),
             });
           }
         } else if (quantity > 0) {
-          set({ cart: [...cart, { product, variant, quantity }] });
+          set({ cart: [...cart, { product, variant, quantity, noGarlic }] });
         }
         get().syncCartWithCloud();
       },
 
-      removeFromCart: (productId, weight) => {
+      removeFromCart: (productId, weight, noGarlic = false) => {
         set({
           cart: get().cart.filter(
-            (item) => !(item.product.id === productId && item.variant.weight === weight)
+            (item) => !(item.product.id === productId && item.variant.weight === weight && !!item.noGarlic === !!noGarlic)
           ),
         });
         
@@ -383,13 +383,13 @@ export const useStore = create<StoreState>()(
         get().syncCartWithCloud();
       },
 
-      updateQuantity: (productId, weight, quantity) => {
+      updateQuantity: (productId, weight, quantity, noGarlic = false) => {
         if (quantity <= 0) {
-          get().removeFromCart(productId, weight);
+          get().removeFromCart(productId, weight, noGarlic);
         } else {
           set({
             cart: get().cart.map((item) =>
-              item.product.id === productId && item.variant.weight === weight
+              item.product.id === productId && item.variant.weight === weight && !!item.noGarlic === !!noGarlic
                 ? { ...item, quantity }
                 : item
             ),

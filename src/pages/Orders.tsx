@@ -58,7 +58,10 @@ export function Orders() {
       <tr class="item-row">
         <td>
           <div class="item-name">${item.product.name}</div>
-          <div class="item-weight">${item.variant.weight}</div>
+          <div class="item-weight">
+            ${item.variant.weight}
+            ${item.noGarlic ? '<span style="margin-left: 8px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 9999px; font-size: 10px;">No Garlic</span>' : ''}
+          </div>
         </td>
         <td style="text-align: center;">${item.quantity}</td>
         <td style="text-align: right;">₹${item.variant.price}</td>
@@ -300,7 +303,10 @@ export function Orders() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-800 text-sm truncate">{item.product.name}</p>
-                            <p className="text-xs text-gray-500">{item.variant.weight} × {item.quantity}</p>
+                            <p className="text-xs text-gray-500">
+                              {item.variant.weight} × {item.quantity}
+                              {item.noGarlic && <span className="ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px]">No Garlic</span>}
+                            </p>
                           </div>
                           <p className="font-semibold text-gray-800 text-sm flex-shrink-0">₹{item.variant.price * item.quantity}</p>
                         </div>

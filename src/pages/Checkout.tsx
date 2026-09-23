@@ -786,7 +786,7 @@ export function Checkout() {
 
             <div className="space-y-4 max-h-60 overflow-y-auto mb-4">
               {cart.map((item) => (
-                <div key={`${item.product.id}-${item.variant.weight}`} className="flex items-center gap-3">
+                <div key={`${item.product.id}-${item.variant.weight}${item.noGarlic ? '-nogarlic' : ''}`} className="flex items-center gap-3">
                   <div className="w-10 h-10 flex-shrink-0 bg-gray-50 rounded flex items-center justify-center text-2xl overflow-hidden text-center">
                     {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
                       <img
@@ -800,7 +800,10 @@ export function Checkout() {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{item.product.name}</p>
-                    <p className="text-sm text-gray-500">{item.variant.weight} × {item.quantity}</p>
+                    <p className="text-sm text-gray-500">
+                      {item.variant.weight} × {item.quantity}
+                      {item.noGarlic && <span className="ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px]">No Garlic</span>}
+                    </p>
                   </div>
                   <p className="font-medium">₹{item.variant.price * item.quantity}</p>
                 </div>

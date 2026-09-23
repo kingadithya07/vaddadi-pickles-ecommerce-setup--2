@@ -10,7 +10,7 @@ export function OrderSuccess() {
 
   const generateWhatsAppMessage = () => {
     if (!order) return '';
-    const itemsList = order.items.map((item) => `${item.product.name} (${item.variant.weight}) x${item.quantity}`).join(', ');
+    const itemsList = order.items.map((item) => `${item.product.name} (${item.variant.weight}${item.noGarlic ? ' - No Garlic' : ''}) x${item.quantity}`).join(', ');
     const message = `🥒 *New Order from Vaddadi Pickles*\n\n📦 Order ID: ${order.id}\n👤 Customer: ${order.userName}\n📱 Phone: ${order.userPhone}\n📧 Email: ${order.userEmail}\n\n🛒 Items: ${itemsList}\n\n💰 Amount: ₹${order.finalAmount}\n💳 Payment: ${order.paymentMethod.toUpperCase()}\n🧾 Transaction ID: ${order.transactionId}\n\n📍 Delivery Address:\n${order.address.street}\n${order.address.city}, ${order.address.state}\n${order.address.pincode}\n\n⏳ Status: Payment Verification Pending\n\nThank you for ordering from Vaddadi Pickles!`;
 
     return encodeURIComponent(message);

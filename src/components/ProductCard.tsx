@@ -17,12 +17,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const cart = useStore((state) => state.cart);
   const [selectedWeight, setSelectedWeight] = useState<string>('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [noGarlic, setNoGarlic] = useState(false);
 
   const selectedVariant = product.variants?.find(v => v.weight === selectedWeight);
 
   // Check if this product with selected weight is in cart
   const cartItem = cart.find(
-    item => item.product.id === product.id && item.variant.weight === selectedWeight
+    item => item.product.id === product.id && item.variant.weight === selectedWeight && !!item.noGarlic === !!noGarlic
   );
   const totalInCart = cart
     .filter(item => item.product.id === product.id)
@@ -34,16 +35,16 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleIncrement = () => {
     if (selectedVariant) {
-      addToCart(product, selectedVariant, 1);
+      addToCart(product, selectedVariant, 1, noGarlic);
     }
   };
 
   const handleDecrement = () => {
     if (cartItem && selectedVariant) {
       if (cartItem.quantity === 1) {
-        removeFromCart(product.id, selectedVariant.weight);
+        removeFromCart(product.id, selectedVariant.weight, noGarlic);
       } else {
-        addToCart(product, selectedVariant, -1);
+        addToCart(product, selectedVariant, -1, noGarlic);
       }
     }
   };
@@ -124,7 +125,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
               {(product.variants || []).map((variant) => {
                 const variantInCart = cart.find(
-                  item => item.product.id === product.id && item.variant.weight === variant.weight
+                  item => item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
                 );
                 const isVariantOutOfStock = variant.stock <= 0;
 
@@ -169,6 +170,22 @@ export function ProductCard({ product }: ProductCardProps) {
               <p className="text-[10px] sm:text-sm text-gray-500">Select weight</p>
             )}
           </div>
+
+          {/* No Garlic Option */}
+          {product.hasNoGarlicOption && (
+            <div className="mb-2 sm:mb-3 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id={`no-garlic-${product.id}`}
+                checked={noGarlic}
+                onChange={(e) => setNoGarlic(e.target.checked)}
+                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"
+              />
+              <label htmlFor={`no-garlic-${product.id}`} className="text-xs sm:text-sm text-gray-700 cursor-pointer select-none font-medium">
+                No Garlic (Without Garlic)
+              </label>
+            </div>
+          )}
 
           {/* Add to Cart / Quantity Controls */}
           {isOutOfStock ? (

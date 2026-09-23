@@ -16,6 +16,7 @@ export interface Product {
   rating: number;
   reviews: number;
   bestSeller?: boolean;
+  hasNoGarlicOption?: boolean;
 }
 
 export interface ComboProduct {
@@ -57,6 +58,7 @@ export interface CartItem {
   product: Product;
   variant: ProductVariant;
   quantity: number;
+  noGarlic?: boolean;
 }
 
 export interface User {

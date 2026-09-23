@@ -80,6 +80,7 @@ export function Admin() {
       { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
     ],
     bestSeller: false,
+    hasNoGarlicOption: false,
   });
 
   // Combo Form State
@@ -153,6 +154,7 @@ export function Admin() {
       rating: editingProductId ? (products.find(p => p.id === editingProductId)?.rating || 4.5) : 4.5,
       reviews: editingProductId ? (products.find(p => p.id === editingProductId)?.reviews || 0) : 0,
       bestSeller: newProduct.bestSeller,
+      hasNoGarlicOption: newProduct.hasNoGarlicOption,
     };
 
     if (editingProductId) {
@@ -176,6 +178,7 @@ export function Admin() {
         { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
       ],
       bestSeller: false,
+      hasNoGarlicOption: false,
     });
   };
 
@@ -189,6 +192,7 @@ export function Admin() {
       image: product.image,
       variants: product.variants.map(v => ({...v, enabled: true})),
       bestSeller: product.bestSeller || false,
+      hasNoGarlicOption: product.hasNoGarlicOption || false,
     });
     setEditingProductId(product.id);
   };
@@ -1347,6 +1351,19 @@ Thank you for choosing Vaddadi Pickles!`;
                       </div>
                     </div>
 
+                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.hasNoGarlicOption}
+                        onChange={(e) => setNewProduct({ ...newProduct, hasNoGarlicOption: e.target.checked })}
+                        className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-700">Enable "No Garlic" Option</p>
+                        <p className="text-sm text-gray-500">Allows customers to choose a version without garlic</p>
+                      </div>
+                    </div>
+
                     <div className="flex gap-4">
                       {editingProductId && (
                         <button
@@ -1363,6 +1380,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                 { weight: '1kg', price: 529, mrp: 699, stock: 30, enabled: true },
                               ],
                               bestSeller: false,
+                              hasNoGarlicOption: false,
                             });
                           }}
                           className="w-full flex items-center justify-center gap-2 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition"
@@ -1651,7 +1669,10 @@ Thank you for choosing Vaddadi Pickles!`;
                                     item.product.image
                                   )}
                                 </div>
-                                <span className="flex-1 truncate">{item.product.name} ({item.variant.weight})</span>
+                                <span className="flex-1 truncate">
+                                  {item.product.name} ({item.variant.weight})
+                                  {item.noGarlic && <span className="ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px]">No Garlic</span>}
+                                </span>
                                 <span className="text-gray-500">×{item.quantity}</span>
                                 <span className="ml-auto font-medium">₹{item.variant.price * item.quantity}</span>
                               </div>
@@ -1742,7 +1763,10 @@ Thank you for choosing Vaddadi Pickles!`;
                               <tr class="item-row">
                                 <td>
                                   <div class="item-name">${item.product.name}</div>
-                                  <div class="item-weight">${item.variant.weight}</div>
+                                  <div class="item-weight">
+                                    ${item.variant.weight}
+                                    ${item.noGarlic ? '<span style="margin-left: 8px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 9999px; font-size: 10px;">No Garlic</span>' : ''}
+                                  </div>
                                 </td>
                                 <td style="text-align: center;">${item.quantity}</td>
                                 <td style="text-align: right;">₹${item.variant.price}</td>
