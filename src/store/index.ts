@@ -373,6 +373,13 @@ export const useStore = create<StoreState>()(
             (item) => !(item.product.id === productId && item.variant.weight === weight)
           ),
         });
+        
+        const newCartTotal = get().cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+        const appliedCoupon = get().appliedCoupon;
+        if (appliedCoupon && newCartTotal < appliedCoupon.minOrder) {
+          set({ appliedCoupon: null });
+        }
+        
         get().syncCartWithCloud();
       },
 
@@ -387,8 +394,15 @@ export const useStore = create<StoreState>()(
                 : item
             ),
           });
+          
+          const newCartTotal = get().cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+          const appliedCoupon = get().appliedCoupon;
+          if (appliedCoupon && newCartTotal < appliedCoupon.minOrder) {
+            set({ appliedCoupon: null });
+          }
+          
+          get().syncCartWithCloud();
         }
-        get().syncCartWithCloud();
       },
 
       clearCart: () => {

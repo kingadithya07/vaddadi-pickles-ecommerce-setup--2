@@ -163,10 +163,34 @@ export function Cart() {
             Proceed to Checkout
           </button>
 
-          {coupons.length > 0 && (
-            <p className="text-center text-sm text-gray-500 mt-4">
-              Available coupons: {coupons.map(c => c.code).join(', ')}
-            </p>
+          {coupons.length > 0 && !appliedCoupon && (
+            <div className="mt-6 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Available Coupons:</h3>
+              {coupons.map(c => {
+                const amountNeeded = c.minOrder - subtotal;
+                const discountText = c.type === 'fixed' ? `₹${c.discount}` : `${c.discount}%`;
+                
+                return (
+                  <div key={c.code} className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-green-700 bg-green-100 px-2 py-1 rounded text-xs">
+                        {c.code}
+                      </span>
+                      <span className="text-sm font-medium text-gray-700">Save {discountText}</span>
+                    </div>
+                    {amountNeeded > 0 ? (
+                      <p className="text-xs text-orange-600 mt-1">
+                        Add ₹{amountNeeded.toFixed(2)} more to unlock
+                      </p>
+                    ) : (
+                      <p className="text-xs text-green-600 mt-1 font-medium">
+                        You can apply this coupon now!
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

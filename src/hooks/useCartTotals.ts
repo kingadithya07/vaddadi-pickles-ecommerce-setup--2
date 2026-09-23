@@ -14,7 +14,8 @@ export function useCartTotals() {
     }
 
     const shipping = subtotal >= 1000 ? 0 : 50;
-    const totalRaw = subtotal - discount + shipping;
+    const discountedSubtotal = Math.max(0, subtotal - discount);
+    const totalRaw = discountedSubtotal + shipping;
     const total = Math.round(totalRaw * 100) / 100;
 
     return {
