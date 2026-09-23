@@ -50,8 +50,8 @@ export function Cart() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.map((item) => (
-            <div key={`${item.product.id}-${item.variant.weight}`} className="bg-white rounded-xl shadow-md p-4 flex items-center gap-4">
-              <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center text-4xl overflow-hidden">
+            <div key={`${item.product.id}-${item.variant.weight}`} className="bg-white rounded-xl shadow-md p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-green-50 rounded-lg flex items-center justify-center text-3xl sm:text-4xl overflow-hidden">
                 {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
                   <img
                     src={item.product.image}
@@ -62,33 +62,33 @@ export function Cart() {
                   item.product.image
                 )}
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800">{item.product.name}</h3>
-                <p className="text-sm text-gray-500">{item.variant.weight}</p>
-                <p className="text-green-700 font-semibold">₹{item.variant.price}</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{item.product.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-500">{item.variant.weight}</p>
+                <p className="text-sm sm:text-base text-green-700 font-semibold">₹{item.variant.price}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity - 1)}
-                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
+                  className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
                 >
-                  <Minus size={16} />
+                  <Minus size={14} className="sm:w-4 sm:h-4" />
                 </button>
-                <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity + 1)}
-                  className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
+                  className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
                 >
-                  <Plus size={16} />
+                  <Plus size={14} className="sm:w-4 sm:h-4" />
                 </button>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-800">₹{item.variant.price * item.quantity}</p>
+              <div className="text-right flex flex-col items-end pl-1 sm:pl-2">
+                <p className="font-semibold text-gray-800 text-sm sm:text-base">₹{item.variant.price * item.quantity}</p>
                 <button
                   onClick={() => removeFromCart(item.product.id, item.variant.weight)}
-                  className="text-red-500 hover:text-red-700 transition mt-1"
+                  className="text-red-500 hover:text-red-700 transition mt-1 p-1"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={16} className="sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
