@@ -329,7 +329,7 @@ export function Profile() {
                   <label className="block text-sm text-gray-600 mb-1">Street Address</label>
                   <input
                     type="text"
-                    placeholder="House No., Building Name, Street"
+                    placeholder="Door No / Flat No / Landmark / Street Address"
                     value={addressForm.street}
                     onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"

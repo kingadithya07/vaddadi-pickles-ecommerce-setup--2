@@ -315,13 +315,16 @@ export function Checkout() {
                     />
                   </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Street Address"
-                  value={newAddress.street}
-                  onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Street Address</label>
+                  <input
+                    type="text"
+                    placeholder="Door No / Flat No / Landmark / Street Address"
+                    value={newAddress.street}
+                    onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
                     <select
