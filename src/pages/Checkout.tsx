@@ -626,11 +626,11 @@ export function Checkout() {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800 mb-3 flex items-center gap-2">
                     <span className="text-lg">⚠️</span>
-                    After payment, enter the Transaction ID below
+                    After payment, copy or enter the UPI REF Number/ UTR Number below
                   </p>
                   <input
                     type="text"
-                    placeholder="Enter UPI Transaction ID (12 digits)"
+                    placeholder="Enter UPI REF / UTR Number (12 digits)"
                     value={transactionId}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '').slice(0, 12);
