@@ -168,23 +168,40 @@ export function Cart() {
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Available Coupons:</h3>
               {coupons.map(c => {
                 const amountNeeded = c.minOrder - subtotal;
+                const isEligible = amountNeeded <= 0;
                 const discountText = c.type === 'fixed' ? `₹${c.discount}` : `${c.discount}%`;
                 
                 return (
-                  <div key={c.code} className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col gap-1">
+                  <div 
+                    key={c.code} 
+                    onClick={() => {
+                      if (isEligible) {
+                        const result = applyCoupon(c.code);
+                        setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
+                        if (result.success) setCouponCode('');
+                      }
+                    }}
+                    className={`p-3 rounded-lg border flex flex-col gap-1 transition ${
+                      isEligible 
+                        ? 'bg-green-50 border-green-200 cursor-pointer hover:bg-green-100 hover:shadow-sm' 
+                        : 'bg-gray-50 border-gray-100 opacity-80'
+                    }`}
+                  >
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-green-700 bg-green-100 px-2 py-1 rounded text-xs">
+                      <span className={`font-bold px-2 py-1 rounded text-xs border ${
+                        isEligible ? 'text-green-700 bg-white border-green-200' : 'text-gray-600 bg-gray-100 border-gray-200'
+                      }`}>
                         {c.code}
                       </span>
                       <span className="text-sm font-medium text-gray-700">Save {discountText}</span>
                     </div>
-                    {amountNeeded > 0 ? (
+                    {!isEligible ? (
                       <p className="text-xs text-orange-600 mt-1">
                         Add ₹{amountNeeded.toFixed(2)} more to unlock
                       </p>
                     ) : (
-                      <p className="text-xs text-green-600 mt-1 font-medium">
-                        You can apply this coupon now!
+                      <p className="text-xs text-green-700 mt-1 font-medium flex items-center gap-1">
+                        ✨ Click to apply this coupon!
                       </p>
                     )}
                   </div>
