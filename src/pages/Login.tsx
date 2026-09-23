@@ -7,7 +7,6 @@ import { supabase } from '../lib/supabase';
 
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -144,14 +143,12 @@ export function Login() {
               className="w-20 h-20 rounded-full object-cover mx-auto border-4 border-green-500 shadow-lg"
             />
             <h2 className="text-2xl font-bold text-gray-800 mt-4">
-              {isAdminLogin ? 'Admin Login' : isSignUp ? 'Create Account' : 'Welcome Back'}
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
             </h2>
             <p className="text-gray-600 mt-2">
-              {isAdminLogin
-                ? 'Access the admin dashboard'
-                : isSignUp
-                  ? 'Join Vaddadi Pickles family'
-                  : 'Sign in to your account'}
+              {isSignUp
+                ? 'Join Vaddadi Pickles family'
+                : 'Sign in to your account'}
             </p>
           </div>
 
@@ -241,8 +238,6 @@ export function Login() {
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
-              ) : isAdminLogin ? (
-                'Login as Admin'
               ) : isSignUp ? (
                 'Create Account'
               ) : (
@@ -252,25 +247,14 @@ export function Login() {
           </form>
 
           <div className="mt-6 text-center space-y-3">
-            {!isAdminLogin && (
-              <p className="text-gray-600">
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-                <button
-                  onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
-                  className="text-green-600 font-semibold hover:underline"
-                  disabled={isLoading}
-                >
-                  {isSignUp ? 'Sign In' : 'Sign Up'}
-                </button>
-              </p>
-            )}
-            <p>
+            <p className="text-gray-600">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
-                onClick={() => { setIsAdminLogin(!isAdminLogin); setError(''); setIsSignUp(false); }}
-                className="text-sm text-gray-500 hover:text-green-600"
+                onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
+                className="text-green-600 font-semibold hover:underline"
                 disabled={isLoading}
               >
-                {isAdminLogin ? '← Back to Customer Login' : 'Admin Login →'}
+                {isSignUp ? 'Sign In' : 'Sign Up'}
               </button>
             </p>
           </div>
