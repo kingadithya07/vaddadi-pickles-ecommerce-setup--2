@@ -218,6 +218,20 @@ export function Admin() {
   }, {} as Record<string, number>);
   const repeatCustomersCount = Object.values(customerOrderCounts).filter(count => count > 1).length;
 
+  const todaysRevenue = orders
+    .filter(o => o.paymentStatus === 'approved' && new Date(o.createdAt) >= todayStart)
+    .reduce((sum, o) => sum + o.finalAmount, 0);
+
+  const earliestOrderDates = orders.reduce((acc, order) => {
+    const orderDate = new Date(order.createdAt).getTime();
+    if (!acc[order.userPhone] || orderDate < acc[order.userPhone]) {
+      acc[order.userPhone] = orderDate;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+  const todaysNewCustomersCount = Object.values(earliestOrderDates)
+    .filter(date => date >= todayStart.getTime()).length;
+
   const sendWhatsAppUpdate = (order: Order, status: string) => {
     const message = `🥒 *Vaddadi Pickles - Order Update*
 
@@ -760,6 +774,20 @@ Thank you for choosing Vaddadi Pickles!`;
                   <span className="text-xl md:text-3xl font-bold text-gray-800">{todaysOrdersCount}</span>
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Today's Orders</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <CreditCard className="text-emerald-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{todaysRevenue.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's Revenue</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Users className="text-blue-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">{todaysNewCustomersCount}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's New Customers</p>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">
