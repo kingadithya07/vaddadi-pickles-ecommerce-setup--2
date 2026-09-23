@@ -5,6 +5,7 @@ import { useStore } from '../store';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const cart = useStore((state) => state.cart);
   const user = useStore((state) => state.user);
   const isAdmin = useStore((state) => state.isAdmin);
@@ -62,14 +63,51 @@ export function Header() {
             </Link>
 
             {user ? (
-              <div className="flex items-center gap-3">
-                <Link to="/profile" className="flex items-center gap-2 hover:text-green-200 transition">
+              <div className="relative">
+                <button 
+                  onClick={() => setUserMenuOpen(!userMenuOpen)} 
+                  className="flex items-center gap-2 hover:text-green-200 transition focus:outline-none"
+                >
                   <User size={20} />
-                  <span className="hidden md:inline text-sm">{user.name}</span>
-                </Link>
-                <button onClick={handleLogout} className="hidden md:block hover:text-green-200 transition">
-                  <LogOut size={20} />
+                  <span className="hidden md:inline text-sm font-medium">{user.name}</span>
                 </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl py-2 z-50 text-gray-800 border border-gray-100 divide-y divide-gray-100">
+                    <div className="px-4 py-2 mb-1">
+                      <p className="text-sm font-semibold truncate text-green-700">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <div>
+                      <Link 
+                        to="/profile" 
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                      >
+                        Profile Settings
+                      </Link>
+                      <Link 
+                        to="/orders" 
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition md:hidden" 
+                      >
+                        My Orders
+                      </Link>
+                    </div>
+                    <div>
+                      <button 
+                        onClick={() => {
+                          handleLogout();
+                          setUserMenuOpen(false);
+                        }} 
+                        className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Link to="/login" className="flex items-center gap-1 hover:text-green-200 transition">
