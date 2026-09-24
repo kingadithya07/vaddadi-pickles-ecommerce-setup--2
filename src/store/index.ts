@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback, AbandonedCart } from '../types';
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
@@ -317,8 +317,12 @@ interface StoreState {
 
   // Analytics actions
   dailyVisits: number;
+  totalVisits: number;
   fetchDailyVisits: () => Promise<void>;
   incrementDailyVisit: () => Promise<void>;
+  
+  abandonedCarts: AbandonedCart[];
+  fetchAbandonedCarts: () => Promise<void>;
 }
 
 export const useStore = create<StoreState>()(
@@ -338,6 +342,8 @@ export const useStore = create<StoreState>()(
       reviews: {},
       siteFeedbacks: [],
       dailyVisits: 0,
+      totalVisits: 0,
+      abandonedCarts: [],
 
       addToCart: (product, variant, quantity = 1, noGarlic = false) => {
         const cart = get().cart;
@@ -989,6 +995,18 @@ export const useStore = create<StoreState>()(
           if (!error && data) {
             set({ dailyVisits: data.visit_count });
           }
+
+          if (get().isAdmin) {
+            // Also fetch total visits across all days
+            const { data: allVisitsData } = await supabase
+              .from('daily_visits')
+              .select('visit_count');
+            
+            if (allVisitsData) {
+              const total = allVisitsData.reduce((sum, row) => sum + row.visit_count, 0);
+              set({ totalVisits: total });
+            }
+          }
         } catch (error) {
           console.error('Error fetching daily visits:', error);
         }
@@ -1003,6 +1021,33 @@ export const useStore = create<StoreState>()(
           }
         } catch (error) {
           console.error('Error incrementing daily visits:', error);
+        }
+      },
+
+      fetchAbandonedCarts: async () => {
+        if (!get().isAdmin) return;
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, name, phone, cart, updated_at')
+            .not('cart', 'is', null);
+
+          if (!error && data) {
+            // Filter out empty carts and parse them
+            const abandoned = data
+              .filter(p => Array.isArray(p.cart) && p.cart.length > 0)
+              .map(p => ({
+                id: p.id,
+                name: p.name || 'Unknown',
+                phone: p.phone || 'No phone',
+                cart: p.cart,
+                updatedAt: p.updated_at,
+              }))
+              .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+            set({ abandonedCarts: abandoned });
+          }
+        } catch (err) {
+          console.error('Error fetching abandoned carts:', err);
         }
       },
 
@@ -1043,6 +1088,7 @@ export const useStore = create<StoreState>()(
               // If admin, load additional admin data
               if (role === 'admin') {
                 get().fetchFeedbacks();
+                get().fetchAbandonedCarts();
               }
             }
           }

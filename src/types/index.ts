@@ -149,3 +149,12 @@ export interface SiteFeedback {
   status: 'new' | 'read' | 'resolved';
   createdAt: string;
 }
+
+export interface AbandonedCart {
+  id: string;
+  name: string;
+  phone: string;
+  cart: CartItem[];
+  updatedAt: string;
+}
+

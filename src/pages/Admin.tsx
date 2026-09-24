@@ -4,13 +4,13 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat
+  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat, ShoppingCart as CartIcon
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback';
+type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned';
 
 const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'payment_pending', label: 'Payment Pending' },
@@ -42,15 +42,19 @@ export function Admin() {
   const updateSettings = useStore((state) => state.updateSettings);
   const siteFeedbacks = useStore((state) => state.siteFeedbacks);
   const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
+  const abandonedCarts = useStore((state) => state.abandonedCarts);
+  const fetchAbandonedCarts = useStore((state) => state.fetchAbandonedCarts);
   const navigate = useNavigate();
   const [draftSettings, setDraftSettings] = useState(settings);
 
   const dailyVisits = useStore((state) => state.dailyVisits);
+  const totalVisits = useStore((state) => state.totalVisits);
   const fetchDailyVisits = useStore((state) => state.fetchDailyVisits);
 
   useEffect(() => {
     fetchDailyVisits();
-  }, [fetchDailyVisits]);
+    fetchAbandonedCarts();
+  }, [fetchDailyVisits, fetchAbandonedCarts]);
 
   // Sync draft settings with store settings when they change externally
   useEffect(() => {
@@ -698,6 +702,7 @@ Thank you for choosing Vaddadi Pickles!`;
             { id: 'payments', label: 'Payments', icon: CreditCard, badge: pendingPayments },
             { id: 'labels', label: 'Labels', icon: StickyNote },
             { id: 'coupons', label: 'Coupons', icon: Tag },
+            { id: 'abandoned', label: 'Abandoned', icon: CartIcon, badge: abandonedCarts.length || undefined },
             { id: 'settings', label: 'Settings', icon: Settings },
             { id: 'feedback', label: 'Feedback', icon: MessageCircle, badge: siteFeedbacks.filter(f => f.status === 'new').length || undefined },
           ].map((tab) => (
@@ -770,7 +775,10 @@ Thank you for choosing Vaddadi Pickles!`;
                   <Eye className="text-teal-500" size={24} />
                   <span className="text-xl md:text-3xl font-bold text-gray-800">{dailyVisits}</span>
                 </div>
-                <p className="text-gray-600 text-sm md:text-base">Today's Visits</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-600 text-sm md:text-base">Today's Visits</p>
+                  <p className="text-gray-400 text-xs text-right">Total: {totalVisits}</p>
+                </div>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">
@@ -946,6 +954,78 @@ Thank you for choosing Vaddadi Pickles!`;
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Abandoned Carts */}
+        {activeTab === 'abandoned' && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <CartIcon className="text-orange-500" />
+                Abandoned Carts
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Items in Cart</th>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cart Total</th>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Updated</th>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {abandonedCarts.map((cartInfo) => {
+                    const cartTotal = cartInfo.cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+                    const handleRemind = () => {
+                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at vaddadipickles.com/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}`;
+                      window.open(`https://wa.me/${cartInfo.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                    };
+
+                    return (
+                      <tr key={cartInfo.id} className="hover:bg-gray-50 transition">
+                        <td className="px-4 md:px-6 py-4">
+                          <div className="font-medium text-gray-900">{cartInfo.name}</div>
+                          <div className="text-sm text-gray-500">{cartInfo.phone}</div>
+                        </td>
+                        <td className="px-4 md:px-6 py-4">
+                          <div className="text-sm text-gray-600">
+                            {cartInfo.cart.length} item(s)
+                          </div>
+                          <div className="text-xs text-gray-500 max-w-[200px] truncate">
+                            {cartInfo.cart.map(i => i.product.name).join(', ')}
+                          </div>
+                        </td>
+                        <td className="px-4 md:px-6 py-4">
+                          <span className="font-bold text-gray-900">₹{cartTotal}</span>
+                        </td>
+                        <td className="px-4 md:px-6 py-4 text-sm text-gray-600">
+                          {new Date(cartInfo.updatedAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 md:px-6 py-4">
+                          <button 
+                            onClick={handleRemind}
+                            className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition"
+                          >
+                            Send Reminder
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {abandonedCarts.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No abandoned carts found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
