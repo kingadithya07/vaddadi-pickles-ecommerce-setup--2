@@ -49,6 +49,17 @@ function Loading() {
 export function App() {
   const fetchInitialData = useStore((state) => state.fetchInitialData);
   const isLoading = useStore((state) => state.isLoading);
+  const isAdmin = useStore((state) => state.isAdmin);
+
+  React.useEffect(() => {
+    let cleanupProfiles = () => {};
+    if (isAdmin) {
+      cleanupProfiles = useStore.getState().initializeRealtimeProfiles();
+    }
+    return () => {
+      cleanupProfiles();
+    };
+  }, [isAdmin]);
 
   React.useEffect(() => {
     fetchInitialData();
@@ -65,7 +76,6 @@ export function App() {
     const cleanupProducts = useStore.getState().initializeRealtimeProducts();
     const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();
     const cleanupOrders = useStore.getState().initializeRealtimeOrders();
-    const cleanupProfiles = useStore.getState().initializeRealtimeProfiles();
     let cleanupUserSync = () => { };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
@@ -109,7 +119,6 @@ export function App() {
       cleanupProducts();
       cleanupCoupons();
       cleanupOrders();
-      cleanupProfiles();
       cleanupUserSync();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
