@@ -50,8 +50,8 @@ export function Cart() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.map((item) => (
-            <div key={`${item.product.id}-${item.variant.weight}${item.noGarlic ? '-nogarlic' : ''}`} className="bg-white rounded-xl shadow-md p-3 sm:p-4 flex gap-3 sm:gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-green-50 rounded-lg flex items-center justify-center text-4xl overflow-hidden">
+            <div key={`${item.product.id}-${item.variant.weight}${item.noGarlic ? '-nogarlic' : ''}`} className="bg-white rounded-xl shadow-md p-3 sm:p-4 flex gap-3 sm:gap-4 w-full overflow-hidden">
+              <div className="w-16 h-16 sm:w-24 sm:h-24 flex-shrink-0 bg-green-50 rounded-lg flex items-center justify-center text-3xl sm:text-4xl overflow-hidden">
                 {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
                   <img
                     src={item.product.image}
@@ -65,7 +65,7 @@ export function Cart() {
               <div className="flex-1 min-w-0 flex flex-col justify-between">
                 <div className="flex justify-between items-start gap-2">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{item.product.name}</h3>
+                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base break-words line-clamp-2">{item.product.name}</h3>
                     <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                       {item.variant.weight}
                       {item.noGarlic && <span className="ml-1 sm:ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px] inline-block mt-1 sm:mt-0">No Garlic</span>}
@@ -77,7 +77,7 @@ export function Cart() {
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center mt-3">
+                <div className="flex justify-between items-center mt-2 sm:mt-3">
                   <div className="flex items-center gap-1 sm:gap-2">
                     <button
                       onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity - 1, item.noGarlic)}
@@ -107,7 +107,7 @@ export function Cart() {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-xl shadow-md p-6 h-fit">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 h-fit w-full overflow-hidden">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
 
           {/* Coupon Code */}
