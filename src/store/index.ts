@@ -1219,25 +1219,23 @@ export const useStore = create<StoreState>()(
         const user = get().user;
         if (!user) return;
 
-        await supabase.from('profiles').upsert({
-          id: user.id,
+        await supabase.from('profiles').update({
           cart: get().cart,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' });
+        }).eq('id', user.id);
       },
 
       syncProfileWithCloud: async () => {
         const user = get().user;
         if (!user) return;
 
-        await supabase.from('profiles').upsert({
-          id: user.id,
+        await supabase.from('profiles').update({
           name: user.name,
           phone: user.phone,
           role: user.role,
           addresses: user.addresses,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' });
+        }).eq('id', user.id);
       },
 
       initializeRealtimeUserSync: () => {

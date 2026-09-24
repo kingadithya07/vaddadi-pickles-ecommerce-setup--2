@@ -251,7 +251,7 @@ ${status === 'shipped' ? '📦 Your order is on the way! Expected delivery in 3-
 ${status === 'delivered' ? '✅ Your order has been delivered. Thank you for shopping with us!' : ''}
 ${status === 'payment_approved' ? '💰 Your payment has been verified. We are processing your order.' : ''}
 
-Track your order: vaddadipickles.com/orders
+Track your order: https://vaddadi-pickles.onrender.com/#/orders
 
 Thank you for choosing Vaddadi Pickles!`;
 
@@ -982,7 +982,7 @@ Thank you for choosing Vaddadi Pickles!`;
                   {abandonedCarts.map((cartInfo) => {
                     const cartTotal = cartInfo.cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
                     const handleRemind = () => {
-                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at vaddadipickles.com/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}`;
+                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at https://vaddadi-pickles.onrender.com/#/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}`;
                       window.open(`https://wa.me/${cartInfo.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                     };
 
