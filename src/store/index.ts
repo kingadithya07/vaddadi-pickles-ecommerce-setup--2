@@ -311,6 +311,7 @@ interface StoreState {
   syncCartWithCloud: () => Promise<void>;
   syncProfileWithCloud: () => Promise<void>;
   initializeRealtimeUserSync: () => () => void;
+  initializeRealtimeProfiles: () => () => void;
   initializeRealtimeProducts: () => () => void;
   initializeRealtimeCoupons: () => () => void;
   initializeRealtimeOrders: () => () => void;
@@ -1267,6 +1268,33 @@ export const useStore = create<StoreState>()(
                 cart: newProfile.cart || state.cart,
                 isAdmin: (newProfile.role || state.user?.role) === 'admin',
               }));
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
+
+      initializeRealtimeProfiles: () => {
+        const state = get();
+        if (!state.isAdmin) return () => {};
+
+        const channelId = `admin-profiles-sync-${Date.now()}`;
+        const channel = supabase
+          .channel(channelId)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'profiles',
+            },
+            () => {
+              // Re-fetch abandoned carts when any profile updates
+              // This is a simple approach; we could also update the local state directly
+              get().fetchAbandonedCarts();
             }
           )
           .subscribe();
