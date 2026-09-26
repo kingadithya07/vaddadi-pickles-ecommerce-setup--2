@@ -23,10 +23,10 @@ export function Header() {
     <>
       <div className="bg-yellow-500 text-black text-xs md:text-sm font-semibold py-1.5 px-4 text-center">
         <p className="hidden md:block">
-          🎉 Free Delivery on orders above ₹1000! | 🏍️ Visakhapatnam: Uber/Rapido Parcel | 🚚 Rest of India: Courier Partner
+          🎉 Free Delivery all over India on orders above ₹1000! | 🏍️ Visakhapatnam: Uber/Rapido Parcel | 🚚 Rest of India: Courier Partner
         </p>
         <div className="md:hidden flex flex-col gap-0.5">
-          <span>🎉 Free Delivery above ₹1000!</span>
+          <span>🎉 Free Delivery all over India above ₹1000!</span>
           <span className="text-[10px] opacity-90">Visakhapatnam: Uber/Rapido | Rest of India: Courier</span>
         </div>
       </div>
