@@ -1,8 +1,8 @@
 import { Order } from '../types';
 
 export const sendTelegramNotification = async (order: Order) => {
-  const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '8901824301:AAEyKPVkxj0tY4mEVHgXcU4fgGtJiV07bCo';
-  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID || '440241296';
+  const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
   if (!botToken || !chatId) {
     console.warn('Telegram credentials are not set. Notification skipped.');
