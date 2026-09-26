@@ -179,7 +179,7 @@ export function Home() {
         </div>
       </section>
 
-
+      {/* Forced update to clear cache on hosting provider */}
     </div>
   );
 }
