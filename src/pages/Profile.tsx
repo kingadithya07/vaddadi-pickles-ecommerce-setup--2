@@ -262,11 +262,11 @@ export function Profile() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-2">Address Type</label>
-                  <div className="flex gap-3 mb-3">
+                  <div className="flex gap-2 md:gap-3 mb-3">
                     <button
                       type="button"
                       onClick={() => setAddressForm({ ...addressForm, label: 'Home' })}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Home'
+                      className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-base rounded-lg border transition ${addressForm.label === 'Home'
                         ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -276,7 +276,7 @@ export function Profile() {
                     <button
                       type="button"
                       onClick={() => setAddressForm({ ...addressForm, label: 'Work' })}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label === 'Work'
+                      className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-base rounded-lg border transition ${addressForm.label === 'Work'
                         ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -290,7 +290,7 @@ export function Profile() {
                           setAddressForm({ ...addressForm, label: '' });
                         }
                       }}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border transition ${addressForm.label !== 'Home' && addressForm.label !== 'Work'
+                      className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-base rounded-lg border transition ${addressForm.label !== 'Home' && addressForm.label !== 'Work'
                         ? 'bg-gray-100 border-gray-500 text-gray-800 ring-1 ring-gray-500'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -455,9 +455,6 @@ export function Profile() {
                       onChange={(e) => {
                         const branchName = e.target.value;
                         setSelectedBranch(branchName);
-                        if (!addressForm.street) {
-                          setAddressForm(prev => ({ ...prev, street: branchName }));
-                        }
                       }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                     >

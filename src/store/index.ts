@@ -266,6 +266,7 @@ interface StoreState {
   createOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: Order['status']) => void;
   updateOrderTracking: (orderId: string, trackingId: string, carrier: string) => void;
+  updateOrderShippingExpense: (orderId: string, expense: number) => void;
   updatePaymentStatus: (orderId: string, status: Order['paymentStatus']) => void;
 
   // Coupon actions
@@ -569,6 +570,26 @@ export const useStore = create<StoreState>()(
           carrier,
           status: 'shipped',
           updated_at: updatedAt
+        }).eq('id', orderId);
+      },
+
+      updateOrderShippingExpense: async (orderId, expense) => {
+        const updatedAt = new Date().toISOString();
+        set({
+          orders: get().orders.map((order) =>
+            order.id === orderId
+              ? {
+                ...order,
+                shippingExpense: expense,
+                updatedAt,
+              }
+              : order
+          ),
+        });
+
+        await supabase.from('orders').update({
+          shipping_expense: expense,
+          updated_at: updatedAt,
         }).eq('id', orderId);
       },
 
@@ -1175,6 +1196,7 @@ export const useStore = create<StoreState>()(
                   transactionId: o.transaction_id,
                   trackingId: o.tracking_id,
                   carrier: o.carrier,
+                  shippingExpense: o.shipping_expense ? Number(o.shipping_expense) : undefined,
                   createdAt: o.created_at,
                   updatedAt: o.updated_at,
                 }))
@@ -1202,6 +1224,7 @@ export const useStore = create<StoreState>()(
                   transactionId: o.transaction_id,
                   trackingId: o.tracking_id,
                   carrier: o.carrier,
+                  shippingExpense: o.shipping_expense ? Number(o.shipping_expense) : undefined,
                   createdAt: o.created_at,
                   updatedAt: o.updated_at,
                 }))

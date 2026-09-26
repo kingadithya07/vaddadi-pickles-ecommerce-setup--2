@@ -454,10 +454,6 @@ export function Checkout() {
                       onChange={(e) => {
                         const branchName = e.target.value;
                         setSelectedBranch(branchName);
-                        // Optional: auto-fill street with branch name if empty
-                        if (!newAddress.street) {
-                          setNewAddress(prev => ({ ...prev, street: branchName }));
-                        }
                       }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                     >

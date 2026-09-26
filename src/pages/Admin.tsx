@@ -4,7 +4,8 @@ import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
-  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat, ShoppingCart as CartIcon
+  Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat, ShoppingCart as CartIcon,
+  Truck, TrendingUp
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
@@ -29,6 +30,7 @@ export function Admin() {
   const updateOrderStatus = useStore((state) => state.updateOrderStatus);
   const updatePaymentStatus = useStore((state) => state.updatePaymentStatus);
   const updateOrderTracking = useStore((state) => state.updateOrderTracking);
+  const updateOrderShippingExpense = useStore((state) => state.updateOrderShippingExpense);
   const addCoupon = useStore((state) => state.addCoupon);
   const toggleCoupon = useStore((state) => state.toggleCoupon);
   const deleteCoupon = useStore((state) => state.deleteCoupon);
@@ -215,6 +217,11 @@ export function Admin() {
     .filter((o) => o.paymentStatus === 'approved')
     .reduce((sum, o) => sum + o.finalAmount, 0);
 
+  const totalShippingExpenses = orders
+    .filter((o) => o.paymentStatus === 'approved')
+    .reduce((sum, o) => sum + (o.shippingExpense || 0), 0);
+  const totalProfit = totalRevenue - totalShippingExpenses;
+
   // Analytics calculations
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -229,6 +236,11 @@ export function Admin() {
   const todaysRevenue = orders
     .filter(o => o.paymentStatus === 'approved' && new Date(o.createdAt) >= todayStart)
     .reduce((sum, o) => sum + o.finalAmount, 0);
+
+  const todaysShippingExpenses = orders
+    .filter(o => o.paymentStatus === 'approved' && new Date(o.createdAt) >= todayStart)
+    .reduce((sum, o) => sum + (o.shippingExpense || 0), 0);
+  const todaysProfit = todaysRevenue - todaysShippingExpenses;
 
   const calculateOrderWeight = (order: Order): number => {
     let totalGrams = 0;
@@ -588,6 +600,8 @@ Thank you for choosing Vaddadi Pickles!`;
       </head>
       <body>
         <div class="label">
+          <div class="courier-header" style="min-height: 52px;"></div>
+          
           <div class="row">
             <div class="routing-code" style="width: 100%;">${order.address.pincode}</div>
           </div>
@@ -705,8 +719,38 @@ Thank you for choosing Vaddadi Pickles!`;
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sticky top-[80px] sm:top-[88px] bg-gray-100 z-40">
+        {/* Tabs - Mobile Dropdown */}
+        <div className="md:hidden mb-6 sticky top-[80px] bg-gray-100 z-40 py-2 -mx-4 px-4">
+          <div className="relative">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as Tab)}
+              className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl appearance-none shadow-sm focus:ring-2 focus:ring-green-500 font-medium text-gray-800"
+            >
+              {[
+                { id: 'dashboard', label: 'Dashboard' },
+                { id: 'products', label: 'Products' },
+                { id: 'orders', label: 'Orders' },
+                { id: 'payments', label: `Payments ${pendingPayments ? `(${pendingPayments})` : ''}` },
+                { id: 'labels', label: 'Labels' },
+                { id: 'coupons', label: 'Coupons' },
+                { id: 'abandoned', label: `Abandoned ${abandonedCarts.length ? `(${abandonedCarts.length})` : ''}` },
+                { id: 'settings', label: 'Settings' },
+                { id: 'feedback', label: `Feedback ${siteFeedbacks.filter(f => f.status === 'new').length ? `(${siteFeedbacks.filter(f => f.status === 'new').length})` : ''}` },
+              ].map(tab => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-500">
+               <ChevronDown size={20} />
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs - Desktop */}
+        <div className="hidden md:flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sticky sm:top-[88px] bg-gray-100 z-40">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'products', label: 'Products', icon: ShoppingBag },
@@ -763,6 +807,20 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Truck className="text-orange-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalShippingExpenses.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Total Courier Expenses</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <TrendingUp className="text-emerald-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalProfit.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Total Profit</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
                   <Users className="text-purple-500" size={24} />
                   <span className="text-xl md:text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
                 </div>
@@ -805,6 +863,20 @@ Thank you for choosing Vaddadi Pickles!`;
                   <span className="text-xl md:text-3xl font-bold text-gray-800">₹{todaysRevenue.toFixed(0)}</span>
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Today's Revenue</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Truck className="text-orange-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{todaysShippingExpenses.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's Courier Expenses</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <TrendingUp className="text-emerald-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{todaysProfit.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Today's Profit</p>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">
@@ -1714,11 +1786,11 @@ Thank you for choosing Vaddadi Pickles!`;
                     onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        {expandedOrder === order.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                        <div>
-                          <p className="font-mono font-bold text-gray-800">{order.id}</p>
-                          <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleString()}</p>
+                      <div className="flex items-center gap-4 min-w-0">
+                        {expandedOrder === order.id ? <ChevronUp size={20} className="flex-shrink-0" /> : <ChevronDown size={20} className="flex-shrink-0" />}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-mono font-bold text-gray-800 break-all">{order.id}</p>
+                          <p className="text-sm text-gray-500 truncate">{new Date(order.createdAt).toLocaleString()}</p>
                         </div>
                       </div>
                       <div className="text-sm">
@@ -1783,7 +1855,7 @@ Thank you for choosing Vaddadi Pickles!`;
                           <h4 className="font-semibold text-gray-800 mb-2">Payment</h4>
                           <p className="text-sm text-gray-600">
                             Method: {order.paymentMethod.toUpperCase()}<br />
-                            Transaction: {order.transactionId}<br />
+                            <span className="break-all">Transaction: {order.transactionId}</span><br />
                             {order.couponCode && <>Coupon: {order.couponCode}<br /></>}
                           </p>
                         </div>
@@ -1835,6 +1907,41 @@ Thank you for choosing Vaddadi Pickles!`;
                             className="w-full md:w-auto bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition"
                           >
                             Update Tracking
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Courier Expense Section */}
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        <h4 className="font-semibold text-gray-800 mb-4">Courier & Local Bike Expense</h4>
+                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                          <div className="flex-1 w-full">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Expense Amount (₹)</label>
+                            <input
+                              key={`expense-input-${order.id}-${order.shippingExpense}`}
+                              type="number"
+                              defaultValue={order.shippingExpense || ''}
+                              id={`expense-${order.id}`}
+                              placeholder="e.g. 50"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              const expenseInput = document.getElementById(`expense-${order.id}`) as HTMLInputElement;
+                              if (expenseInput) {
+                                const val = parseFloat(expenseInput.value);
+                                if (isNaN(val) || val < 0) {
+                                  alert('Please enter a valid expense amount');
+                                  return;
+                                }
+                                updateOrderShippingExpense(order.id, val);
+                                alert('Expense details updated!');
+                              }
+                            }}
+                            className="w-full md:w-auto bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition"
+                          >
+                            Update Expense
                           </button>
                         </div>
                       </div>

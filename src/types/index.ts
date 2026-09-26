@@ -97,6 +97,7 @@ export interface Order {
   transactionId?: string;
   trackingId?: string;
   carrier?: string;
+  shippingExpense?: number;
   createdAt: string;
   updatedAt: string;
 }
