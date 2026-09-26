@@ -16,12 +16,15 @@ This project is built using modern web development technologies:
 
 ## ✨ Key Features
 
+*   **Real-time Admin Notifications:** Integrated Telegram Bot pushes instant mobile alerts the second a customer places a new order.
+*   **User Authentication & Profiles:** Customers can log in, save multiple addresses, and view their order history seamlessly.
+*   **Secure Admin Panel:** Dedicated admin dashboard for managing orders, verifying payments, and tracking business metrics.
 *   **Product Catalog:** Browse a variety of products with support for best-seller badges, ratings, and detailed descriptions.
 *   **Dynamic Weight Variants:** Products support multiple size/weight variants (e.g., 250g, 500g, 1kg) with dynamic pricing.
 *   **Advanced Inventory Handling:** Smart "Out of Stock" UI overlay, disabling of specific zero-stock variants, and cart quantity caps based on available stock.
 *   **Shopping Cart:** Persistent cart state using Zustand to handle adding, removing, and updating item quantities seamlessly.
 *   **Responsive Design:** Fully mobile-optimized layout leveraging Tailwind CSS utility classes.
-*   **Product Reviews:** Integrated modal to view customer reviews and ratings.
+*   **Zero-Fee Payments:** Manual UPI payment flow with custom QR codes and transaction ID verification.
 
 ## 🛠️ Getting Started
 
