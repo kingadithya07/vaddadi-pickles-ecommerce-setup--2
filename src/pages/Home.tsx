@@ -179,29 +179,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 bg-green-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">What Our Customers Say</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: 'Priya Sharma', text: 'Best mango pickle I have ever tasted! Reminds me of my grandmother\'s pickle.', rating: 5 },
-              { name: 'Rajesh Kumar', text: 'Authentic Andhra taste. The gongura pickle is absolutely amazing!', rating: 5 },
-              { name: 'Anitha Reddy', text: 'Great quality and fast delivery. Will definitely order again!', rating: 5 },
-            ].map((review, i) => (
-              <div key={i} className="bg-white p-6 rounded-xl shadow-md">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(review.rating)].map((_, j) => (
-                    <span key={j} className="text-yellow-400">⭐</span>
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">"{review.text}"</p>
-                <p className="font-semibold text-gray-800">- {review.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
     </div>
   );
 }
