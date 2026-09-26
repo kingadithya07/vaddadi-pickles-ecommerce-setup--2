@@ -8,6 +8,7 @@ import { statesAndCities } from '../data/locations';
 
 import { useCartTotals } from '../hooks/useCartTotals';
 import { lookupPincode } from '../utils/pincode';
+import { sendTelegramNotification } from '../lib/telegram';
 
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
@@ -199,6 +200,8 @@ export function Checkout() {
 
     try {
       await createOrder(order);
+      // Fire and forget Telegram notification
+      sendTelegramNotification(order).catch(console.error);
       clearCart();
       navigate('/order-success', { state: { orderId: order.id } });
     } catch (error: any) {
