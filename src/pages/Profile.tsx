@@ -84,6 +84,11 @@ export function Profile() {
       alert('Please fill all address fields');
       return;
     }
+    
+    if (addressForm.pincode.length !== 6) {
+      alert('Please enter a valid 6-digit pincode');
+      return;
+    }
 
     const newAddress: UserAddress = {
       id: editingAddress?.id || `addr-${Date.now()}`,
@@ -337,30 +342,30 @@ export function Profile() {
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">State</label>
-                    <div className="relative">
-                      <select
-                        value={addressForm.state}
-                        onChange={(e) => {
-                          setAddressForm({ ...addressForm, state: e.target.value, city: '' });
-                          setIsManualCity(false);
-                        }}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white"
-                      >
-                        <option value="">Select State</option>
-                        {Object.keys(statesAndCities).sort().map((state) => (
-                          <option key={state} value={state}>
-                            {state}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                      </div>
-                    </div>
+                    <label className="block text-sm text-gray-600 mb-1">Pincode</label>
+                    <input
+                      type="text"
+                      placeholder="6-digit pincode"
+                      value={addressForm.pincode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setAddressForm({ ...addressForm, pincode: val });
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
                   </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Country</label>
+                    <input
+                      type="text"
+                      placeholder="Country"
+                      value={addressForm.country}
+                      onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">City</label>
                     {isManualCity ? (
@@ -415,30 +420,30 @@ export function Profile() {
                       </div>
                     )}
                   </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Pincode</label>
-                    <input
-                      type="text"
-                      placeholder="6-digit pincode"
-                      value={addressForm.pincode}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-                        setAddressForm({ ...addressForm, pincode: val });
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">Country</label>
-                    <input
-                      type="text"
-                      placeholder="Country"
-                      value={addressForm.country}
-                      onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    />
+                    <label className="block text-sm text-gray-600 mb-1">State</label>
+                    <div className="relative">
+                      <select
+                        value={addressForm.state}
+                        onChange={(e) => {
+                          setAddressForm({ ...addressForm, state: e.target.value, city: '' });
+                          setIsManualCity(false);
+                        }}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white"
+                      >
+                        <option value="">Select State</option>
+                        {Object.keys(statesAndCities).sort().map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

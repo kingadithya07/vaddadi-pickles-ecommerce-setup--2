@@ -230,6 +230,23 @@ export function Admin() {
     .filter(o => o.paymentStatus === 'approved' && new Date(o.createdAt) >= todayStart)
     .reduce((sum, o) => sum + o.finalAmount, 0);
 
+  const calculateOrderWeight = (order: Order): number => {
+    let totalGrams = 0;
+    order.items.forEach(item => {
+      let weight = 0;
+      const weightStr = item.variant?.weight?.toLowerCase() || '250g';
+      if (weightStr.includes('kg')) {
+        weight = parseFloat(weightStr) * 1000;
+      } else if (weightStr.includes('g')) {
+        weight = parseFloat(weightStr);
+      } else {
+        weight = 250;
+      }
+      totalGrams += weight * item.quantity;
+    });
+    return totalGrams / 1000; // Returns weight in KG
+  };
+
   const earliestOrderDates = orders.reduce((acc, order) => {
     const orderDate = new Date(order.createdAt).getTime();
     if (!acc[order.userPhone] || orderDate < acc[order.userPhone]) {
@@ -338,7 +355,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="order-id">${order.id}</div>
               <div class="order-details">
                 <span>📦 ${order.items.length} Items</span>
-                <span>⚖️ ~${order.items.reduce((sum, i) => sum + i.quantity, 0) * 250}g</span>
+                <span>⚖️ ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
                 <span>${paymentInfo}</span>
               </div>
             </div>
@@ -454,7 +471,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="order-id">${order.id}</div>
             <div class="details">
               <span>Items: ${order.items.length}</span>
-              <span>Weight: ~${order.items.reduce((sum, i) => sum + i.quantity, 0) * 250}g</span>
+              <span>Weight: ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
               <span>${paymentText}</span>
             </div>
           </div>
@@ -571,18 +588,13 @@ Thank you for choosing Vaddadi Pickles!`;
       </head>
       <body>
         <div class="label">
-          <div class="courier-header">
-            <h1>VP EXPRESS</h1>
-            <p>STANDARD</p>
-          </div>
-          
           <div class="row">
             <div class="routing-code" style="width: 100%;">${order.address.pincode}</div>
           </div>
           
           <div class="row">
             <div class="barcode-container" style="width: 100%;">
-              <div class="barcode-font">*${order.id.slice(0, 8).toUpperCase()}*</div>
+              <div class="barcode-font">*${order.id.toUpperCase()}*</div>
               <div class="barcode-text">${order.id.toUpperCase()}</div>
             </div>
           </div>
@@ -620,7 +632,7 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <div class="detail-item">
                 <div class="detail-label">Weight (Est)</div>
-                <div class="detail-value">0.5 KG</div>
+                <div class="detail-value">${calculateOrderWeight(order).toFixed(2)} KG</div>
               </div>
               <div class="detail-item" style="border-bottom: none;">
                 <div class="detail-label">Items</div>
@@ -1764,7 +1776,7 @@ Thank you for choosing Vaddadi Pickles!`;
                           <p className="text-sm text-gray-600">
                             {order.address.street}<br />
                             {order.address.city}, {order.address.state}<br />
-                            {order.address.pincode}
+                            PIN: {order.address.pincode}
                           </p>
                         </div>
                         <div>
@@ -1802,7 +1814,7 @@ Thank you for choosing Vaddadi Pickles!`;
                               type="text"
                               defaultValue={order.trackingId || ''}
                               id={`tracking-${order.id}`} // Use ID to access value in handler
-                              placeholder="Enter Tracking Number"
+                              placeholder="Enter Tracking ID / OTP"
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                             />
                           </div>
@@ -1907,7 +1919,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>${order.address.pincode}</p>
+                                    <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>PIN: ${order.address.pincode}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>

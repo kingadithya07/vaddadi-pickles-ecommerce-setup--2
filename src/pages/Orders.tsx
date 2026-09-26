@@ -122,7 +122,7 @@ export function Orders() {
           </div>
           <div class="detail-box">
             <h3>Shipped To</h3>
-            <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>${order.address.pincode}</p>
+            <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>PIN: ${order.address.pincode}</p>
           </div>
           <div class="detail-box">
             <h3>Order Details</h3>
@@ -349,19 +349,29 @@ export function Orders() {
                   {/* Tracking */}
                   {order.trackingId && order.carrier && (
                     <div className="flex items-center gap-4 bg-blue-50 px-4 py-3 rounded-lg border border-blue-100">
-                      <div>
-                        <p className="text-xs text-blue-600 font-semibold uppercase">{order.carrier} Tracking</p>
-                        <p className="font-mono font-medium text-blue-800 text-sm tracking-wide">{order.trackingId}</p>
-                      </div>
-                      <a
-                        href={getTrackingUrl(order.carrier, order.trackingId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-                      >
-                        <Truck size={16} />
-                        Track
-                      </a>
+                      {['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike)) ? (
+                        <div className="flex-1">
+                          <p className="text-xs text-blue-600 font-semibold uppercase">{order.carrier} OTP</p>
+                          <p className="font-mono font-bold text-blue-900 text-2xl tracking-[0.25em] mt-1">{order.trackingId}</p>
+                          <p className="text-xs text-blue-700 mt-1">Share this OTP with the delivery partner to receive your parcel.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="text-xs text-blue-600 font-semibold uppercase">{order.carrier} Tracking</p>
+                            <p className="font-mono font-medium text-blue-800 text-sm tracking-wide">{order.trackingId}</p>
+                          </div>
+                          <a
+                            href={getTrackingUrl(order.carrier, order.trackingId)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex-shrink-0"
+                          >
+                            <Truck size={16} />
+                            Track
+                          </a>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -372,7 +382,7 @@ export function Orders() {
                       <p className="text-gray-600 leading-relaxed">
                         {order.address.street}<br />
                         {order.address.city}, {order.address.state}<br />
-                        {order.address.pincode}
+                        PIN: {order.address.pincode}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4">

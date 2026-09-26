@@ -130,6 +130,19 @@ export function Checkout() {
     let finalPhone: string;
 
     if (useNewAddress || selectedAddressId === 'new') {
+      if (!newAddress.pincode) {
+        alert('Please enter your pincode for delivery.');
+        return;
+      }
+      if (newAddress.pincode.length !== 6) {
+        alert('Please enter a valid 6-digit pincode.');
+        return;
+      }
+      if (!deliveryName || !deliveryPhone || !newAddress.street || !newAddress.city || !newAddress.state) {
+        alert('Please fill all delivery address fields');
+        return;
+      }
+      
       finalAddress = newAddress;
       finalName = deliveryName;
       finalPhone = deliveryPhone;
@@ -327,30 +340,33 @@ export function Checkout() {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <select
-                      value={newAddress.state}
-                      onChange={(e) => {
-                        setNewAddress({ ...newAddress, state: e.target.value, city: '' });
-                        setIsManualCity(false);
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white"
-                    >
-                      <option value="">Select State</option>
-                      {Object.keys(statesAndCities).sort().map((state) => (
-                        <option key={state} value={state}>
-                          {state}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-
                   <div>
+                    <label className="block text-sm text-gray-600 mb-1">Pincode</label>
+                    <input
+                      type="text"
+                      placeholder="6-digit pincode"
+                      value={newAddress.pincode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setNewAddress({ ...newAddress, pincode: val });
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Country</label>
+                    <input
+                      type="text"
+                      placeholder="Country"
+                      value={newAddress.country}
+                      onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">City</label>
                     {isManualCity ? (
                       <div className="flex gap-2">
                         <input
@@ -403,25 +419,31 @@ export function Checkout() {
                       </div>
                     )}
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Pincode"
-                    value={newAddress.pincode}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-                      setNewAddress({ ...newAddress, pincode: val });
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    value={newAddress.country}
-                    onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">State</label>
+                    <div className="relative">
+                      <select
+                        value={newAddress.state}
+                        onChange={(e) => {
+                          setNewAddress({ ...newAddress, state: e.target.value, city: '' });
+                          setIsManualCity(false);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 appearance-none bg-white"
+                      >
+                        <option value="">Select State</option>
+                        {Object.keys(statesAndCities).sort().map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {pincodeBranches.length > 0 && (
