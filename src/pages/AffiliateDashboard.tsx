@@ -142,6 +142,51 @@ export function AffiliateDashboard() {
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
+  const handleWithdrawRequest = async () => {
+    if (!affiliate) return;
+    if (!affiliate.paymentUpi) {
+      alert("Please save your UPI ID below before requesting a withdrawal.");
+      return;
+    }
+    
+    const availableToWithdraw = affiliate.totalEarnings - affiliate.paidEarnings - payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0);
+    
+    if (availableToWithdraw < 500) {
+      alert("Minimum ₹500 is required to request a withdrawal.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('affiliate_payouts')
+        .insert({
+          affiliate_id: affiliate.id,
+          amount: availableToWithdraw,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+      
+      alert("Withdrawal request submitted successfully! It will be processed soon.");
+      
+      // Refresh payouts
+      const { data: payoutData } = await supabase
+        .from('affiliate_payouts')
+        .select('*')
+        .eq('affiliate_id', affiliate.id)
+        .order('created_at', { ascending: false });
+        
+      if (payoutData) setPayouts(payoutData);
+      
+    } catch (err) {
+      console.error("Error requesting withdrawal:", err);
+      alert("Failed to submit withdrawal request.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -163,6 +208,18 @@ export function AffiliateDashboard() {
   }
 
   const pendingAmount = affiliate.totalEarnings - affiliate.paidEarnings;
+  const requestedAmount = payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0);
+  const availableToWithdraw = pendingAmount - requestedAmount;
+  
+  const hasPendingRequest = requestedAmount > 0;
+  
+  let daysSinceLastRequest = 8;
+  if (payouts.length > 0) {
+    const lastRequestDate = new Date(payouts[0].created_at).getTime();
+    daysSinceLastRequest = (new Date().getTime() - lastRequestDate) / (1000 * 3600 * 24);
+  }
+  
+  const canWithdraw = availableToWithdraw >= 500 && daysSinceLastRequest >= 7 && !hasPendingRequest;
   const totalOrders = sales.length;
 
   return (
@@ -205,15 +262,35 @@ export function AffiliateDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
-              <DollarSign className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+            <div className="flex items-center mb-3">
+              <div className="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
+                <DollarSign className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Available to Withdraw</p>
+                <p className="text-2xl font-bold text-gray-900">₹{availableToWithdraw}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Pending Amount</p>
-              <p className="text-2xl font-bold text-gray-900">₹{pendingAmount}</p>
-              <p className="text-[10px] text-gray-500 mt-1">Min. withdraw request: ₹500</p>
-            </div>
+            
+            <button
+              onClick={handleWithdrawRequest}
+              disabled={!canWithdraw}
+              className={`w-full py-2 rounded-lg text-sm font-medium transition ${
+                canWithdraw 
+                  ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {hasPendingRequest ? 'Withdrawal Pending' : 'Request Withdrawal'}
+            </button>
+            
+            <p className="text-[10px] text-gray-500 mt-2 text-center">
+              {!affiliate.paymentUpi ? "⚠️ Add UPI below first." : 
+               hasPendingRequest ? "You already have a pending request." :
+               daysSinceLastRequest < 7 ? `Next withdrawal in ${Math.ceil(7 - daysSinceLastRequest)} days.` :
+               "Min. ₹500. Payouts processed within 1-2 days."}
+            </p>
           </div>
         </div>
 
@@ -317,6 +394,7 @@ export function AffiliateDashboard() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
                       </tr>
                     </thead>
@@ -329,8 +407,19 @@ export function AffiliateDashboard() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             ₹{payout.amount}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {payout.status === 'pending' ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Pending
+                              </span>
+                            ) : (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Paid
+                              </span>
+                            )}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-purple-600">
-                            {payout.transaction_id}
+                            {payout.transaction_id || '-'}
                           </td>
                         </tr>
                       ))}

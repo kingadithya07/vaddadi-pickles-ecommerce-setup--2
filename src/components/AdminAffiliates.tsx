@@ -20,6 +20,7 @@ interface AffiliateAdminData {
 
 export function AdminAffiliates() {
   const [affiliates, setAffiliates] = useState<AffiliateAdminData[]>([]);
+  const [payoutRequests, setPayoutRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activePayoutId, setActivePayoutId] = useState<string | null>(null);
   const [payoutForm, setPayoutForm] = useState({
@@ -44,6 +45,22 @@ export function AdminAffiliates() {
 
       if (error) throw error;
       setAffiliates(data || []);
+
+      const { data: reqData, error: reqError } = await supabase
+        .from('affiliate_payouts')
+        .select(`
+          *,
+          affiliates (
+            payment_upi,
+            profiles ( name, phone )
+          )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+        
+      if (!reqError && reqData) {
+        setPayoutRequests(reqData);
+      }
     } catch (error) {
       console.error('Error fetching affiliates:', error);
     } finally {
@@ -51,8 +68,8 @@ export function AdminAffiliates() {
     }
   };
 
-  const openPayoutModal = (affiliateId: string, amountToPay: number) => {
-    setActivePayoutId(affiliateId);
+  const openPayoutModal = (affiliateId: string, amountToPay: number, requestId?: string) => {
+    setActivePayoutId(requestId || affiliateId);
     setPayoutForm({
       transactionId: '',
       date: new Date().toISOString().split('T')[0],
@@ -60,7 +77,7 @@ export function AdminAffiliates() {
     });
   };
 
-  const submitPayout = async (affiliateId: string, currentPaid: number) => {
+  const submitPayout = async (affiliateId: string, currentPaid: number, requestId?: string) => {
     if (!payoutForm.transactionId.trim()) {
       alert('Transaction ID is required.');
       return;
@@ -71,17 +88,32 @@ export function AdminAffiliates() {
     }
 
     try {
-      // 1. Record the payout history
-      const { error: payoutError } = await supabase
-        .from('affiliate_payouts')
-        .insert({
-          affiliate_id: affiliateId,
-          amount: payoutForm.amount,
-          transaction_id: payoutForm.transactionId.trim(),
-          created_at: new Date(payoutForm.date).toISOString()
-        });
+      if (requestId) {
+        // Update existing request
+        const { error: payoutError } = await supabase
+          .from('affiliate_payouts')
+          .update({
+            amount: payoutForm.amount,
+            transaction_id: payoutForm.transactionId.trim(),
+            created_at: new Date(payoutForm.date).toISOString(),
+            status: 'paid'
+          })
+          .eq('id', requestId);
+        if (payoutError) throw payoutError;
+      } else {
+        // 1. Record the payout history
+        const { error: payoutError } = await supabase
+          .from('affiliate_payouts')
+          .insert({
+            affiliate_id: affiliateId,
+            amount: payoutForm.amount,
+            transaction_id: payoutForm.transactionId.trim(),
+            created_at: new Date(payoutForm.date).toISOString(),
+            status: 'paid'
+          });
 
-      if (payoutError) throw payoutError;
+        if (payoutError) throw payoutError;
+      }
 
       // 2. Update total paid on affiliate record
       const newPaidAmount = Number(currentPaid) + Number(payoutForm.amount);
@@ -98,6 +130,9 @@ export function AdminAffiliates() {
           ? { ...a, paid_earnings: newPaidAmount }
           : a
       ));
+      if (requestId) {
+        setPayoutRequests(payoutRequests.filter(r => r.id !== requestId));
+      }
       
       setActivePayoutId(null);
       alert('Payout recorded successfully!');
@@ -159,6 +194,114 @@ export function AdminAffiliates() {
           <p className="text-gray-600 text-sm">Pending Payouts</p>
         </div>
       </div>
+
+      {/* Pending Payout Requests */}
+      {payoutRequests.length > 0 && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-orange-200">
+          <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-orange-50">
+            <h3 className="font-bold text-orange-800 flex items-center gap-2">
+              <Clock size={20} />
+              Pending Withdrawal Requests
+            </h3>
+            <span className="text-xs font-bold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">
+              {payoutRequests.length} Request(s)
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-white border-b border-gray-100 text-sm text-gray-500 uppercase tracking-wider">
+                  <th className="p-4 md:p-6 font-semibold">Affiliate</th>
+                  <th className="p-4 md:p-6 font-semibold">Date Requested</th>
+                  <th className="p-4 md:p-6 font-semibold text-orange-600">Amount</th>
+                  <th className="p-4 md:p-6 font-semibold text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payoutRequests.map((req) => (
+                  <tr key={req.id} className="hover:bg-orange-50/30 transition">
+                    <td className="p-4 md:p-6">
+                      <div className="font-semibold text-gray-800">{req.affiliates?.profiles?.name || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{req.affiliates?.profiles?.phone || 'No Phone'}</div>
+                      {req.affiliates?.payment_upi && (
+                        <div className="text-xs font-mono text-purple-600 mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded border border-purple-100">
+                          UPI: {req.affiliates.payment_upi}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 md:p-6 text-sm text-gray-600">
+                      {new Date(req.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 md:p-6 font-bold text-orange-600">
+                      ₹{Number(req.amount).toFixed(2)}
+                    </td>
+                    <td className="p-4 md:p-6 text-right">
+                      <div className="relative inline-block text-left">
+                        <button
+                          onClick={() => openPayoutModal(req.affiliate_id, Number(req.amount), req.id)}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition bg-green-500 text-white hover:bg-green-600 shadow-sm"
+                        >
+                          Approve & Pay
+                        </button>
+                        
+                        {activePayoutId === req.id && (
+                          <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-10 p-4 text-left">
+                            <h4 className="font-semibold text-gray-800 mb-3 text-sm">Approve Request</h4>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Amount (₹)</label>
+                                <input 
+                                  type="number" 
+                                  value={payoutForm.amount}
+                                  onChange={(e) => setPayoutForm({...payoutForm, amount: Number(e.target.value)})}
+                                  className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Payment Date</label>
+                                <input 
+                                  type="date" 
+                                  value={payoutForm.date}
+                                  onChange={(e) => setPayoutForm({...payoutForm, date: e.target.value})}
+                                  className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Transaction ID / UPI Ref</label>
+                                <input 
+                                  type="text" 
+                                  value={payoutForm.transactionId}
+                                  onChange={(e) => setPayoutForm({...payoutForm, transactionId: e.target.value})}
+                                  className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                  placeholder="e.g. 123456789"
+                                />
+                              </div>
+                              <div className="flex gap-2 pt-2">
+                                <button 
+                                  onClick={() => setActivePayoutId(null)}
+                                  className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm font-medium transition"
+                                >
+                                  Cancel
+                                </button>
+                                <button 
+                                  onClick={() => submitPayout(req.affiliate_id, req.affiliates?.paid_earnings || 0, req.id)}
+                                  className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition"
+                                >
+                                  Submit
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Affiliates List */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
