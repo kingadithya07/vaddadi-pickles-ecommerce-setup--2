@@ -90,6 +90,7 @@ export interface Order {
   discount: number;
   finalAmount: number;
   couponCode?: string;
+  affiliateCode?: string;
   address: Address;
   status: 'pending' | 'payment_pending' | 'payment_approved' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'awaiting_approval' | 'approved' | 'rejected';
@@ -157,5 +158,26 @@ export interface AbandonedCart {
   phone: string;
   cart: CartItem[];
   updatedAt: string;
+}
+
+export interface Affiliate {
+  id: string;
+  userId: string;
+  referralCode: string;
+  commissionRate: number; // e.g. 10 for 10%
+  totalEarnings: number;
+  paidEarnings: number;
+  status: 'pending' | 'active' | 'suspended';
+  createdAt: string;
+}
+
+export interface AffiliateSale {
+  id: string;
+  affiliateId: string;
+  orderId: string;
+  orderAmount: number;
+  commissionEarned: number;
+  status: 'pending' | 'approved' | 'paid' | 'cancelled';
+  createdAt: string;
 }
 
