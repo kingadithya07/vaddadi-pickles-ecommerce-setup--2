@@ -38,21 +38,40 @@ export function AdminAffiliates() {
     try {
       const { data, error } = await supabase
         .from('affiliates')
-        .select(`
-          *,
-          profiles:user_id (name, phone)
-        `);
+        .select(`*`);
 
       if (error) throw error;
-      setAffiliates(data || []);
+      
+      const userIds = data?.map(a => a.user_id) || [];
+      const profilesDict: Record<string, any> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name, phone')
+          .in('id', userIds);
+          
+        if (profilesData) {
+          profilesData.forEach(p => {
+            profilesDict[p.id] = p;
+          });
+        }
+      }
+      
+      const enrichedAffiliates = data?.map(a => ({
+        ...a,
+        profiles: profilesDict[a.user_id] || { name: 'Unknown', phone: 'No Phone' }
+      })) || [];
+
+      setAffiliates(enrichedAffiliates as AffiliateAdminData[]);
 
       const { data: reqData, error: reqError } = await supabase
         .from('affiliate_payouts')
         .select(`
           *,
           affiliates (
-            payment_upi,
-            profiles:user_id ( name, phone )
+            user_id,
+            payment_upi
           )
         `)
         .eq('status', 'pending')
@@ -61,7 +80,14 @@ export function AdminAffiliates() {
       if (reqError) {
         console.error('Error fetching payout requests:', reqError);
       } else if (reqData) {
-        setPayoutRequests(reqData);
+        const enrichedReqData = reqData.map(req => ({
+          ...req,
+          affiliates: req.affiliates ? {
+            ...req.affiliates,
+            profiles: profilesDict[req.affiliates.user_id] || { name: 'Unknown', phone: 'No Phone' }
+          } : null
+        }));
+        setPayoutRequests(enrichedReqData);
       }
     } catch (error) {
       console.error('Error fetching affiliates:', error);
