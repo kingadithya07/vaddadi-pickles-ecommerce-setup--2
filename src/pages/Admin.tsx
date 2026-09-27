@@ -324,10 +324,6 @@ Thank you for choosing Vaddadi Pickles!`;
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f3f4f6; }
           .label { width: 100mm; background: white; border: 3px solid #000; position: relative; }
-          .label-header { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; padding: 15px; text-align: center; }
-          .label-header .logo { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid white; margin-bottom: 8px; }
-          .label-header h1 { font-size: 22px; margin-bottom: 4px; }
-          .label-header p { font-size: 11px; opacity: 0.9; }
           .content { padding: 15px; }
           .from-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
           .from-box .title { font-size: 10px; font-weight: bold; color: #6b7280; margin-bottom: 5px; }
@@ -351,11 +347,6 @@ Thank you for choosing Vaddadi Pickles!`;
       </head>
       <body>
         <div class="label">
-          <div class="label-header">
-            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
-            <h1>VADDADI PICKLES</h1>
-            <p>Premium Handmade Pickles | Est. 2026</p>
-          </div>
           
           ${codBadge}
           
@@ -374,7 +365,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="from-box">
               <div class="title">FROM:</div>
               <div class="text">
-                ${settings.businessAddress.name}, ${settings.businessAddress.street}<br>
+                Vaddadi Udayaakumar, ${settings.businessAddress.street}<br>
                 ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
               </div>
             </div>
@@ -418,9 +409,6 @@ Thank you for choosing Vaddadi Pickles!`;
         <style>
           body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f3f4f6; }
           .label { width: 62mm; height: 40mm; background: white; border: 2px solid #000; padding: 8px; position: relative; }
-          .header { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #ccc; }
-          .header .small-logo { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
-          .header strong { font-size: 10px; }
           .name { font-size: 12px; font-weight: bold; margin-bottom: 3px; }
           .address { font-size: 9px; line-height: 1.4; color: #333; }
           .pin { font-weight: bold; font-size: 11px; margin-top: 3px; }
@@ -431,10 +419,6 @@ Thank you for choosing Vaddadi Pickles!`;
       </head>
       <body>
         <div class="label">
-          <div class="header">
-            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" class="small-logo" />
-            <strong>VADDADI PICKLES</strong>
-          </div>
           ${codBadge}
           <div class="name">${order.userName}</div>
           <div class="address">
@@ -470,15 +454,10 @@ Thank you for choosing Vaddadi Pickles!`;
 
       return `
         <div class="label">
-          <div class="label-header">
-            <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="VP" class="bulk-logo" />
-            <h2>Vaddadi Pickles</h2>
-            <p>Premium Handmade Pickles | Est. 1985</p>
-          </div>
           
           <div class="from-section">
             <div class="title">FROM:</div>
-            ${settings.businessAddress.name}, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+            Vaddadi Udayaakumar, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
           </div>
           
           <div class="to-section">
@@ -519,10 +498,6 @@ Thank you for choosing Vaddadi Pickles!`;
           .page:last-child { page-break-after: avoid; }
           .labels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10mm; }
           .label { border: 2px solid #000; padding: 15px; height: 140mm; position: relative; break-inside: avoid; }
-          .label-header { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; padding: 12px; text-align: center; margin: -15px -15px 15px -15px; }
-          .label-header .bulk-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid white; margin-bottom: 5px; }
-          .label-header h2 { font-size: 18px; margin-bottom: 2px; }
-          .label-header p { font-size: 10px; opacity: 0.9; }
           .from-section { background: #f3f4f6; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 11px; }
           .from-section .title { font-weight: bold; color: #666; margin-bottom: 5px; }
           .to-section { padding: 10px 0; }
@@ -644,9 +619,9 @@ Thank you for choosing Vaddadi Pickles!`;
           
           <div class="row">
             <div class="col" style="flex: 1; padding: 15px;">
-              <div class="address-title">RETURN TO:</div>
+              <div class="address-title">FROM:</div>
               <div class="from-address">
-                <strong>${settings.businessAddress.name.toUpperCase()}</strong><br>
+                <strong>VADDADI UDAYAAKUMAR</strong><br>
                 Sujathanagar, Visakhapatnam<br>
                 Andhra Pradesh - 530051<br>
                 PH: 8008129309
@@ -2233,7 +2208,7 @@ Thank you for choosing Vaddadi Pickles!`;
 
             {/* Individual Labels */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedOrders.map((order) => (
+              {sortedOrders.filter(o => !['shipped', 'delivered', 'cancelled'].includes(o.status)).map((order) => (
                 <div
                   key={order.id}
                   className={`bg-white rounded-xl shadow-md overflow-hidden border-2 ${order.paymentStatus === 'approved' ? 'border-green-500' : 'border-gray-200'
@@ -2242,17 +2217,7 @@ Thank you for choosing Vaddadi Pickles!`;
                   {/* Label Preview */}
                   <div className="bg-gradient-to-r from-green-600 to-green-500 text-white p-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
-                          alt="VP"
-                          className="w-10 h-10 rounded-full object-cover border-2 border-white"
-                        />
-                        <div>
-                          <p className="font-bold">VADDADI PICKLES</p>
-                          <p className="text-xs opacity-80">Vijayawada, AP</p>
-                        </div>
-                      </div>
+                      <div></div>
                       {order.paymentMethod === 'cod' && (
                         <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
                           COD
