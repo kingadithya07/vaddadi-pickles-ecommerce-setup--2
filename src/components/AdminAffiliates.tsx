@@ -21,6 +21,12 @@ interface AffiliateAdminData {
 export function AdminAffiliates() {
   const [affiliates, setAffiliates] = useState<AffiliateAdminData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activePayoutId, setActivePayoutId] = useState<string | null>(null);
+  const [payoutForm, setPayoutForm] = useState({
+    transactionId: '',
+    date: new Date().toISOString().split('T')[0],
+    amount: 0
+  });
 
   useEffect(() => {
     fetchAffiliates();
@@ -45,17 +51,46 @@ export function AdminAffiliates() {
     }
   };
 
-  const handlePayout = async (affiliateId: string, amountToPay: number, currentPaid: number) => {
-    if (!window.confirm(`Are you sure you want to mark ₹${amountToPay} as paid?`)) return;
+  const openPayoutModal = (affiliateId: string, amountToPay: number) => {
+    setActivePayoutId(affiliateId);
+    setPayoutForm({
+      transactionId: '',
+      date: new Date().toISOString().split('T')[0],
+      amount: amountToPay
+    });
+  };
+
+  const submitPayout = async (affiliateId: string, currentPaid: number) => {
+    if (!payoutForm.transactionId.trim()) {
+      alert('Transaction ID is required.');
+      return;
+    }
+    if (payoutForm.amount <= 0) {
+      alert('Amount must be greater than 0.');
+      return;
+    }
 
     try {
-      const newPaidAmount = Number(currentPaid) + Number(amountToPay);
-      const { error } = await supabase
+      // 1. Record the payout history
+      const { error: payoutError } = await supabase
+        .from('affiliate_payouts')
+        .insert({
+          affiliate_id: affiliateId,
+          amount: payoutForm.amount,
+          transaction_id: payoutForm.transactionId.trim(),
+          created_at: new Date(payoutForm.date).toISOString()
+        });
+
+      if (payoutError) throw payoutError;
+
+      // 2. Update total paid on affiliate record
+      const newPaidAmount = Number(currentPaid) + Number(payoutForm.amount);
+      const { error: updateError } = await supabase
         .from('affiliates')
         .update({ paid_earnings: newPaidAmount })
         .eq('id', affiliateId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       // Update local state
       setAffiliates(affiliates.map(a => 
@@ -64,10 +99,11 @@ export function AdminAffiliates() {
           : a
       ));
       
+      setActivePayoutId(null);
       alert('Payout recorded successfully!');
     } catch (error) {
       console.error('Error recording payout:', error);
-      alert('Failed to record payout.');
+      alert('Failed to record payout. Please check console for details.');
     }
   };
 
@@ -184,18 +220,70 @@ export function AdminAffiliates() {
                       </td>
                       <td className="p-4 md:p-6 text-right">
                         {unpaid > 0 ? (
-                          <button
-                            onClick={() => handlePayout(affiliate.id, unpaid, paid)}
-                            disabled={!canWithdraw}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                              canWithdraw 
-                                ? 'bg-green-500 text-white hover:bg-green-600 shadow-sm' 
-                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
-                            title={!canWithdraw ? `Minimum payout is ₹${minPayout}` : `Pay ₹${unpaid.toFixed(2)}`}
-                          >
-                            Mark as Paid
-                          </button>
+                          <div className="relative inline-block text-left">
+                            <button
+                              onClick={() => openPayoutModal(affiliate.id, unpaid)}
+                              disabled={!canWithdraw}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                                canWithdraw 
+                                  ? 'bg-green-500 text-white hover:bg-green-600 shadow-sm' 
+                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              }`}
+                              title={!canWithdraw ? `Minimum payout is ₹${minPayout}` : `Pay ₹${unpaid.toFixed(2)}`}
+                            >
+                              Record Payout
+                            </button>
+                            
+                            {activePayoutId === affiliate.id && (
+                              <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-10 p-4 text-left">
+                                <h4 className="font-semibold text-gray-800 mb-3 text-sm">Payout Details</h4>
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Amount (₹)</label>
+                                    <input 
+                                      type="number" 
+                                      value={payoutForm.amount}
+                                      onChange={(e) => setPayoutForm({...payoutForm, amount: Number(e.target.value)})}
+                                      className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                                    <input 
+                                      type="date" 
+                                      value={payoutForm.date}
+                                      onChange={(e) => setPayoutForm({...payoutForm, date: e.target.value})}
+                                      className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Transaction ID / UPI Ref</label>
+                                    <input 
+                                      type="text" 
+                                      value={payoutForm.transactionId}
+                                      onChange={(e) => setPayoutForm({...payoutForm, transactionId: e.target.value})}
+                                      className="w-full text-sm px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                                      placeholder="e.g. 123456789"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 pt-2">
+                                    <button 
+                                      onClick={() => setActivePayoutId(null)}
+                                      className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm font-medium transition"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button 
+                                      onClick={() => submitPayout(affiliate.id, paid)}
+                                      className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition"
+                                    >
+                                      Submit
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg">
                             <CheckCircle size={16} /> Settled

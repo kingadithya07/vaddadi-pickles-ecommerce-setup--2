@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home, Copy, Network, ExternalLink } from 'lucide-react';
 import { useStore } from '../store';
 import { UserAddress } from '../types';
 import { statesAndCities } from '../data/locations';
 import { lookupPincode } from '../utils/pincode';
+import { supabase } from '../lib/supabase';
+import { Link as RouterLink } from 'react-router-dom';
 
 export function Profile() {
   const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress } = useStore();
@@ -33,6 +35,48 @@ export function Profile() {
     country: 'India',
     isDefault: false,
   });
+
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchAffiliate = async () => {
+      let { data, error } = await supabase
+        .from('affiliates')
+        .select('referral_code')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (!data || error?.code === 'PGRST116') {
+        const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+        const { data: newAffiliate } = await supabase
+          .from('affiliates')
+          .insert({
+            user_id: user.id,
+            referral_code: autoCode,
+            commission_rate: 10.00
+          })
+          .select('referral_code')
+          .single();
+          
+        if (newAffiliate) data = newAffiliate;
+      }
+      
+      if (data) {
+        setReferralCode(data.referral_code);
+      }
+    };
+    fetchAffiliate();
+  }, [user]);
+
+  const copyToClipboard = () => {
+    if (!referralCode) return;
+    const link = `https://vaddadi-pickles.onrender.com/?ref=${referralCode}`;
+    navigator.clipboard.writeText(link);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   if (!user) {
     navigate('/login');
@@ -236,6 +280,40 @@ export function Profile() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Affiliate Link Card */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl shadow-md border border-green-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Network className="text-green-600" size={20} /> Refer & Earn
+            </h3>
+            <RouterLink to="/affiliate" className="text-sm font-medium text-green-700 hover:text-green-800 flex items-center gap-1">
+              Dashboard <ExternalLink size={14} />
+            </RouterLink>
+          </div>
+          
+          {referralCode ? (
+            <div>
+              <p className="text-sm text-gray-600 mb-3">Share this link to earn a 10% commission on every sale!</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 bg-white border border-green-200 rounded-lg px-4 py-3 text-gray-700 text-sm break-all font-mono">
+                  https://vaddadi-pickles.onrender.com/?ref={referralCode}
+                </div>
+                <button
+                  onClick={copyToClipboard}
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium"
+                >
+                  {copySuccess ? <><Check size={18} /> Copied!</> : <><Copy size={18} /> Copy Link</>}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+              <span className="ml-3 text-sm text-gray-500">Generating your referral link...</span>
+            </div>
+          )}
         </div>
 
         {/* Saved Addresses Card */}

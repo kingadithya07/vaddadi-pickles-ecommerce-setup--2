@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
 import { Link, Navigate } from 'react-router-dom';
-import { Copy, TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Copy, TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, ShoppingBag, CreditCard, Save } from 'lucide-react';
 import { Affiliate, AffiliateSale } from '../types';
 
 export function AffiliateDashboard() {
@@ -10,12 +10,12 @@ export function AffiliateDashboard() {
   
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
   const [sales, setSales] = useState<AffiliateSale[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Registration form state
   const [upiId, setUpiId] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [error, setError] = useState('');
+  const [isSavingUpi, setIsSavingUpi] = useState(false);
+  const [upiMessage, setUpiMessage] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
@@ -28,18 +28,31 @@ export function AffiliateDashboard() {
       try {
         setIsLoading(true);
         // Fetch affiliate profile
-        const { data: affiliateData, error: affiliateError } = await supabase
+        let { data: affiliateData, error: affiliateError } = await supabase
           .from('affiliates')
           .select('*')
           .eq('user_id', user.id)
           .single();
 
-        if (affiliateError && affiliateError.code !== 'PGRST116') {
-          console.error('Error fetching affiliate:', affiliateError);
+        // Auto-create affiliate if doesn't exist
+        if (!affiliateData || affiliateError?.code === 'PGRST116') {
+          const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+          const { data: newAffiliate, error: insertError } = await supabase
+            .from('affiliates')
+            .insert({
+              user_id: user.id,
+              referral_code: autoCode,
+              commission_rate: 10.00
+            })
+            .select()
+            .single();
+          
+          if (!insertError && newAffiliate) {
+             affiliateData = newAffiliate;
+          }
         }
 
         if (affiliateData) {
-          // Map DB snake_case to camelCase Affiliate type
           setAffiliate({
             id: affiliateData.id,
             userId: affiliateData.user_id,
@@ -51,14 +64,17 @@ export function AffiliateDashboard() {
             status: affiliateData.status,
             createdAt: affiliateData.created_at
           });
+          
+          if (affiliateData.payment_upi) {
+            setUpiId(affiliateData.payment_upi);
+          }
 
           // Fetch recent sales
           const { data: salesData, error: salesError } = await supabase
             .from('affiliate_sales')
             .select('*')
             .eq('affiliate_id', affiliateData.id)
-            .order('created_at', { ascending: false })
-            .limit(10);
+            .order('created_at', { ascending: false });
 
           if (!salesError && salesData) {
             setSales(salesData.map(sale => ({
@@ -71,6 +87,17 @@ export function AffiliateDashboard() {
               createdAt: sale.created_at
             })));
           }
+
+          // Fetch payouts
+          const { data: payoutData, error: payoutError } = await supabase
+            .from('affiliate_payouts')
+            .select('*')
+            .eq('affiliate_id', affiliateData.id)
+            .order('created_at', { ascending: false });
+
+          if (!payoutError && payoutData) {
+            setPayouts(payoutData);
+          }
         }
       } catch (err) {
         console.error('Unexpected error fetching affiliate data:', err);
@@ -82,56 +109,28 @@ export function AffiliateDashboard() {
     fetchAffiliateData();
   }, [user]);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSaveUpi = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!affiliate) return;
     
-    const upi = upiId.trim();
-    if (!upi) {
-      setError('Please enter a valid UPI ID for payments.');
-      return;
-    }
-
-    setIsRegistering(true);
-    setError('');
-
-    const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+    setIsSavingUpi(true);
+    setUpiMessage('');
 
     try {
-      const { data, error: insertError } = await supabase
+      const { error } = await supabase
         .from('affiliates')
-        .insert({
-          user_id: user.id,
-          referral_code: autoCode,
-          commission_rate: 10.00, // Default 10%
-          payment_upi: upi
-        })
-        .select()
-        .single();
+        .update({ payment_upi: upiId })
+        .eq('id', affiliate.id);
 
-      if (insertError) {
-        if (insertError.code === '23505') { // Unique violation
-          setError('This referral code is already taken. Please choose another.');
-        } else {
-          setError('Error registering for affiliate program. Try again later.');
-        }
-      } else if (data) {
-        setAffiliate({
-          id: data.id,
-          userId: data.user_id,
-          referralCode: data.referral_code,
-          commissionRate: data.commission_rate,
-          totalEarnings: data.total_earnings,
-          paidEarnings: data.paid_earnings,
-          paymentUpi: data.payment_upi,
-          status: data.status,
-          createdAt: data.created_at
-        });
-      }
+      if (error) throw error;
+
+      setAffiliate({ ...affiliate, paymentUpi: upiId });
+      setUpiMessage('UPI ID saved successfully!');
+      setTimeout(() => setUpiMessage(''), 3000);
     } catch (err) {
-      setError('An unexpected error occurred.');
+      setUpiMessage('Error saving UPI ID.');
     } finally {
-      setIsRegistering(false);
+      setIsSavingUpi(false);
     }
   };
 
@@ -155,173 +154,241 @@ export function AffiliateDashboard() {
     return <Navigate to="/login" replace />;
   }
 
+  if (!affiliate) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+        <p className="text-red-500">Error loading affiliate dashboard. Please contact support.</p>
+      </div>
+    );
+  }
+
+  const pendingAmount = affiliate.totalEarnings - affiliate.paidEarnings;
+  const totalOrders = sales.length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Affiliate Dashboard</h1>
-        <p className="mt-2 text-gray-600">Partner with us and earn money by referring customers.</p>
+        <p className="mt-2 text-gray-600">Partner with us and earn {affiliate.commissionRate}% on every sale.</p>
       </div>
 
-      {!affiliate ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-2xl mx-auto">
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <TrendingUp className="w-8 h-8 text-green-600" />
+      <div className="space-y-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
+            <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
+            <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Earned</p>
+              <p className="text-2xl font-bold text-gray-900">₹{affiliate.totalEarnings}</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Withdrawn Amount</p>
+              <p className="text-2xl font-bold text-gray-900">₹{affiliate.paidEarnings}</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
+            <div className="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Pending Amount</p>
+              <p className="text-2xl font-bold text-gray-900">₹{pendingAmount}</p>
+              <p className="text-[10px] text-gray-500 mt-1">Min. withdraw request: ₹500</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Share Link & UPI Section */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Share Link Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Referral Link</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Share this link to earn a {affiliate.commissionRate}% commission on sales!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 break-all text-sm font-mono">
+                  {`https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`}
+                </div>
+                <button
+                  onClick={copyToClipboard}
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  {copySuccess ? (
+                    <><CheckCircle2 className="w-5 h-5" /> Copied!</>
+                  ) : (
+                    <><Copy className="w-5 h-5" /> Copy Link</>
+                  )}
+                </button>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Join the Vaddadi Pickles Affiliate Program!</h2>
-              <p className="mt-2 text-gray-600">Earn a 10% commission on every sale made through your unique referral link.</p>
             </div>
 
-            <form onSubmit={handleRegister} className="space-y-6">
-              <div>
-                <label htmlFor="upiId" className="block text-sm font-medium text-gray-700">UPI ID for Payouts</label>
-                <div className="mt-2 flex rounded-md shadow-sm">
+            {/* Recent Activity */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Recent Referrals</h2>
+              
+              {sales.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                    <Users className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500">No referrals yet. Share your link to start earning!</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {sales.slice(0, 10).map((sale) => (
+                        <tr key={sale.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(sale.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                            {sale.orderId.slice(0, 8)}...
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ₹{sale.orderAmount}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                            ₹{sale.commissionEarned}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              sale.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              sale.status === 'paid' ? 'bg-purple-100 text-purple-800' :
+                              sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Payout History */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Payout History</h2>
+              
+              {payouts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500">No payouts yet. Earn at least ₹500 to get paid!</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {payouts.map((payout) => (
+                        <tr key={payout.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(payout.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ₹{payout.amount}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-purple-600">
+                            {payout.transaction_id}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* UPI Form Section */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Payout Details</h2>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Enter your UPI ID where you want to receive your affiliate commissions. Minimum payout is ₹500.
+              </p>
+              <form onSubmit={handleSaveUpi} className="space-y-4">
+                <div>
+                  <label htmlFor="upiId" className="block text-sm font-medium text-gray-700 mb-1">
+                    UPI ID
+                  </label>
                   <input
                     type="text"
                     id="upiId"
                     required
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    placeholder="e.g. 9876543210@ybl"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    placeholder="e.g. yourname@okicici"
                   />
                 </div>
-                {error && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {error}
+                
+                {upiMessage && (
+                  <p className={`text-sm ${upiMessage.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+                    {upiMessage}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-gray-500">Your referral code will be automatically generated upon signup.</p>
-              </div>
 
-              <button
-                type="submit"
-                disabled={isRegistering || !upiId}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
-              >
-                {isRegistering ? 'Registering...' : 'Join Now'}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={isSavingUpi || upiId.trim() === affiliate.paymentUpi}
+                  className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSavingUpi ? 'Saving...' : 'Save UPI ID'}
+                </button>
+              </form>
+            </div>
           </div>
+
         </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
-              <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Commission Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{affiliate.commissionRate}%</p>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
-              <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Earnings</p>
-                <p className="text-2xl font-bold text-gray-900">₹{affiliate.totalEarnings}</p>
-                <p className="text-[10px] text-gray-500 mt-1">Min. withdraw request: ₹500</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center">
-              <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Paid Earnings</p>
-                <p className="text-2xl font-bold text-gray-900">₹{affiliate.paidEarnings}</p>
-                {affiliate.paymentUpi && (
-                  <p className="text-[10px] text-gray-500 mt-1 font-mono">UPI: {affiliate.paymentUpi}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Share Link Section */}
-          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Referral Link</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Share this link with your friends, family, or followers. When they click the link and make a purchase, you will earn a {affiliate.commissionRate}% commission.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 break-all text-sm sm:text-base">
-                {`https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`}
-              </div>
-              <button
-                onClick={copyToClipboard}
-                className="flex-shrink-0 flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-              >
-                {copySuccess ? (
-                  <>
-                    <CheckCircle2 className="w-5 h-5" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-5 h-5" />
-                    Copy Link
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Recent Sales */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Referrals</h2>
-            </div>
-            
-            {sales.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p>No referrals yet. Share your link to start earning!</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
-                      <th className="p-4 font-medium">Date</th>
-                      <th className="p-4 font-medium">Order Amount</th>
-                      <th className="p-4 font-medium">Commission</th>
-                      <th className="p-4 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sales.map((sale) => (
-                      <tr key={sale.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="p-4 text-sm text-gray-900">
-                          {new Date(sale.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="p-4 text-sm text-gray-900">₹{sale.orderAmount}</td>
-                        <td className="p-4 text-sm font-medium text-green-600">+₹{sale.commissionEarned}</td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                            ${sale.status === 'paid' ? 'bg-green-100 text-green-800' : 
-                              sale.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                              sale.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'}`}>
-                            {sale.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
