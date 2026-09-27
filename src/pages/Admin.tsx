@@ -5,13 +5,14 @@ import {
   CheckCircle, XCircle, Clock, FileText, Printer,
   MessageCircle, ChevronDown, ChevronUp, StickyNote,
   Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat, ShoppingCart as CartIcon,
-  Truck, TrendingUp
+  Truck, TrendingUp, Network
 } from 'lucide-react';
 import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
+import { AdminAffiliates } from '../components/AdminAffiliates';
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned';
+type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
 const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'payment_pending', label: 'Payment Pending' },
@@ -734,6 +735,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 { id: 'payments', label: `Payments ${pendingPayments ? `(${pendingPayments})` : ''}` },
                 { id: 'labels', label: 'Labels' },
                 { id: 'coupons', label: 'Coupons' },
+                { id: 'affiliates', label: 'Affiliates' },
                 { id: 'abandoned', label: `Abandoned ${abandonedCarts.length ? `(${abandonedCarts.length})` : ''}` },
                 { id: 'settings', label: 'Settings' },
                 { id: 'feedback', label: `Feedback ${siteFeedbacks.filter(f => f.status === 'new').length ? `(${siteFeedbacks.filter(f => f.status === 'new').length})` : ''}` },
@@ -758,6 +760,7 @@ Thank you for choosing Vaddadi Pickles!`;
             { id: 'payments', label: 'Payments', icon: CreditCard, badge: pendingPayments },
             { id: 'labels', label: 'Labels', icon: StickyNote },
             { id: 'coupons', label: 'Coupons', icon: Tag },
+            { id: 'affiliates', label: 'Affiliates', icon: Network },
             { id: 'abandoned', label: 'Abandoned', icon: CartIcon, badge: abandonedCarts.length || undefined },
             { id: 'settings', label: 'Settings', icon: Settings },
             { id: 'feedback', label: 'Feedback', icon: MessageCircle, badge: siteFeedbacks.filter(f => f.status === 'new').length || undefined },
@@ -2490,6 +2493,11 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
             )}
           </div>
+        )}
+        
+        {/* Affiliates Tab */}
+        {activeTab === 'affiliates' && (
+          <AdminAffiliates />
         )}
       </div>
     </div>
