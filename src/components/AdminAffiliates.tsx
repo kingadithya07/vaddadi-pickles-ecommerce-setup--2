@@ -52,13 +52,15 @@ export function AdminAffiliates() {
           *,
           affiliates (
             payment_upi,
-            profiles ( name, phone )
+            profiles:user_id ( name, phone )
           )
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: true });
         
-      if (!reqError && reqData) {
+      if (reqError) {
+        console.error('Error fetching payout requests:', reqError);
+      } else if (reqData) {
         setPayoutRequests(reqData);
       }
     } catch (error) {
