@@ -139,7 +139,7 @@ export function Profile() {
       label: addressForm.label,
       name: addressForm.name,
       phone: addressForm.phone,
-      street: addressForm.street,
+      street: addressForm.street2 ? `${addressForm.street.trim()}, ${addressForm.street2.trim()}` : addressForm.street.trim(),
       city: addressForm.city,
       state: addressForm.state,
       pincode: addressForm.pincode,
@@ -159,9 +159,15 @@ export function Profile() {
   const handleEditAddress = (address: UserAddress) => {
     const hasCities = statesAndCities[address.state];
     const isManual = !hasCities || !hasCities.includes(address.city);
+    
+    const parts = address.street.split(',');
 
     setEditingAddress(address);
-    setAddressForm(address);
+    setAddressForm({
+      ...address,
+      street: parts[0]?.trim() || '',
+      street2: parts.slice(1).join(',').trim() || ''
+    } as any);
     setIsManualCity(isManual);
     setShowAddressForm(true);
   };
@@ -187,6 +193,7 @@ export function Profile() {
       name: '',
       phone: '',
       street: '',
+      street2: '',
       city: '',
       state: '',
       pincode: '',
@@ -408,13 +415,22 @@ export function Profile() {
                     />
                   </div>
                 </div>
-                <div>
+                <div className="space-y-3">
                   <label className="block text-sm text-gray-600 mb-1">Street Address</label>
                   <input
                     type="text"
-                    placeholder="Door No / Flat No / Landmark / Street Address"
+                    maxLength={40}
+                    placeholder="Line 1: Door No / Flat No / Street"
                     value={addressForm.street}
                     onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                  <input
+                    type="text"
+                    maxLength={60}
+                    placeholder="Line 2: Area / Landmark / Remaining Address (Optional)"
+                    value={(addressForm as any).street2 || ''}
+                    onChange={(e) => setAddressForm({ ...addressForm, street2: e.target.value } as any)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>

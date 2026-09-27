@@ -27,8 +27,13 @@ export function Checkout() {
   const defaultAddress = userAddresses.find(addr => addr.isDefault) || userAddresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddress?.id || 'new');
   const [useNewAddress, setUseNewAddress] = useState(!defaultAddress);
-  const [newAddress, setNewAddress] = useState<Address>(user?.address || {
+  const [newAddress, setNewAddress] = useState<Address & { street2?: string }>(user?.address ? {
+    ...user.address,
+    street: user.address.street.split(',')[0]?.trim() || '',
+    street2: user.address.street.split(',').slice(1).join(',').trim() || ''
+  } : {
     street: '',
+    street2: '',
     city: '',
     state: '',
     pincode: '',
@@ -144,7 +149,10 @@ export function Checkout() {
         return;
       }
       
-      finalAddress = newAddress;
+      finalAddress = { 
+        ...newAddress, 
+        street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim() 
+      };
       finalName = deliveryName;
       finalPhone = deliveryPhone;
 
@@ -333,13 +341,22 @@ export function Checkout() {
                     />
                   </div>
                 </div>
-                <div>
+                <div className="space-y-3">
                   <label className="block text-sm text-gray-600 mb-1">Street Address</label>
                   <input
                     type="text"
-                    placeholder="Door No / Flat No / Landmark / Street Address"
+                    maxLength={40}
+                    placeholder="Line 1: Door No / Flat No / Street"
                     value={newAddress.street}
                     onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  />
+                  <input
+                    type="text"
+                    maxLength={60}
+                    placeholder="Line 2: Area / Landmark / Remaining Address (Optional)"
+                    value={newAddress.street2 || ''}
+                    onChange={(e) => setNewAddress({ ...newAddress, street2: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
