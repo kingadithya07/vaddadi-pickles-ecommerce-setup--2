@@ -97,6 +97,13 @@ export function Header() {
                         Profile Settings
                       </Link>
                       <Link 
+                        to="/affiliate" 
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                      >
+                        Affiliate Dashboard
+                      </Link>
+                      <Link 
                         to="/orders" 
                         onClick={() => setUserMenuOpen(false)}
                         className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition md:hidden" 
@@ -150,6 +157,7 @@ export function Header() {
               {user && (
                 <>
                   <Link to="/profile" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Profile</Link>
+                  <Link to="/affiliate" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Affiliate Dashboard</Link>
                   <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left hover:text-green-200">Logout</button>
                 </>
               )}
@@ -161,3 +169,4 @@ export function Header() {
     </>
   );
 }
+

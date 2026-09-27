@@ -17,6 +17,7 @@ This project is built using modern web development technologies:
 ## ✨ Key Features
 
 *   **Real-time Admin Notifications:** Integrated Telegram Bot pushes instant mobile alerts the second a customer places a new order.
+*   **Affiliate Program:** Built-in referral system allowing users to generate unique links, drive sales, and earn a percentage commission on successful orders.
 *   **User Authentication & Profiles:** Customers can log in, save multiple addresses, and view their order history seamlessly.
 *   **Secure Admin Panel:** Dedicated admin dashboard for managing orders, verifying payments, and tracking business metrics.
 *   **Product Catalog:** Browse a variety of products with support for best-seller badges, ratings, and detailed descriptions.

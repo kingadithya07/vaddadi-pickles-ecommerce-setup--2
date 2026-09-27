@@ -22,6 +22,7 @@ const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions')
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
 const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
+const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard').then(module => ({ default: module.AffiliateDashboard })));
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -112,6 +113,15 @@ export function App() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     // Also listen to window focus as a fallback
     window.addEventListener('focus', handleVisibilityChange);
+
+    // Track affiliate referral code
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('affiliate_ref', refCode);
+      // Optional: remove it from the URL to make it clean
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     return () => {
       subscription.unsubscribe();
@@ -242,6 +252,14 @@ export function App() {
             element={
               <Layout>
                 <AuthSuccess />
+              </Layout>
+            }
+          />
+          <Route
+            path="/affiliate"
+            element={
+              <Layout>
+                <AffiliateDashboard />
               </Layout>
             }
           />

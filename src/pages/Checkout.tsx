@@ -189,6 +189,7 @@ export function Checkout() {
       discount,
       finalAmount: total,
       couponCode: appliedCoupon?.code,
+      affiliateCode: localStorage.getItem('affiliate_ref') || undefined,
       address: finalAddress,
       status: 'payment_pending',
       paymentStatus: 'awaiting_approval',
