@@ -13,7 +13,7 @@ export function AffiliateDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Registration form state
-  const [referralCode, setReferralCode] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -47,6 +47,7 @@ export function AffiliateDashboard() {
             commissionRate: affiliateData.commission_rate,
             totalEarnings: affiliateData.total_earnings,
             paidEarnings: affiliateData.paid_earnings,
+            paymentUpi: affiliateData.payment_upi,
             status: affiliateData.status,
             createdAt: affiliateData.created_at
           });
@@ -85,23 +86,25 @@ export function AffiliateDashboard() {
     e.preventDefault();
     if (!user) return;
     
-    // Basic validation: Alphanumeric only, min 4 chars
-    const code = referralCode.trim().toLowerCase();
-    if (!/^[a-z0-9]{4,15}$/.test(code)) {
-      setError('Code must be 4-15 characters long and contain only letters and numbers.');
+    const upi = upiId.trim();
+    if (!upi) {
+      setError('Please enter a valid UPI ID for payments.');
       return;
     }
 
     setIsRegistering(true);
     setError('');
 
+    const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+
     try {
       const { data, error: insertError } = await supabase
         .from('affiliates')
         .insert({
           user_id: user.id,
-          referral_code: code,
-          commission_rate: 10.00 // Default 10%
+          referral_code: autoCode,
+          commission_rate: 10.00, // Default 10%
+          payment_upi: upi
         })
         .select()
         .single();
@@ -120,6 +123,7 @@ export function AffiliateDashboard() {
           commissionRate: data.commission_rate,
           totalEarnings: data.total_earnings,
           paidEarnings: data.paid_earnings,
+          paymentUpi: data.payment_upi,
           status: data.status,
           createdAt: data.created_at
         });
@@ -133,7 +137,7 @@ export function AffiliateDashboard() {
 
   const copyToClipboard = () => {
     if (!affiliate) return;
-    const link = `${window.location.origin}/?ref=${affiliate.referralCode}`;
+    const link = `https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`;
     navigator.clipboard.writeText(link);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
@@ -171,19 +175,16 @@ export function AffiliateDashboard() {
 
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
-                <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700">Choose your custom referral code</label>
+                <label htmlFor="upiId" className="block text-sm font-medium text-gray-700">UPI ID for Payouts</label>
                 <div className="mt-2 flex rounded-md shadow-sm">
-                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                    yoursite.com/?ref=
-                  </span>
                   <input
                     type="text"
-                    id="referralCode"
+                    id="upiId"
                     required
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value.toLowerCase())}
-                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                    placeholder="e.g. ravi10"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    placeholder="e.g. 9876543210@ybl"
                   />
                 </div>
                 {error && (
@@ -192,12 +193,12 @@ export function AffiliateDashboard() {
                     {error}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-gray-500">Only letters and numbers. No spaces. (e.g. ravi10)</p>
+                <p className="mt-2 text-xs text-gray-500">Your referral code will be automatically generated upon signup.</p>
               </div>
 
               <button
                 type="submit"
-                disabled={isRegistering || !referralCode}
+                disabled={isRegistering || !upiId}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
               >
                 {isRegistering ? 'Registering...' : 'Join Now'}
@@ -226,6 +227,7 @@ export function AffiliateDashboard() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Earnings</p>
                 <p className="text-2xl font-bold text-gray-900">₹{affiliate.totalEarnings}</p>
+                <p className="text-[10px] text-gray-500 mt-1">Min. withdraw request: ₹500</p>
               </div>
             </div>
 
@@ -236,6 +238,9 @@ export function AffiliateDashboard() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Paid Earnings</p>
                 <p className="text-2xl font-bold text-gray-900">₹{affiliate.paidEarnings}</p>
+                {affiliate.paymentUpi && (
+                  <p className="text-[10px] text-gray-500 mt-1 font-mono">UPI: {affiliate.paymentUpi}</p>
+                )}
               </div>
             </div>
           </div>
@@ -248,7 +253,7 @@ export function AffiliateDashboard() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 break-all text-sm sm:text-base">
-                {`${window.location.origin}/?ref=${affiliate.referralCode}`}
+                {`https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`}
               </div>
               <button
                 onClick={copyToClipboard}

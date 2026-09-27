@@ -167,6 +167,7 @@ export interface Affiliate {
   commissionRate: number; // e.g. 10 for 10%
   totalEarnings: number;
   paidEarnings: number;
+  paymentUpi?: string;
   status: 'pending' | 'active' | 'suspended';
   createdAt: string;
 }

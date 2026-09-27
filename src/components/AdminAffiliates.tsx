@@ -9,6 +9,7 @@ interface AffiliateAdminData {
   commission_rate: number;
   total_earnings: number;
   paid_earnings: number;
+  payment_upi?: string;
   status: string;
   created_at: string;
   profiles: {
@@ -162,6 +163,11 @@ export function AdminAffiliates() {
                       <td className="p-4 md:p-6">
                         <div className="font-semibold text-gray-800">{affiliate.profiles?.name || 'Unknown'}</div>
                         <div className="text-sm text-gray-500">{affiliate.profiles?.phone || 'No Phone'}</div>
+                        {affiliate.payment_upi && (
+                          <div className="text-xs font-mono text-purple-600 mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded border border-purple-100">
+                            UPI: {affiliate.payment_upi}
+                          </div>
+                        )}
                       </td>
                       <td className="p-4 md:p-6">
                         <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 font-mono text-sm mb-1">
