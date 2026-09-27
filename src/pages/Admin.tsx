@@ -11,6 +11,7 @@ import { useStore } from '../store';
 import { Order, Coupon, Product, ProductVariant } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 import { AdminAffiliates } from '../components/AdminAffiliates';
+import { supabase } from '../lib/supabase';
 
 type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
@@ -53,10 +54,24 @@ export function Admin() {
   const dailyVisits = useStore((state) => state.dailyVisits);
   const totalVisits = useStore((state) => state.totalVisits);
   const fetchDailyVisits = useStore((state) => state.fetchDailyVisits);
+  const [totalAffiliatePayout, setTotalAffiliatePayout] = useState(0);
 
   useEffect(() => {
     fetchDailyVisits();
     fetchAbandonedCarts();
+    
+    const fetchAffiliatePayouts = async () => {
+      try {
+        const { data, error } = await supabase.from('affiliates').select('paid_earnings');
+        if (!error && data) {
+          const total = data.reduce((sum, a) => sum + Number(a.paid_earnings || 0), 0);
+          setTotalAffiliatePayout(total);
+        }
+      } catch (err) {
+        console.error('Failed to fetch affiliate payouts', err);
+      }
+    };
+    fetchAffiliatePayouts();
   }, [fetchDailyVisits, fetchAbandonedCarts]);
 
   // Sync draft settings with store settings when they change externally
@@ -828,6 +843,13 @@ Thank you for choosing Vaddadi Pickles!`;
                   <span className="text-xl md:text-3xl font-bold text-gray-800">{new Set(orders.map(o => o.userId)).size}</span>
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Total Customers</p>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <Network className="text-pink-500" size={24} />
+                  <span className="text-xl md:text-3xl font-bold text-gray-800">₹{totalAffiliatePayout.toFixed(0)}</span>
+                </div>
+                <p className="text-gray-600 text-sm md:text-base">Affiliate Payouts</p>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 md:mb-4">

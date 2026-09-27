@@ -276,6 +276,16 @@ export function AdminAffiliates() {
                           <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-10 p-4 text-left">
                             <h4 className="font-semibold text-gray-800 mb-3 text-sm">Approve Request</h4>
                             <div className="space-y-3">
+                              {req.affiliates?.payment_upi && (
+                                <div className="flex flex-col items-center justify-center p-3 bg-purple-50 rounded-lg border border-purple-100 mb-2">
+                                  <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`upi://pay?pa=${req.affiliates.payment_upi}&pn=Vaddadi Affiliate&am=${payoutForm.amount}&cu=INR`)}`}
+                                    alt="UPI QR Code" 
+                                    className="w-24 h-24 rounded shadow-sm bg-white p-1"
+                                  />
+                                  <p className="text-[10px] text-purple-700 mt-2 font-medium text-center">Scan with any UPI app to pay ₹{payoutForm.amount}</p>
+                                </div>
+                              )}
                               <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Amount (₹)</label>
                                 <input 
@@ -409,6 +419,16 @@ export function AdminAffiliates() {
                               <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-10 p-4 text-left">
                                 <h4 className="font-semibold text-gray-800 mb-3 text-sm">Payout Details</h4>
                                 <div className="space-y-3">
+                                  {affiliate.payment_upi && (
+                                    <div className="flex flex-col items-center justify-center p-3 bg-purple-50 rounded-lg border border-purple-100 mb-2">
+                                      <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`upi://pay?pa=${affiliate.payment_upi}&pn=Vaddadi Affiliate&am=${payoutForm.amount}&cu=INR`)}`}
+                                        alt="UPI QR Code" 
+                                        className="w-24 h-24 rounded shadow-sm bg-white p-1"
+                                      />
+                                      <p className="text-[10px] text-purple-700 mt-2 font-medium text-center">Scan with any UPI app to pay ₹{payoutForm.amount}</p>
+                                    </div>
+                                  )}
                                   <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">Amount (₹)</label>
                                     <input 
