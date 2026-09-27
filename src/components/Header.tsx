@@ -30,6 +30,16 @@ export function Header() {
           <span className="text-[10px] opacity-90">Visakhapatnam: Uber/Rapido | Rest of India: Courier</span>
         </div>
       </div>
+      <Link to="/affiliate" className="block bg-green-100 hover:bg-green-200 text-green-900 transition-colors text-xs md:text-sm font-medium py-2 px-4 text-center border-b border-green-200">
+        <span className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+          <span className="flex items-center gap-2">
+            <span>💸</span>
+            <span><strong>Earn 10% Commission!</strong> (No purchase necessary to join)</span>
+          </span>
+          <span className="hidden md:inline">|</span>
+          <span>Share your link and get paid when others order. <span className="underline font-bold">Join Now →</span></span>
+        </span>
+      </Link>
       <header className="bg-gradient-to-r from-green-700 to-green-800 text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
