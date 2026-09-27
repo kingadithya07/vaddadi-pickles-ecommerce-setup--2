@@ -303,6 +303,30 @@ Thank you for choosing Vaddadi Pickles!`;
     window.open(`https://wa.me/${order.userPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  const formatStreetAddress = (street: string) => {
+    if (!street) return '';
+    if (street.includes(',')) {
+      const parts = street.split(',');
+      return `${parts[0].trim()},<br>${parts.slice(1).join(',').trim()}`;
+    }
+    const middle = Math.floor(street.length / 2);
+    let splitIndex = -1;
+    let minDistance = street.length;
+    for (let i = 0; i < street.length; i++) {
+      if (street[i] === ' ') {
+        const distance = Math.abs(i - middle);
+        if (distance < minDistance) {
+          minDistance = distance;
+          splitIndex = i;
+        }
+      }
+    }
+    if (splitIndex !== -1 && street.length > 15) {
+      return `${street.substring(0, splitIndex).trim()}<br>${street.substring(splitIndex + 1).trim()}`;
+    }
+    return street;
+  };
+
   const printSingleLabel = (order: Order) => {
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
@@ -355,7 +379,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="title">📦 DELIVER TO:</div>
               <div class="name">${order.userName}</div>
               <div class="address">
-                ${order.address.street}<br>
+                ${formatStreetAddress(order.address.street)}<br>
                 ${order.address.city}, ${order.address.state}
               </div>
               <div class="pincode">📍 ${order.address.pincode}</div>
@@ -422,8 +446,8 @@ Thank you for choosing Vaddadi Pickles!`;
           ${codBadge}
           <div class="name">${order.userName}</div>
           <div class="address">
-            ${order.address.street}, ${order.address.city}<br>
-            ${order.address.state}
+            ${formatStreetAddress(order.address.street)}<br>
+            ${order.address.city}, ${order.address.state}
           </div>
           <div class="pin">PIN: ${order.address.pincode} | 📱 ${order.userPhone}</div>
           <div class="order-id">${order.id}</div>
@@ -464,7 +488,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="title">📦 DELIVER TO:</div>
             <div class="name">${order.userName}</div>
             <div class="address">
-              ${order.address.street}<br>
+              ${formatStreetAddress(order.address.street)}<br>
               ${order.address.city}, ${order.address.state}<br>
               <strong>PIN: ${order.address.pincode}</strong>
             </div>
@@ -608,8 +632,8 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="col" style="flex: 1; padding: 15px;">
               <div class="address-title">SHIP TO:</div>
               <div class="to-address">
-                <strong>${order.userName.toUpperCase()}</strong>
-                ${order.address.street.toUpperCase()}<br>
+                <strong>${order.userName.toUpperCase()}</strong><br>
+                ${formatStreetAddress(order.address.street).toUpperCase()}<br>
                 ${order.address.city.toUpperCase()}, ${order.address.state.toUpperCase()}<br>
                 PIN: ${order.address.pincode}<br>
                 <div class="to-phone">PH: ${order.userPhone}</div>
