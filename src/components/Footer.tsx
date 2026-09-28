@@ -18,7 +18,14 @@ export function Footer() {
               />
               <h3 className="text-xl font-bold text-white">Vaddadi Pickles</h3>
             </div>
-            <p className="text-sm">Authentic homemade pickles made with love and traditional recipes passed down through generations.</p>
+            <p className="text-sm mb-4">Authentic homemade pickles made with love and traditional recipes passed down through generations.</p>
+            <div className="bg-gray-800 p-3 rounded-lg border border-gray-700 mt-4">
+              <p className="text-sm text-green-400 font-semibold mb-1">Bulk Orders & Pelli Saare</p>
+              <p className="text-xs text-gray-300 mb-1">For bulk orders and Pelli Saare food items, contact us at:</p>
+              <p className="text-sm font-bold text-white">
+                <a href="tel:8008129309" className="hover:text-green-400 transition">8008129309</a> / <a href="tel:9885192948" className="hover:text-green-400 transition">9885192948</a>
+              </p>
+            </div>
           </div>
 
           <div>
