@@ -30,6 +30,11 @@ export function Header() {
           <span className="text-[10px] opacity-90">Visakhapatnam: Uber/Rapido | Rest of India: Courier</span>
         </div>
       </div>
+      <div className="bg-orange-100 text-orange-900 text-xs md:text-sm font-medium py-1.5 px-4 text-center border-b border-orange-200">
+        <p>
+          <span className="font-bold">Note:</span> For bulk orders / Pelli Saare food items contact no: <a href="tel:8008129309" className="font-bold hover:underline">8008129309</a> / <a href="tel:9885192948" className="font-bold hover:underline">9885192948</a>
+        </p>
+      </div>
       <Link to="/affiliate" className="block bg-green-100 hover:bg-green-200 text-green-900 transition-colors text-xs md:text-sm font-medium py-2 px-4 text-center border-b border-green-200">
         <span className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
           <span className="flex items-center gap-2">
