@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 import { Link as RouterLink } from 'react-router-dom';
 
 export function Profile() {
-  const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress } = useStore();
+  const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, siteFeedbacks } = useStore();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -661,16 +661,27 @@ export function Profile() {
       
       {/* Support Tickets Section */}
       <div id="support-tickets" className="mt-8 bg-white rounded-xl shadow-md p-4 md:p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-          <MessageCircle size={24} className="text-green-600" />
-          My Support Tickets
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <MessageCircle size={24} className="text-green-600" />
+            My Support Tickets
+          </h2>
+          <button 
+            onClick={() => {
+              const widget = document.querySelector('button[title="Send Feedback"]');
+              if (widget) (widget as HTMLElement).click();
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
+          >
+            + New Ticket
+          </button>
+        </div>
         
-        {useStore.getState().siteFeedbacks.filter(f => f.userId === user.id).length === 0 ? (
+        {siteFeedbacks.filter(f => f.userId === user.id).length === 0 ? (
           <p className="text-gray-500 text-center py-4">No support tickets found.</p>
         ) : (
           <div className="grid gap-6">
-            {useStore.getState().siteFeedbacks.filter(f => f.userId === user.id).map(feedback => (
+            {siteFeedbacks.filter(f => f.userId === user.id).map(feedback => (
               <div key={feedback.id} className="border border-gray-200 rounded-xl p-4 md:p-6 overflow-hidden">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-4 mb-4">
                   <div className="overflow-hidden w-full sm:w-auto">

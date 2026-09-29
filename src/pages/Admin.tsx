@@ -2526,30 +2526,31 @@ Thank you for choosing Vaddadi Pickles!`;
                         </select>
                       </div>
                     </div>
-                    
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                      {feedback.conversation ? feedback.conversation.map((msg, idx) => (
-                        <div key={idx} className={`flex flex-col ${msg.sender === 'admin' ? 'items-end' : 'items-start'}`}>
-                          <div className={`max-w-[80%] rounded-xl px-4 py-2 ${
-                            msg.sender === 'admin' ? 'bg-green-600 text-white' : 'bg-white text-gray-800 shadow-sm border border-gray-100'
-                          }`}>
-                            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                    {feedback.status !== 'resolved' && (
+                      <div className="space-y-3 bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                        {feedback.conversation ? feedback.conversation.map((msg, idx) => (
+                          <div key={idx} className={`flex flex-col ${msg.sender === 'admin' ? 'items-end' : 'items-start'}`}>
+                            <div className={`max-w-[80%] rounded-xl px-4 py-2 ${
+                              msg.sender === 'admin' ? 'bg-green-600 text-white' : 'bg-white text-gray-800 shadow-sm border border-gray-100'
+                            }`}>
+                              <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                            </div>
+                            <span className="text-[10px] text-gray-400 mt-1">
+                              {msg.sender === 'admin' ? 'You' : feedback.name} • {new Date(msg.timestamp).toLocaleString()}
+                            </span>
                           </div>
-                          <span className="text-[10px] text-gray-400 mt-1">
-                            {msg.sender === 'admin' ? 'You' : feedback.name} • {new Date(msg.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                      )) : (
-                        <div className="flex flex-col items-start">
-                          <div className="max-w-[80%] rounded-xl px-4 py-2 bg-white text-gray-800 shadow-sm border border-gray-100">
-                            <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
+                        )) : (
+                          <div className="flex flex-col items-start">
+                            <div className="max-w-[80%] rounded-xl px-4 py-2 bg-white text-gray-800 shadow-sm border border-gray-100">
+                              <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
+                            </div>
+                            <span className="text-[10px] text-gray-400 mt-1">
+                              {feedback.name} • {new Date(feedback.createdAt).toLocaleString()}
+                            </span>
                           </div>
-                          <span className="text-[10px] text-gray-400 mt-1">
-                            {feedback.name} • {new Date(feedback.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                     
                     {feedback.status !== 'resolved' && (
                       <form 
