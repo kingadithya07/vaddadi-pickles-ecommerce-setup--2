@@ -71,13 +71,15 @@ export function Profile() {
   }, [user]);
 
   useEffect(() => {
-    siteFeedbacks.forEach(f => {
-      const el = document.getElementById(`chat-${f.id}`);
-      if (el) {
-        el.scrollTop = el.scrollHeight;
-      }
-    });
-  }, [siteFeedbacks]);
+    setTimeout(() => {
+      siteFeedbacks.forEach(f => {
+        const el = document.getElementById(`chat-${f.id}`);
+        if (el) {
+          el.scrollTop = el.scrollHeight;
+        }
+      });
+    }, 100);
+  }, [siteFeedbacks, typingStatus]);
 
   const copyToClipboard = () => {
     if (!referralCode) return;
@@ -752,6 +754,12 @@ export function Profile() {
                         className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none w-full"
                         required
                         onChange={() => broadcastTyping(feedback.id, 'customer')}
+                        onFocus={() => {
+                          setTimeout(() => {
+                            const el = document.getElementById(`chat-${feedback.id}`);
+                            if (el) el.scrollTop = el.scrollHeight;
+                          }, 300);
+                        }}
                       />
                       <button 
                         type="submit"

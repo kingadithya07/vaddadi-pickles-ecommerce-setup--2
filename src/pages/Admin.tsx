@@ -82,13 +82,15 @@ export function Admin() {
   }, [settings]);
   
   useEffect(() => {
-    siteFeedbacks.forEach(f => {
-      const el = document.getElementById(`admin-chat-${f.id}`);
-      if (el) {
-        el.scrollTop = el.scrollHeight;
-      }
-    });
-  }, [siteFeedbacks]);
+    setTimeout(() => {
+      siteFeedbacks.forEach(f => {
+        const el = document.getElementById(`admin-chat-${f.id}`);
+        if (el) {
+          el.scrollTop = el.scrollHeight;
+        }
+      });
+    }, 100);
+  }, [siteFeedbacks, typingStatus]);
 
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -2594,6 +2596,12 @@ Thank you for choosing Vaddadi Pickles!`;
                             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none"
                             required
                             onChange={() => broadcastTyping(feedback.id, 'admin')}
+                            onFocus={() => {
+                              setTimeout(() => {
+                                const el = document.getElementById(`admin-chat-${feedback.id}`);
+                                if (el) el.scrollTop = el.scrollHeight;
+                              }, 300);
+                            }}
                           />
                           <button 
                             type="submit"
