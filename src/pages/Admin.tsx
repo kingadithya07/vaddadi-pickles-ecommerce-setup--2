@@ -286,16 +286,31 @@ export function Admin() {
     .filter(date => date >= todayStart.getTime()).length;
 
   const sendWhatsAppUpdate = (order: Order, status: string) => {
+    let trackingInfo = '';
+    const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
+    
+    if (order.carrier && order.trackingId) {
+      if (isBikeParcel) {
+        trackingInfo = `\n🚚 Carrier: ${order.carrier}\n🔑 OTP: ${order.trackingId}\n`;
+      } else {
+        trackingInfo = `\n🚚 Carrier: ${order.carrier}\n🔢 Tracking ID: ${order.trackingId}\n`;
+      }
+    }
+
+    const shippedMessage = isBikeParcel 
+      ? '📦 Your order is on the way! Expected delivery today.' 
+      : '📦 Your order is on the way! Expected delivery in 3-5 business days.';
+
     const message = `🥒 *Vaddadi Pickles - Order Update*
 
 Dear ${order.userName},
 
 Your order *${order.id}* status has been updated to: *${status}*
 
-${status === 'shipped' ? '📦 Your order is on the way! Expected delivery in 3-5 business days.' : ''}
+${status === 'shipped' ? shippedMessage : ''}
 ${status === 'delivered' ? '✅ Your order has been delivered. Thank you for shopping with us!' : ''}
 ${status === 'payment_approved' ? '💰 Your payment has been verified. We are processing your order.' : ''}
-
+${trackingInfo}
 🎁 *Earn Money with Us!*
 Get 10% on every order placed through your referral link! Login to your profile to get your unique link and start earning today.
 
