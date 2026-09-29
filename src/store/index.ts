@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback, AbandonedCart } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback, AbandonedCart, FeedbackMessage } from '../types';
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
@@ -299,9 +299,10 @@ interface StoreState {
   fetchReviews: (productId: string) => Promise<void>;
 
   // Feedback actions
-  submitFeedback: (feedback: Omit<SiteFeedback, 'id' | 'createdAt' | 'status'>) => Promise<{ success: boolean; message: string }>;
+  submitFeedback: (feedback: Omit<SiteFeedback, 'id' | 'createdAt' | 'status' | 'conversation'>) => Promise<{ success: boolean; message: string }>;
   fetchFeedbacks: () => Promise<void>;
   updateFeedbackStatus: (feedbackId: string, status: SiteFeedback['status']) => Promise<void>;
+  addFeedbackReply: (feedbackId: string, text: string, sender: 'customer' | 'admin') => Promise<void>;
 
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
@@ -944,11 +945,12 @@ export const useStore = create<StoreState>()(
       },
 
       submitFeedback: async (feedback) => {
+        const initialConversation = [{ sender: 'customer', text: feedback.message, timestamp: new Date().toISOString() }];
         const { data, error } = await supabase.from('site_feedback').insert({
           user_id: feedback.userId || null,
           name: feedback.name,
           email: feedback.email,
-          message: feedback.message,
+          message: JSON.stringify(initialConversation),
           status: 'new'
         }).select().single();
 
@@ -957,41 +959,54 @@ export const useStore = create<StoreState>()(
           return { success: false, message: error.message };
         }
 
-        // Add to local state if admin
-        if (get().isAdmin && data) {
-          const newFeedback: SiteFeedback = {
-            id: data.id,
-            userId: data.user_id,
-            name: data.name,
-            email: data.email,
-            message: data.message,
-            status: data.status,
-            createdAt: data.created_at,
-          };
-          set({ siteFeedbacks: [newFeedback, ...get().siteFeedbacks] });
-        }
+        // Add to local state
+        const newFeedback: SiteFeedback = {
+          id: data.id,
+          userId: data.user_id,
+          name: data.name,
+          email: data.email,
+          message: feedback.message,
+          status: data.status,
+          createdAt: data.created_at,
+          conversation: initialConversation as FeedbackMessage[]
+        };
+        set({ siteFeedbacks: [newFeedback, ...get().siteFeedbacks] });
 
         return { success: true, message: 'Thank you for your feedback!' };
       },
 
       fetchFeedbacks: async () => {
-        if (!get().isAdmin) return;
+        const { isAdmin, user } = get();
+        if (!isAdmin && !user) return;
         
-        const { data, error } = await supabase
-          .from('site_feedback')
-          .select('*')
-          .order('created_at', { ascending: false });
+        let query = supabase.from('site_feedback').select('*').order('created_at', { ascending: false });
+        if (!isAdmin && user) {
+          query = query.eq('user_id', user.id);
+        }
+
+        const { data, error } = await query;
 
         if (!error && data) {
-          const formatted: SiteFeedback[] = data.map(f => ({
-            id: f.id,
-            userId: f.user_id,
-            name: f.name,
-            email: f.email,
-            message: f.message,
-            status: f.status,
-            createdAt: f.created_at,
-          }));
+          const formatted: SiteFeedback[] = data.map(f => {
+            let conversation = [];
+            try {
+              conversation = f.message.startsWith('[') ? JSON.parse(f.message) : [];
+            } catch (e) {
+              conversation = [];
+            }
+            // If conversation is empty, it means the message was just plain text from the old version
+            const displayMessage = conversation.length > 0 ? conversation[0].text : f.message;
+            return {
+              id: f.id,
+              userId: f.user_id,
+              name: f.name,
+              email: f.email,
+              message: displayMessage,
+              status: f.status,
+              createdAt: f.created_at,
+              conversation: conversation.length > 0 ? conversation : [{ sender: 'customer', text: displayMessage, timestamp: f.created_at }]
+            };
+          });
           set({ siteFeedbacks: formatted });
         }
       },
@@ -1004,6 +1019,27 @@ export const useStore = create<StoreState>()(
         });
         
         await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
+      },
+
+      addFeedbackReply: async (feedbackId, text, sender) => {
+        const currentFeedbacks = get().siteFeedbacks;
+        const feedback = currentFeedbacks.find(f => f.id === feedbackId);
+        if (!feedback || !feedback.conversation) return;
+
+        const newReply: FeedbackMessage = { sender, text, timestamp: new Date().toISOString() };
+        const updatedConversation = [...feedback.conversation, newReply];
+        const status = sender === 'admin' ? 'read' : 'new';
+
+        set({
+          siteFeedbacks: currentFeedbacks.map(f =>
+            f.id === feedbackId ? { ...f, conversation: updatedConversation, status } : f
+          )
+        });
+
+        await supabase.from('site_feedback').update({ 
+          message: JSON.stringify(updatedConversation),
+          status
+        }).eq('id', feedbackId);
       },
 
       fetchDailyVisits: async () => {
@@ -1107,10 +1143,11 @@ export const useStore = create<StoreState>()(
                 cart: profile.cart || get().cart,
                 isAdmin: role === 'admin',
               });
+              // Fetch feedbacks for all logged in users
+              get().fetchFeedbacks();
 
               // If admin, load additional admin data
               if (role === 'admin') {
-                get().fetchFeedbacks();
                 get().fetchAbandonedCarts();
               }
             }

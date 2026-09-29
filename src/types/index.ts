@@ -142,6 +142,12 @@ export interface StoreSettings {
   enableBankTransfer: boolean;
 }
 
+export interface FeedbackMessage {
+  sender: 'customer' | 'admin';
+  text: string;
+  timestamp: string;
+}
+
 export interface SiteFeedback {
   id: string;
   userId?: string;
@@ -150,6 +156,7 @@ export interface SiteFeedback {
   message: string;
   status: 'new' | 'read' | 'resolved';
   createdAt: string;
+  conversation?: FeedbackMessage[];
 }
 
 export interface AbandonedCart {
