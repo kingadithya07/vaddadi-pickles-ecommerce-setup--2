@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 import { Link as RouterLink } from 'react-router-dom';
 
 export function Profile() {
-  const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, siteFeedbacks } = useStore();
+  const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, siteFeedbacks, typingStatus, broadcastTyping } = useStore();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -697,56 +697,64 @@ export function Profile() {
                   </span>
                 </div>
                 
-                <div className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-3 md:p-4 rounded-lg break-words">
-                  {feedback.conversation ? feedback.conversation.map((msg, idx) => (
-                    <div key={idx} className={`flex flex-col ${msg.sender === 'customer' ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 ${
-                        msg.sender === 'customer' ? 'bg-green-600 text-white' : 'bg-white text-gray-800 border shadow-sm'
-                      }`}>
-                        <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                {feedback.status !== 'resolved' && (
+                  <div className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-3 md:p-4 rounded-lg break-words">
+                    {feedback.conversation ? feedback.conversation.map((msg, idx) => (
+                      <div key={idx} className={`flex flex-col ${msg.sender === 'customer' ? 'items-end' : 'items-start'}`}>
+                        <div className={`max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 ${
+                          msg.sender === 'customer' ? 'bg-green-600 text-white' : 'bg-white text-gray-800 border shadow-sm'
+                        }`}>
+                          <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                        </div>
+                        <span className="text-[10px] text-gray-400 mt-1">
+                          {msg.sender === 'customer' ? 'You' : 'Support'} • {new Date(msg.timestamp).toLocaleString()}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 mt-1">
-                        {msg.sender === 'customer' ? 'You' : 'Support'} • {new Date(msg.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                  )) : (
-                    <div className="flex flex-col items-end">
-                      <div className="max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 bg-green-600 text-white">
-                        <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
+                    )) : (
+                      <div className="flex flex-col items-end">
+                        <div className="max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 bg-green-600 text-white">
+                          <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
+                        </div>
+                        <span className="text-[10px] text-gray-400 mt-1">
+                          You • {new Date(feedback.createdAt).toLocaleString()}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 mt-1">
-                        You • {new Date(feedback.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
                 
                 {feedback.status !== 'resolved' && (
-                  <form 
-                    className="flex flex-col sm:flex-row gap-2"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement;
-                      if (input.value.trim()) {
-                        await useStore.getState().addFeedbackReply(feedback.id, input.value.trim(), 'customer');
-                        input.value = '';
-                      }
-                    }}
-                  >
-                    <input 
-                      type="text" 
-                      name="reply"
-                      placeholder="Type your reply..." 
-                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none w-full"
-                      required
-                    />
-                    <button 
-                      type="submit"
-                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition w-full sm:w-auto"
+                  <>
+                    <form 
+                      className="flex flex-col sm:flex-row gap-2"
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement;
+                        if (input.value.trim()) {
+                          await useStore.getState().addFeedbackReply(feedback.id, input.value.trim(), 'customer');
+                          input.value = '';
+                        }
+                      }}
                     >
-                      Reply
-                    </button>
-                  </form>
+                      <input 
+                        type="text" 
+                        name="reply"
+                        placeholder="Type your reply..." 
+                        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none w-full"
+                        required
+                        onChange={() => broadcastTyping(feedback.id, 'customer')}
+                      />
+                      <button 
+                        type="submit"
+                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition w-full sm:w-auto"
+                      >
+                        Reply
+                      </button>
+                    </form>
+                    {typingStatus[feedback.id] === 'admin' && (
+                      <p className="text-[10px] text-gray-500 italic mt-2 ml-1">Support is typing...</p>
+                    )}
+                  </>
                 )}
               </div>
             ))}

@@ -45,6 +45,8 @@ export function Admin() {
   const settings = useStore((state) => state.settings);
   const updateSettings = useStore((state) => state.updateSettings);
   const siteFeedbacks = useStore((state) => state.siteFeedbacks);
+  const typingStatus = useStore((state) => state.typingStatus);
+  const broadcastTyping = useStore((state) => state.broadcastTyping);
   const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
   const abandonedCarts = useStore((state) => state.abandonedCarts);
   const fetchAbandonedCarts = useStore((state) => state.fetchAbandonedCarts);
@@ -2563,31 +2565,37 @@ Thank you for choosing Vaddadi Pickles!`;
                     )}
                     
                     {feedback.status !== 'resolved' && (
-                      <form 
-                        className="mt-2 flex gap-2"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement;
-                          if (input.value.trim()) {
-                            await useStore.getState().addFeedbackReply(feedback.id, input.value.trim(), 'admin');
-                            input.value = '';
-                          }
-                        }}
-                      >
-                        <input 
-                          type="text" 
-                          name="reply"
-                          placeholder="Reply to customer..." 
-                          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none"
-                          required
-                        />
-                        <button 
-                          type="submit"
-                          className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition"
+                      <>
+                        <form 
+                          className="mt-2 flex gap-2"
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement;
+                            if (input.value.trim()) {
+                              await useStore.getState().addFeedbackReply(feedback.id, input.value.trim(), 'admin');
+                              input.value = '';
+                            }
+                          }}
                         >
-                          Reply
-                        </button>
-                      </form>
+                          <input 
+                            type="text" 
+                            name="reply"
+                            placeholder="Reply to customer..." 
+                            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 outline-none"
+                            required
+                            onChange={() => broadcastTyping(feedback.id, 'admin')}
+                          />
+                          <button 
+                            type="submit"
+                            className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition"
+                          >
+                            Reply
+                          </button>
+                        </form>
+                        {typingStatus[feedback.id] === 'customer' && (
+                          <p className="text-[10px] text-gray-500 italic mt-1 ml-2">Customer is typing...</p>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}

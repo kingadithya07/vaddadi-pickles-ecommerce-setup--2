@@ -303,6 +303,12 @@ interface StoreState {
   fetchFeedbacks: () => Promise<void>;
   updateFeedbackStatus: (feedbackId: string, status: SiteFeedback['status']) => Promise<void>;
   addFeedbackReply: (feedbackId: string, text: string, sender: 'customer' | 'admin') => Promise<void>;
+  
+  // Realtime Feedback
+  typingStatus: Record<string, string>;
+  setTypingStatus: (feedbackId: string, sender: string) => void;
+  broadcastTyping: (feedbackId: string, sender: string) => void;
+  subscribeToFeedbacks: () => void;
 
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
@@ -1053,6 +1059,83 @@ export const useStore = create<StoreState>()(
           console.error("Error updating feedback reply:", error || "No rows updated (RLS policy might be blocking updates)");
           alert("Failed to send reply. Please check your Supabase RLS policies for the site_feedback table.");
         }
+      },
+
+      typingStatus: {},
+      setTypingStatus: (feedbackId, sender) => {
+        set((state) => ({
+          typingStatus: { ...state.typingStatus, [feedbackId]: sender }
+        }));
+      },
+      broadcastTyping: (feedbackId, sender) => {
+        const channel = supabase.channel('feedback_typing', { config: { broadcast: { self: false } } });
+        channel.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { feedbackId, sender }
+        });
+      },
+      subscribeToFeedbacks: () => {
+        // Postgres subscription for real-time messages
+        supabase.channel('site_feedback_changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'site_feedback' },
+            (payload) => {
+              if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+                const newData = payload.new as any;
+                let conversation: any[] = [];
+                try {
+                  if (newData.message && newData.message.startsWith('[')) {
+                    conversation = JSON.parse(newData.message);
+                  } else {
+                    conversation = [{ sender: 'customer', text: newData.message, timestamp: newData.created_at }];
+                  }
+                } catch (e) {
+                  conversation = [{ sender: 'customer', text: newData.message, timestamp: newData.created_at }];
+                }
+                const displayMessage = conversation.length > 0 ? conversation[0].text : newData.message;
+                
+                const updatedFeedback: any = {
+                  id: newData.id,
+                  userId: newData.user_id,
+                  name: newData.name,
+                  email: newData.email,
+                  message: displayMessage,
+                  status: newData.status,
+                  createdAt: newData.created_at,
+                  conversation: conversation.length > 0 ? conversation : [{ sender: 'customer', text: displayMessage, timestamp: newData.created_at }]
+                };
+
+                set((state) => {
+                  const existingIndex = state.siteFeedbacks.findIndex(f => f.id === newData.id);
+                  if (existingIndex >= 0) {
+                    const newFeedbacks = [...state.siteFeedbacks];
+                    newFeedbacks[existingIndex] = updatedFeedback;
+                    return { siteFeedbacks: newFeedbacks };
+                  } else {
+                    return { siteFeedbacks: [updatedFeedback, ...state.siteFeedbacks] };
+                  }
+                });
+              }
+            }
+          )
+          .subscribe();
+
+        // Broadcast subscription for typing indicators
+        const typingChannel = supabase.channel('feedback_typing');
+        typingChannel.on(
+          'broadcast',
+          { event: 'typing' },
+          (payload) => {
+            const { feedbackId, sender } = payload.payload;
+            get().setTypingStatus(feedbackId, sender);
+            // Clear typing status after 3 seconds
+            setTimeout(() => {
+              get().setTypingStatus(feedbackId, '');
+            }, 3000);
+          }
+        ).subscribe();
       },
 
       fetchDailyVisits: async () => {
