@@ -161,20 +161,25 @@ export function Header() {
         {menuOpen && (
           <div className="md:hidden py-4 border-t border-green-600">
             <nav className="flex flex-col gap-3">
-              <Link to="/" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link to="/products" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Products</Link>
-              {user && (
-                <Link to="/orders" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>My Orders</Link>
-              )}
-              {isAdmin && (
-                <Link to="/admin" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
-              )}
-              {user && (
+              <Link to="/" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link to="/products" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Products</Link>
+              {user ? (
                 <>
-                  <Link to="/profile" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Profile</Link>
-                  <Link to="/affiliate" className="hover:text-green-200" onClick={() => setMenuOpen(false)}>Affiliate Dashboard</Link>
-                  <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left hover:text-green-200">Logout</button>
+                  <Link to="/orders" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>My Orders</Link>
+                  <Link to="/profile" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Profile Settings</Link>
+                  <Link to="/profile#support-tickets" className="hover:text-green-200 px-2 flex items-center justify-between" onClick={() => { setMenuOpen(false); setTimeout(() => { document.getElementById('support-tickets')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
+                    Support Tickets
+                  </Link>
+                  <Link to="/affiliate" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Affiliate Dashboard</Link>
+                  {isAdmin && (
+                    <Link to="/admin" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
+                  )}
+                  <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left hover:text-red-300 text-red-200 px-2 mt-2">Logout</button>
                 </>
+              ) : (
+                <Link to="/login" className="hover:text-green-200 px-2 flex items-center gap-2 mt-2 font-semibold bg-white/10 py-2 rounded-lg" onClick={() => setMenuOpen(false)}>
+                  <User size={18} /> Login / Sign Up
+                </Link>
               )}
             </nav>
           </div>

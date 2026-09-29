@@ -2499,7 +2499,11 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
             ) : (
               <div className="grid gap-6">
-                {siteFeedbacks.map((feedback) => (
+                {[...siteFeedbacks].sort((a, b) => {
+                  const s = { new: 0, read: 1, resolved: 2 };
+                  if (s[a.status] !== s[b.status]) return s[a.status] - s[b.status];
+                  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                }).map((feedback) => (
                   <div key={feedback.id} className="bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4 border border-gray-100">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-gray-100 pb-4">
                       <div className="space-y-1">

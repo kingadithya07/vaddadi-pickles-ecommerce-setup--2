@@ -660,7 +660,7 @@ export function Profile() {
       </div>
       
       {/* Support Tickets Section */}
-      <div className="mt-8 bg-white rounded-xl shadow-md p-6">
+      <div id="support-tickets" className="mt-8 bg-white rounded-xl shadow-md p-4 md:p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
           <MessageCircle size={24} className="text-green-600" />
           My Support Tickets
@@ -671,13 +671,13 @@ export function Profile() {
         ) : (
           <div className="grid gap-6">
             {useStore.getState().siteFeedbacks.filter(f => f.userId === user.id).map(feedback => (
-              <div key={feedback.id} className="border border-gray-200 rounded-xl p-6">
-                <div className="flex justify-between items-center border-b pb-4 mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">Ticket #{feedback.id.slice(0, 8)}</h3>
+              <div key={feedback.id} className="border border-gray-200 rounded-xl p-4 md:p-6 overflow-hidden">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-4 mb-4">
+                  <div className="overflow-hidden w-full sm:w-auto">
+                    <h3 className="font-semibold text-gray-800 truncate">Ticket #{feedback.id.slice(0, 8)}</h3>
                     <p className="text-sm text-gray-500">{new Date(feedback.createdAt).toLocaleString()}</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                     feedback.status === 'resolved' ? 'bg-green-100 text-green-700' :
                     feedback.status === 'read' ? 'bg-blue-100 text-blue-700' :
                     'bg-yellow-100 text-yellow-700'
@@ -686,10 +686,10 @@ export function Profile() {
                   </span>
                 </div>
                 
-                <div className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-3 md:p-4 rounded-lg break-words">
                   {feedback.conversation ? feedback.conversation.map((msg, idx) => (
                     <div key={idx} className={`flex flex-col ${msg.sender === 'customer' ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[80%] rounded-xl px-4 py-2 ${
+                      <div className={`max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 ${
                         msg.sender === 'customer' ? 'bg-green-600 text-white' : 'bg-white text-gray-800 border shadow-sm'
                       }`}>
                         <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
@@ -700,7 +700,7 @@ export function Profile() {
                     </div>
                   )) : (
                     <div className="flex flex-col items-end">
-                      <div className="max-w-[80%] rounded-xl px-4 py-2 bg-green-600 text-white">
+                      <div className="max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 bg-green-600 text-white">
                         <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
                       </div>
                       <span className="text-[10px] text-gray-400 mt-1">
@@ -712,7 +712,7 @@ export function Profile() {
                 
                 {feedback.status !== 'resolved' && (
                   <form 
-                    className="flex gap-2"
+                    className="flex flex-col sm:flex-row gap-2"
                     onSubmit={async (e) => {
                       e.preventDefault();
                       const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement;
@@ -726,12 +726,12 @@ export function Profile() {
                       type="text" 
                       name="reply"
                       placeholder="Type your reply..." 
-                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-green-500 outline-none w-full"
                       required
                     />
                     <button 
                       type="submit"
-                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition w-full sm:w-auto"
                     >
                       Reply
                     </button>
