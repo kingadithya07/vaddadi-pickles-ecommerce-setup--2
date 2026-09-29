@@ -1022,10 +1022,10 @@ export const useStore = create<StoreState>()(
           )
         });
         
-        const { error } = await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
-        if (error) {
-          console.error("Error updating feedback status:", error);
-          alert("Failed to update status. Please try again.");
+        const { error, data } = await supabase.from('site_feedback').update({ status }).eq('id', feedbackId).select();
+        if (error || !data || data.length === 0) {
+          console.error("Error updating feedback status:", error || "No rows updated (RLS policy might be blocking updates)");
+          alert("Failed to update status. Please check your Supabase RLS policies.");
         }
       },
 
@@ -1044,14 +1044,14 @@ export const useStore = create<StoreState>()(
           )
         });
 
-        const { error } = await supabase.from('site_feedback').update({ 
+        const { error, data } = await supabase.from('site_feedback').update({ 
           message: JSON.stringify(updatedConversation),
           status
-        }).eq('id', feedbackId);
+        }).eq('id', feedbackId).select();
         
-        if (error) {
-          console.error("Error updating feedback reply:", error);
-          alert("Failed to send reply. Please try again.");
+        if (error || !data || data.length === 0) {
+          console.error("Error updating feedback reply:", error || "No rows updated (RLS policy might be blocking updates)");
+          alert("Failed to send reply. Please check your Supabase RLS policies for the site_feedback table.");
         }
       },
 
