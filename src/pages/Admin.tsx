@@ -296,6 +296,9 @@ ${status === 'shipped' ? '📦 Your order is on the way! Expected delivery in 3-
 ${status === 'delivered' ? '✅ Your order has been delivered. Thank you for shopping with us!' : ''}
 ${status === 'payment_approved' ? '💰 Your payment has been verified. We are processing your order.' : ''}
 
+🎁 *Earn Money with Us!*
+Get 10% on every order placed through your referral link! Login to your profile to get your unique link and start earning today.
+
 Track your order: https://vaddadi-pickles.onrender.com/#/orders
 
 Thank you for choosing Vaddadi Pickles!`;
