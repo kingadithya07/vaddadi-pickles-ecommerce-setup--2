@@ -349,6 +349,9 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
+    const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
+    const senderName = isBikeParcel ? 'Vaddadi Pickles' : 'Vaddadi Udayaakumar, KK Homes 2';
+
     const codBadge = order.paymentMethod === 'cod'
       ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
       : '';
@@ -407,8 +410,9 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="from-box">
               <div class="title">FROM:</div>
               <div class="text">
-                Vaddadi Udayaakumar, ${settings.businessAddress.street}<br>
-                ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+                <strong>${senderName}</strong><br>
+                ${settings.businessAddress.street}, ${settings.businessAddress.city}<br>
+                ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
               </div>
             </div>
             
@@ -487,6 +491,9 @@ Thank you for choosing Vaddadi Pickles!`;
     if (!labelWindow) return;
 
     const labelsContent = readyOrders.map(order => {
+      const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
+      const senderName = isBikeParcel ? 'Vaddadi Pickles' : 'Vaddadi Udayaakumar, KK Homes 2';
+
       const codBadge = order.paymentMethod === 'cod'
         ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
         : '';
@@ -499,7 +506,7 @@ Thank you for choosing Vaddadi Pickles!`;
           
           <div class="from-section">
             <div class="title">FROM:</div>
-            Vaddadi Udayaakumar, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+            <strong>${senderName}</strong>, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
           </div>
           
           <div class="to-section">
@@ -576,6 +583,9 @@ Thank you for choosing Vaddadi Pickles!`;
   const printOrderLabel = (order: Order) => {
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
+
+    const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
+    const senderName = isBikeParcel ? 'VADDADI PICKLES' : 'VADDADI UDAYAAKUMAR, KK HOMES 2';
 
     const labelHtml = `
       <!DOCTYPE html>
@@ -663,7 +673,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="col" style="flex: 1; padding: 15px;">
               <div class="address-title">FROM:</div>
               <div class="from-address">
-                <strong>VADDADI UDAYAAKUMAR</strong><br>
+                <strong>${senderName}</strong><br>
                 Sujathanagar, Visakhapatnam<br>
                 Andhra Pradesh - 530051<br>
                 PH: 8008129309
