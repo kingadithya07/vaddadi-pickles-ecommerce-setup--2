@@ -988,13 +988,17 @@ export const useStore = create<StoreState>()(
 
         if (!error && data) {
           const formatted: SiteFeedback[] = data.map(f => {
-            let conversation = [];
+            let conversation: FeedbackMessage[] = [];
             try {
-              conversation = f.message.startsWith('[') ? JSON.parse(f.message) : [];
+              if (f.message.startsWith('[')) {
+                conversation = JSON.parse(f.message);
+              } else {
+                conversation = [{ sender: 'customer', text: f.message, timestamp: f.created_at }];
+              }
             } catch (e) {
-              conversation = [];
+              conversation = [{ sender: 'customer', text: f.message, timestamp: f.created_at }];
             }
-            // If conversation is empty, it means the message was just plain text from the old version
+            // Use the first message text as the display message summary
             const displayMessage = conversation.length > 0 ? conversation[0].text : f.message;
             return {
               id: f.id,
@@ -1018,7 +1022,11 @@ export const useStore = create<StoreState>()(
           )
         });
         
-        await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
+        const { error } = await supabase.from('site_feedback').update({ status }).eq('id', feedbackId);
+        if (error) {
+          console.error("Error updating feedback status:", error);
+          alert("Failed to update status. Please try again.");
+        }
       },
 
       addFeedbackReply: async (feedbackId, text, sender) => {
@@ -1036,10 +1044,15 @@ export const useStore = create<StoreState>()(
           )
         });
 
-        await supabase.from('site_feedback').update({ 
+        const { error } = await supabase.from('site_feedback').update({ 
           message: JSON.stringify(updatedConversation),
           status
         }).eq('id', feedbackId);
+        
+        if (error) {
+          console.error("Error updating feedback reply:", error);
+          alert("Failed to send reply. Please try again.");
+        }
       },
 
       fetchDailyVisits: async () => {

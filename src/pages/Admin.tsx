@@ -2510,10 +2510,17 @@ Thank you for choosing Vaddadi Pickles!`;
                         <h3 className="font-bold text-lg text-gray-800">{feedback.name}</h3>
                         <p className="text-sm text-gray-500">{feedback.email}</p>
                       </div>
-                      <div className="flex sm:flex-col gap-2">
+                      <form 
+                        className="flex items-center gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const val = (e.currentTarget.elements.namedItem('status') as HTMLSelectElement).value;
+                          updateFeedbackStatus(feedback.id, val as any);
+                        }}
+                      >
                         <select
-                          value={feedback.status}
-                          onChange={(e) => updateFeedbackStatus(feedback.id, e.target.value as any)}
+                          name="status"
+                          defaultValue={feedback.status}
                           className={`text-sm rounded-lg px-3 py-1.5 border font-medium outline-none ${
                             feedback.status === 'new' ? 'bg-red-50 text-red-700 border-red-200' :
                             feedback.status === 'read' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
@@ -2524,7 +2531,10 @@ Thank you for choosing Vaddadi Pickles!`;
                           <option value="read">Read</option>
                           <option value="resolved">Resolved</option>
                         </select>
-                      </div>
+                        <button type="submit" className="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+                          Save
+                        </button>
+                      </form>
                     </div>
                     {feedback.status !== 'resolved' && (
                       <div className="space-y-3 bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
