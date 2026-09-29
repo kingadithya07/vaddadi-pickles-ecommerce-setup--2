@@ -70,6 +70,15 @@ export function Profile() {
     fetchAffiliate();
   }, [user]);
 
+  useEffect(() => {
+    siteFeedbacks.forEach(f => {
+      const el = document.getElementById(`chat-${f.id}`);
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    });
+  }, [siteFeedbacks]);
+
   const copyToClipboard = () => {
     if (!referralCode) return;
     const link = `https://vaddadi-pickles.onrender.com/?ref=${referralCode}`;
@@ -698,7 +707,7 @@ export function Profile() {
                 </div>
                 
                 {feedback.status !== 'resolved' && (
-                  <div className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-3 md:p-4 rounded-lg break-words">
+                  <div id={`chat-${feedback.id}`} className="space-y-4 max-h-96 overflow-y-auto mb-4 bg-gray-50 p-3 md:p-4 rounded-lg break-words">
                     {feedback.conversation ? feedback.conversation.map((msg, idx) => (
                       <div key={idx} className={`flex flex-col ${msg.sender === 'customer' ? 'items-end' : 'items-start'}`}>
                         <div className={`max-w-[85%] md:max-w-[80%] rounded-xl px-3 py-2 md:px-4 ${

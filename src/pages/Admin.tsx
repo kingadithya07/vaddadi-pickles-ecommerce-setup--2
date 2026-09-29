@@ -80,6 +80,16 @@ export function Admin() {
   useEffect(() => {
     setDraftSettings(settings);
   }, [settings]);
+  
+  useEffect(() => {
+    siteFeedbacks.forEach(f => {
+      const el = document.getElementById(`admin-chat-${f.id}`);
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+    });
+  }, [siteFeedbacks]);
+
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [newCoupon, setNewCoupon] = useState<Partial<Coupon>>({
@@ -2539,7 +2549,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       </form>
                     </div>
                     {feedback.status !== 'resolved' && (
-                      <div className="space-y-3 bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                      <div id={`admin-chat-${feedback.id}`} className="space-y-3 bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
                         {feedback.conversation ? feedback.conversation.map((msg, idx) => (
                           <div key={idx} className={`flex flex-col ${msg.sender === 'admin' ? 'items-end' : 'items-start'}`}>
                             <div className={`max-w-[80%] rounded-xl px-4 py-2 ${
