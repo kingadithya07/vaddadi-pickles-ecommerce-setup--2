@@ -55,7 +55,7 @@ export function FeedbackWidget() {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 hover:scale-105 transition-all focus:outline-none flex items-center justify-center group"
+        className="fixed bottom-6 right-24 z-40 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 hover:scale-105 transition-all focus:outline-none flex items-center justify-center group"
         title="Send Feedback"
       >
         <MessageSquarePlus size={24} />

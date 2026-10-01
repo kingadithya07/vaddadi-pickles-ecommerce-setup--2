@@ -70,7 +70,7 @@ export function Footer() {
               <a href="#" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
                 <span>📸</span>
               </a>
-              <a href="#" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
+              <a href="https://wa.me/919963622669" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
                 <span>💬</span>
               </a>
             </div>
