@@ -36,16 +36,7 @@ export function Header() {
           <span className="font-bold">Note:</span> For bulk orders / Pelli Saare food items contact no: <a href="tel:8008129309" className="font-bold hover:underline">8008129309</a> / <a href="tel:9885192948" className="font-bold hover:underline">9885192948</a>
         </p>
       </div>
-      <Link to="/affiliate" className="block bg-green-100 hover:bg-green-200 text-green-900 transition-colors text-xs md:text-sm font-medium py-2 px-4 text-center border-b border-green-200">
-        <span className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
-          <span className="flex items-center gap-2">
-            <span>💸</span>
-            <span><strong>Earn 10% Commission!</strong> (No purchase necessary to join)</span>
-          </span>
-          <span className="hidden md:inline">|</span>
-          <span>Share your link and get paid when others order. <span className="underline font-bold">Join Now →</span></span>
-        </span>
-      </Link>
+
       <header className="bg-gradient-to-r from-green-700 to-green-800 text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">

@@ -36,6 +36,7 @@ export function Footer() {
               <li><Link to="/products" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">Products</Link></li>
               <li><Link to="/faq" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">FAQ</Link></li>
               <li><Link to="/orders" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Track Order</Link></li>
+              <li><Link to="/affiliate" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Affiliate Program</Link></li>
               <li><Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Privacy Policy</Link></li>
               <li><Link to="/refund-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Refund Policy</Link></li>
               <li><Link to="/terms-and-conditions" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Terms & Conditions</Link></li>
