@@ -23,6 +23,11 @@ const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(mo
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
 const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
 const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard').then(module => ({ default: module.AffiliateDashboard })));
+const AboutUs = React.lazy(() => import('./pages/AboutUs').then(module => ({ default: module.AboutUs })));
+const FAQ = React.lazy(() => import('./pages/FAQ').then(module => ({ default: module.FAQ })));
+const Wishlist = React.lazy(() => import('./pages/Wishlist').then(module => ({ default: module.Wishlist })));
+
+import { WhatsAppButton } from './components/WhatsAppButton';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,6 +36,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <FeedbackWidget />
+      <WhatsAppButton />
     </div>
   );
 }
@@ -261,6 +267,30 @@ export function App() {
             element={
               <Layout>
                 <AffiliateDashboard />
+              </Layout>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <Layout>
+                <AboutUs />
+              </Layout>
+            }
+          />
+          <Route
+            path="/faq"
+            element={
+              <Layout>
+                <FAQ />
+              </Layout>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <Layout>
+                <Wishlist />
               </Layout>
             }
           />

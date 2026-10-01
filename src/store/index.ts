@@ -239,6 +239,7 @@ interface StoreState {
   settings: StoreSettings;
   cart: CartItem[];
   user: User | null;
+  wishlist: string[];
   orders: Order[];
   coupons: Coupon[];
   appliedCoupon: Coupon | null;
@@ -252,6 +253,7 @@ interface StoreState {
   removeFromCart: (productId: string, weight: string, noGarlic?: boolean) => void;
   updateQuantity: (productId: string, weight: string, quantity: number, noGarlic?: boolean) => void;
   clearCart: () => void;
+  toggleWishlist: (productId: string) => void;
 
   // User actions
   login: (user: User) => void;
@@ -342,6 +344,7 @@ export const useStore = create<StoreState>()(
       displayImages: sampleDisplayImages,
       settings: defaultSettings,
       cart: [],
+      wishlist: [],
       user: null,
       orders: [],
       coupons: sampleCoupons,
@@ -423,6 +426,15 @@ export const useStore = create<StoreState>()(
       clearCart: () => {
         set({ cart: [], appliedCoupon: null });
         get().syncCartWithCloud();
+      },
+
+      toggleWishlist: (productId) => {
+        const wishlist = get().wishlist || [];
+        if (wishlist.includes(productId)) {
+          set({ wishlist: wishlist.filter(id => id !== productId) });
+        } else {
+          set({ wishlist: [...wishlist, productId] });
+        }
       },
 
       login: (user) => {

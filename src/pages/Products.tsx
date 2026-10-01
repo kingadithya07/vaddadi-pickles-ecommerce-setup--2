@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useStore } from '../store';
@@ -7,8 +8,20 @@ export function Products() {
   const products = useStore((state) => state.products);
   const combos = useStore((state) => state.combos);
 
-  const [search, setSearch] = useState('');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
+
+  const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState('all');
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const urlSearch = queryParams.get('search');
+    if (urlSearch !== null) {
+      setSearch(urlSearch);
+    }
+  }, [location.search]);
 
   const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
 

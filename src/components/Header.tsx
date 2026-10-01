@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Menu, X, LogOut, Package } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, LogOut, Package, Search, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
@@ -10,6 +10,7 @@ export function Header() {
   const user = useStore((state) => state.user);
   const isAdmin = useStore((state) => state.isAdmin);
   const logout = useStore((state) => state.logout);
+  const wishlist = useStore((state) => state.wishlist) || [];
   const navigate = useNavigate();
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -64,6 +65,25 @@ export function Header() {
           <nav className="hidden md:flex items-center gap-6">
             <Link to="/" className="hover:text-green-200 transition">Home</Link>
             <Link to="/products" className="hover:text-green-200 transition">Products</Link>
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const query = formData.get('q');
+                if (query) navigate(`/products?search=${encodeURIComponent(query as string)}`);
+              }}
+              className="relative hidden lg:flex items-center"
+            >
+              <input 
+                type="text" 
+                name="q"
+                placeholder="Search pickles..." 
+                className="pl-3 pr-8 py-1 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-48 transition-all" 
+              />
+              <button type="submit" className="absolute right-2 text-gray-500 hover:text-green-600">
+                <Search size={16} />
+              </button>
+            </form>
             {user && (
               <Link to="/orders" className="hover:text-green-200 transition flex items-center gap-1">
                 <Package size={18} />
@@ -78,6 +98,15 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <Link to="/wishlist" className="relative hover:text-green-200 transition hidden md:block">
+              <Heart size={24} />
+              {wishlist.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
+            
             <Link to="/cart" className="relative hover:text-green-200 transition">
               <ShoppingCart size={24} />
               {cartCount > 0 && (
@@ -161,8 +190,33 @@ export function Header() {
         {menuOpen && (
           <div className="md:hidden py-4 border-t border-green-600">
             <nav className="flex flex-col gap-3">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const query = formData.get('q');
+                  if (query) {
+                    navigate(`/products?search=${encodeURIComponent(query as string)}`);
+                    setMenuOpen(false);
+                  }
+                }}
+                className="relative flex items-center px-2 mb-2"
+              >
+                <input 
+                  type="text" 
+                  name="q"
+                  placeholder="Search pickles..." 
+                  className="pl-3 pr-8 py-2 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full transition-all" 
+                />
+                <button type="submit" className="absolute right-4 text-gray-500 hover:text-green-600">
+                  <Search size={18} />
+                </button>
+              </form>
               <Link to="/" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Home</Link>
               <Link to="/products" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Products</Link>
+              <Link to="/wishlist" className="hover:text-green-200 px-2 flex items-center justify-between" onClick={() => setMenuOpen(false)}>
+                My Wishlist {wishlist.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{wishlist.length}</span>}
+              </Link>
               {user ? (
                 <>
                   <Link to="/orders" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>My Orders</Link>

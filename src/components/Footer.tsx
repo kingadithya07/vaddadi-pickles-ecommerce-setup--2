@@ -31,12 +31,14 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:text-green-400 transition">Home</Link></li>
-              <li><Link to="/products" className="hover:text-green-400 transition">Products</Link></li>
-              <li><Link to="/orders" className="hover:text-green-500 transition">Track Order</Link></li>
-              <li><Link to="/privacy-policy" className="hover:text-green-500 transition">Privacy Policy</Link></li>
-              <li><Link to="/refund-policy" className="hover:text-green-500 transition">Refund Policy</Link></li>
-              <li><Link to="/terms-and-conditions" className="hover:text-green-500 transition">Terms & Conditions</Link></li>
+              <li><Link to="/" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">Home</Link></li>
+              <li><Link to="/about" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">About Us</Link></li>
+              <li><Link to="/products" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">Products</Link></li>
+              <li><Link to="/faq" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-400 transition">FAQ</Link></li>
+              <li><Link to="/orders" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Track Order</Link></li>
+              <li><Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Privacy Policy</Link></li>
+              <li><Link to="/refund-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Refund Policy</Link></li>
+              <li><Link to="/terms-and-conditions" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Terms & Conditions</Link></li>
             </ul>
           </div>
 
@@ -60,7 +62,7 @@ export function Footer() {
 
           <div>
             <h4 className="text-white font-semibold mb-4">Follow Us</h4>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-6">
               <a href="#" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
                 <span>📘</span>
               </a>
@@ -71,6 +73,22 @@ export function Footer() {
                 <span>💬</span>
               </a>
             </div>
+
+            <h4 className="text-white font-semibold mb-4">Newsletter</h4>
+            <form className="flex" onSubmit={(e) => { e.preventDefault(); alert('Subscribed successfully!'); }}>
+              <input 
+                type="email" 
+                placeholder="Your email address" 
+                className="bg-gray-800 text-white px-3 py-2 rounded-l-md w-full text-sm focus:outline-none focus:ring-1 focus:ring-green-500 border border-gray-700" 
+                required 
+              />
+              <button 
+                type="submit" 
+                className="bg-green-600 px-3 py-2 rounded-r-md hover:bg-green-500 transition font-semibold text-white text-sm whitespace-nowrap"
+              >
+                Subscribe
+              </button>
+            </form>
           </div>
         </div>
 

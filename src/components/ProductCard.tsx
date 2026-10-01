@@ -1,4 +1,4 @@
-import { ShoppingCart, Star, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, Star, Plus, Minus, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '../types';
@@ -15,11 +15,15 @@ export function ProductCard({ product }: ProductCardProps) {
   const addToCart = useStore((state) => state.addToCart);
   const removeFromCart = useStore((state) => state.removeFromCart);
   const cart = useStore((state) => state.cart);
+  const wishlist = useStore((state) => state.wishlist) || [];
+  const toggleWishlist = useStore((state) => state.toggleWishlist);
+  
   const [selectedWeight, setSelectedWeight] = useState<string>('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [noGarlic, setNoGarlic] = useState(false);
 
   const selectedVariant = product.variants?.find(v => v.weight === selectedWeight);
+  const isWishlisted = wishlist.includes(product.id);
 
   // Check if this product with selected weight is in cart
   const cartItem = cart.find(
@@ -81,10 +85,21 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
           {totalInCart > 0 && (
-            <span className="absolute top-2 right-2 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-sm">
+            <span className="absolute top-2 right-10 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-sm">
               {totalInCart}
             </span>
           )}
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product.id);
+            }}
+            className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full z-10 shadow-sm hover:bg-white transition-colors"
+          >
+            <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500"} />
+          </button>
 
           {/* Rating overlay on image */}
           <button
