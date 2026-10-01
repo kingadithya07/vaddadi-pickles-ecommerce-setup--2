@@ -20,7 +20,7 @@ export function Header() {
   };
 
   return (
-    <>
+    <div className="sticky top-0 z-50 w-full flex flex-col shadow-lg">
       <div className="bg-yellow-500 text-black text-xs md:text-sm font-semibold py-1.5 px-4 text-center">
         <p className="hidden md:block">
           🎉 Free Delivery all over India on orders above ₹1000! | 🏍️ Visakhapatnam: Uber/Rapido Parcel | 🚚 Rest of India: Courier Partner
@@ -36,7 +36,7 @@ export function Header() {
         </p>
       </div>
 
-      <header className="bg-gradient-to-r from-green-700 to-green-800 text-white shadow-lg sticky top-0 z-50">
+      <header className="bg-gradient-to-r from-green-700 to-green-800 text-white">
         <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export function Header() {
 
       </div>
       </header>
-    </>
+    </div>
   );
 }
 

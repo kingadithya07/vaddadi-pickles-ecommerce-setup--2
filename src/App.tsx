@@ -31,7 +31,7 @@ import { WhatsAppButton } from './components/WhatsAppButton';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden w-full relative">
+    <div className="min-h-screen flex flex-col bg-gray-50 w-full relative">
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
