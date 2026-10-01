@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home, Copy, Network, ExternalLink, MessageCircle } from 'lucide-react';
 import { useStore } from '../store';
 import { UserAddress } from '../types';
@@ -81,6 +81,8 @@ export function Profile() {
     }, 100);
   }, [siteFeedbacks, typingStatus]);
 
+  const location = useLocation();
+
   const copyToClipboard = () => {
     if (!referralCode) return;
     const link = `https://vaddadi-pickles.onrender.com/?ref=${referralCode}`;
@@ -88,6 +90,14 @@ export function Profile() {
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
+
+  useEffect(() => {
+    if (location.hash === '#support-tickets') {
+      setTimeout(() => {
+        document.getElementById('support-tickets')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [location.hash]);
 
   if (!user) {
     navigate('/login');
