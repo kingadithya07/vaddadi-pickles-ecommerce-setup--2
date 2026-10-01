@@ -1,4 +1,4 @@
-import { ShoppingCart, User, LogOut, Package, Search, Heart } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Search, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
