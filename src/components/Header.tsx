@@ -1,10 +1,9 @@
-import { ShoppingCart, User, Menu, X, LogOut, Package, Search, Heart } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Package, Search, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
 export function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const cart = useStore((state) => state.cart);
   const user = useStore((state) => state.user);
@@ -75,21 +74,10 @@ export function Header() {
                 <Search size={16} />
               </button>
             </form>
-            {user && (
-              <Link to="/orders" className="hover:text-green-200 transition flex items-center gap-1">
-                <Package size={18} />
-                My Orders
-              </Link>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className="bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-semibold hover:bg-yellow-400 transition">
-                Admin Panel
-              </Link>
-            )}
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link to="/wishlist" className="relative hover:text-green-200 transition hidden md:block">
+            <Link to="/wishlist" className="relative hover:text-green-200 transition block">
               <Heart size={24} />
               {wishlist.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
@@ -118,117 +106,124 @@ export function Header() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl py-2 z-50 text-gray-800 border border-gray-100 divide-y divide-gray-100">
-                    <div className="px-4 py-2 mb-1">
-                      <p className="text-sm font-semibold truncate text-green-700">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <>
+                    {/* Click away overlay */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setUserMenuOpen(false)}
+                    ></div>
+                    
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-xl py-2 z-50 text-gray-800 border border-gray-100 divide-y divide-gray-100">
+                      <div className="px-4 py-2 mb-1">
+                        <p className="text-sm font-semibold truncate text-green-700">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                      
+                      {/* Mobile Only: Navigation Links */}
+                      <div className="md:hidden">
+                        <Link 
+                          to="/" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                        >
+                          Home
+                        </Link>
+                        <Link 
+                          to="/products" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                        >
+                          Products
+                        </Link>
+                      </div>
+
+                      {/* User Actions */}
+                      <div>
+                        <Link 
+                          to="/orders" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition" 
+                        >
+                          My Orders
+                        </Link>
+                        <Link 
+                          to="/profile" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                        >
+                          Profile Settings
+                        </Link>
+                        <Link 
+                          to="/profile#support-tickets" 
+                          onClick={() => { setUserMenuOpen(false); setTimeout(() => { document.getElementById('support-tickets')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                        >
+                          Support Tickets
+                        </Link>
+                        <Link 
+                          to="/affiliate" 
+                          onClick={() => setUserMenuOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
+                        >
+                          Affiliate Dashboard
+                        </Link>
+                        {isAdmin && (
+                          <Link 
+                            to="/admin" 
+                            onClick={() => setUserMenuOpen(false)}
+                            className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition font-bold"
+                          >
+                            Admin Panel
+                          </Link>
+                        )}
+                      </div>
+                      <div>
+                        <button 
+                          onClick={() => {
+                            handleLogout();
+                            setUserMenuOpen(false);
+                          }} 
+                          className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                        >
+                          <LogOut size={16} />
+                          Logout
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <Link 
-                        to="/profile" 
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
-                      >
-                        Profile Settings
-                      </Link>
-                      <Link 
-                        to="/affiliate" 
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition"
-                      >
-                        Affiliate Dashboard
-                      </Link>
-                      <Link 
-                        to="/orders" 
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700 transition md:hidden" 
-                      >
-                        My Orders
-                      </Link>
-                    </div>
-                    <div>
-                      <button 
-                        onClick={() => {
-                          handleLogout();
-                          setUserMenuOpen(false);
-                        }} 
-                        className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-                      >
-                        <LogOut size={16} />
-                        Logout
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
             ) : (
-              <Link to="/login" className="flex items-center gap-1 hover:text-green-200 transition">
-                <User size={20} />
-                <span className="text-sm hidden sm:inline">Sign In</span>
-              </Link>
+              <div className="relative">
+                <button 
+                  onClick={() => setUserMenuOpen(!userMenuOpen)} 
+                  className="flex items-center gap-1 hover:text-green-200 transition"
+                >
+                  <User size={20} />
+                  <span className="text-sm hidden sm:inline">Sign In</span>
+                </button>
+                
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)}></div>
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl py-2 z-50 text-gray-800 border border-gray-100 divide-y divide-gray-100 md:hidden">
+                      <Link to="/" className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700" onClick={() => setUserMenuOpen(false)}>Home</Link>
+                      <Link to="/products" className="block px-4 py-2 text-sm hover:bg-green-50 hover:text-green-700" onClick={() => setUserMenuOpen(false)}>Products</Link>
+                      <div className="pt-1">
+                        <Link to="/login" className="block px-4 py-2 text-sm font-bold text-green-700 hover:bg-green-50" onClick={() => setUserMenuOpen(false)}>Login / Sign Up</Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Desktop Login Link (When not in mobile dropdown) */}
+                <Link to="/login" className="hidden md:flex items-center gap-1 hover:text-green-200 transition absolute top-0 left-0 w-full h-full opacity-0" />
+              </div>
             )}
-
-            <button
-              className="md:hidden"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {menuOpen && (
-          <div className="md:hidden py-4 border-t border-green-600">
-            <nav className="flex flex-col gap-3">
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  const query = formData.get('q');
-                  if (query) {
-                    navigate(`/products?search=${encodeURIComponent(query as string)}`);
-                    setMenuOpen(false);
-                  }
-                }}
-                className="relative flex items-center px-2 mb-2"
-              >
-                <input 
-                  type="text" 
-                  name="q"
-                  placeholder="Search pickles..." 
-                  className="pl-3 pr-8 py-2 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full transition-all" 
-                />
-                <button type="submit" className="absolute right-4 text-gray-500 hover:text-green-600">
-                  <Search size={18} />
-                </button>
-              </form>
-              <Link to="/" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link to="/products" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Products</Link>
-              <Link to="/wishlist" className="hover:text-green-200 px-2 flex items-center justify-between" onClick={() => setMenuOpen(false)}>
-                My Wishlist {wishlist.length > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{wishlist.length}</span>}
-              </Link>
-              {user ? (
-                <>
-                  <Link to="/orders" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>My Orders</Link>
-                  <Link to="/profile" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Profile Settings</Link>
-                  <Link to="/profile#support-tickets" className="hover:text-green-200 px-2 flex items-center justify-between" onClick={() => { setMenuOpen(false); setTimeout(() => { document.getElementById('support-tickets')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}>
-                    Support Tickets
-                  </Link>
-                  <Link to="/affiliate" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Affiliate Dashboard</Link>
-                  {isAdmin && (
-                    <Link to="/admin" className="hover:text-green-200 px-2" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
-                  )}
-                  <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left hover:text-red-300 text-red-200 px-2 mt-2">Logout</button>
-                </>
-              ) : (
-                <Link to="/login" className="hover:text-green-200 px-2 flex items-center gap-2 mt-2 font-semibold bg-white/10 py-2 rounded-lg" onClick={() => setMenuOpen(false)}>
-                  <User size={18} /> Login / Sign Up
-                </Link>
-              )}
-            </nav>
-          </div>
-        )}
+
       </div>
       </header>
     </>

@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAffiliateFAQ, setShowAffiliateFAQ] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -133,7 +134,32 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gray-50">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12 bg-gray-50">
+      
+      {/* Affiliate Banner & FAQ */}
+      <div className="w-full max-w-md mb-8">
+        <div 
+          onClick={() => setShowAffiliateFAQ(!showAffiliateFAQ)}
+          className="bg-gradient-to-r from-green-100 to-green-50 hover:from-green-200 hover:to-green-100 border border-green-300 text-green-900 p-4 rounded-xl shadow-sm cursor-pointer transition-all"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">💸</span>
+              <h3 className="font-bold text-sm sm:text-base">Earn money by referring the link and get 10% commission life long!</h3>
+            </div>
+            <span className="text-green-700 font-bold flex-shrink-0">{showAffiliateFAQ ? '▼' : '▶'}</span>
+          </div>
+          
+          {showAffiliateFAQ && (
+            <div className="mt-4 pt-4 border-t border-green-200 text-sm space-y-3">
+              <p><strong>Q: How does it work?</strong><br/>A: Simply create an account, go to the Affiliate Dashboard, and share your unique link. When someone buys through your link, you earn 10% of their order value!</p>
+              <p><strong>Q: Is there any joining fee?</strong><br/>A: No! It is completely free to join and you don't even need to make a purchase yourself.</p>
+              <p><strong>Q: How do I get paid?</strong><br/>A: Your earnings are tracked in your dashboard and paid directly to your preferred payment method once you reach the minimum payout.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
