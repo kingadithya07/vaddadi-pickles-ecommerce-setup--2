@@ -4,233 +4,27 @@ import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, D
 import { supabase } from '../lib/supabase';
 
 // Sample Products with variants and stock
-const sampleProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Mango Avakaya',
-    description: 'Traditional Andhra style raw mango pickle with mustard and red chili. Authentic homemade taste.',
-    image: '🥭',
-    category: 'Mango',
-    variants: [
-      { weight: '250g', price: 149, mrp: 199, stock: 50 },
-      { weight: '500g', price: 299, mrp: 399, stock: 30 },
-      { weight: '1kg', price: 549, mrp: 699, stock: 20 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: true,
-  },
-  {
-    id: '2',
-    name: 'Lemon Pickle',
-    description: 'Tangy and spicy lemon pickle made with fresh lemons and aromatic spices.',
-    image: '🍋',
-    category: 'Lemon',
-    variants: [
-      { weight: '250g', price: 99, mrp: 149, stock: 60 },
-      { weight: '500g', price: 199, mrp: 279, stock: 40 },
-      { weight: '1kg', price: 379, mrp: 499, stock: 25 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: false,
-  },
-  {
-    id: '3',
-    name: 'Mixed Vegetable Pickle',
-    description: 'A delightful blend of carrots, cauliflower, and green chilies in tangy masala.',
-    image: '🥗',
-    category: 'Mixed',
-    variants: [
-      { weight: '250g', price: 129, mrp: 179, stock: 45 },
-      { weight: '500g', price: 249, mrp: 349, stock: 35 },
-      { weight: '1kg', price: 449, mrp: 599, stock: 18 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: false,
-  },
-  {
-    id: '4',
-    name: 'Gongura Pickle',
-    description: 'Famous Andhra Gongura leaves pickle with a unique sour taste.',
-    image: '🌿',
-    category: 'Specialty',
-    variants: [
-      { weight: '250g', price: 139, mrp: 189, stock: 55 },
-      { weight: '500g', price: 279, mrp: 379, stock: 32 },
-      { weight: '1kg', price: 529, mrp: 699, stock: 15 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: true,
-  },
-  {
-    id: '5',
-    name: 'Garlic Pickle',
-    description: 'Aromatic garlic pickle with the perfect blend of spices and oil.',
-    image: '🧄',
-    category: 'Specialty',
-    variants: [
-      { weight: '250g', price: 119, mrp: 159, stock: 40 },
-      { weight: '500g', price: 229, mrp: 319, stock: 28 },
-      { weight: '1kg', price: 429, mrp: 599, stock: 12 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: false,
-  },
-  {
-    id: '6',
-    name: 'Tomato Pickle',
-    description: 'Sweet and tangy tomato pickle, perfect with rice and rotis.',
-    image: '🍅',
-    category: 'Mixed',
-    variants: [
-      { weight: '250g', price: 89, mrp: 129, stock: 65 },
-      { weight: '500g', price: 189, mrp: 279, stock: 45 },
-      { weight: '1kg', price: 349, mrp: 479, stock: 22 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: false,
-  },
-  {
-    id: '7',
-    name: 'Red Chili Pickle',
-    description: 'Fiery red chili pickle for spice lovers. Extra hot and flavorful.',
-    image: '🌶️',
-    category: 'Specialty',
-    variants: [
-      { weight: '250g', price: 129, mrp: 179, stock: 50 },
-      { weight: '500g', price: 259, mrp: 349, stock: 30 },
-      { weight: '1kg', price: 489, mrp: 649, stock: 16 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: true,
-  },
-  {
-    id: '8',
-    name: 'Ginger Pickle',
-    description: 'Spicy ginger pickle with authentic taste and health benefits.',
-    image: '🫚',
-    category: 'Ginger',
-    variants: [
-      { weight: '250g', price: 109, mrp: 159, stock: 35 },
-      { weight: '500g', price: 219, mrp: 319, stock: 25 },
-      { weight: '1kg', price: 399, mrp: 549, stock: 14 },
-    ],
-    inStock: true,
-    rating: 0,
-    reviews: 0,
-    bestSeller: false,
-  },
-];
+const sampleProducts: Product[] = [];
 
-const sampleCombos: ComboProduct[] = [
-  {
-    id: 'combo1',
-    name: 'Family Pack',
-    description: 'Perfect combo for families - Mango, Lemon & Mixed pickles',
-    image: '🎁',
-    products: [
-      { productId: '1', variantWeight: '250g' },
-      { productId: '2', variantWeight: '250g' },
-      { productId: '3', variantWeight: '250g' }
-    ],
-    originalPrice: 999,
-    comboPrice: 799,
-    stock: 25,
-    active: true,
-  },
-  {
-    id: 'combo2',
-    name: 'Starter Kit',
-    description: 'Try our best sellers - Mango Avakaya & Gongura',
-    image: '⭐',
-    products: [
-      { productId: '1', variantWeight: '250g' },
-      { productId: '4', variantWeight: '250g' }
-    ],
-    originalPrice: 599,
-    comboPrice: 449,
-    stock: 30,
-    active: true,
-  },
-  {
-    id: 'combo3',
-    name: 'Spice Lovers Special',
-    description: 'For those who love it hot - Red Chili, Garlic & Ginger',
-    image: '🔥',
-    products: [
-      { productId: '5', variantWeight: '250g' },
-      { productId: '7', variantWeight: '250g' },
-      { productId: '8', variantWeight: '250g' }
-    ],
-    originalPrice: 699,
-    comboPrice: 549,
-    stock: 20,
-    active: true,
-  },
-];
+const sampleCombos: ComboProduct[] = [];
 
-const sampleDisplayImages: DisplayImage[] = [
-  {
-    id: 'img1',
-    title: 'Summer Sale',
-    imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=1200',
-    type: 'banner',
-    linkUrl: '/products',
-    order: 1,
-    active: true,
-  },
-  {
-    id: 'img2',
-    title: 'New Arrivals',
-    imageUrl: 'https://images.unsplash.com/photo-1589135233689-63e7bc9eb702?w=1200',
-    type: 'banner',
-    linkUrl: '/products',
-    order: 2,
-    active: true,
-  },
-  {
-    id: 'img3',
-    title: 'Mango Pickle Special',
-    imageUrl: 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=600',
-    type: 'promotional',
-    linkUrl: '/products?category=Mango',
-    order: 1,
-    active: true,
-  },
-];
+const sampleDisplayImages: DisplayImage[] = [];
 
 const defaultSettings: StoreSettings = {
-  upiId: '9885192948@ptyes',
+  upiId: '',
   businessAddress: {
-    name: 'Vaddadi Pickles',
-    street: 'Sujathanagar',
-    city: 'Visakhapatnam',
-    state: 'Andhra Pradesh',
-    pincode: '530051',
-    phone: '8008129309 (WhatsApp)',
+    name: '',
+    street: '',
+    city: '',
+    state: '',
+    pincode: '',
+    phone: '',
   },
-  enableCOD: true,
-  enableBankTransfer: true,
+  enableCOD: false,
+  enableBankTransfer: false,
 };
 
-const sampleCoupons: Coupon[] = [
-  { code: 'WELCOME10', discount: 10, type: 'percentage', minOrder: 500, active: true },
-  { code: 'PICKLE50', discount: 50, type: 'fixed', minOrder: 400, active: true },
-  { code: 'FESTIVE20', discount: 20, type: 'percentage', minOrder: 1000, active: true },
-];
+const sampleCoupons: Coupon[] = [];
 
 interface StoreState {
   products: Product[];
