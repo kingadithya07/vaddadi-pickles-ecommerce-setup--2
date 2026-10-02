@@ -4,6 +4,7 @@ import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff, Loader2 } from 'lucid
 import { useStore } from '../store';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
+import { formatPhoneNumber } from '../utils/phone';
 
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -46,6 +47,8 @@ export function Login() {
 
         const role = 'customer';
 
+        const formattedPhone = formatPhoneNumber(formData.phone);
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -53,7 +56,7 @@ export function Login() {
             data: {
               full_name: formData.name,
               name: formData.name,
-              phone: formData.phone,
+              phone: formattedPhone,
               role: role,
               address: {}
             }
@@ -90,6 +93,18 @@ export function Login() {
             setError('Account created but profile setup failed. Please try logging in.');
             setIsLoading(false);
             return;
+          }
+
+          // Auto-create affiliate account
+          const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+          const { error: affiliateError } = await supabase.from('affiliates').insert({
+            user_id: user.id,
+            referral_code: autoCode,
+            commission_rate: 10.00
+          });
+
+          if (affiliateError) {
+            console.error('Error creating affiliate account:', affiliateError);
           }
 
           loginInStore(user);

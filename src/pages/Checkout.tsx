@@ -9,6 +9,7 @@ import { statesAndCities } from '../data/locations';
 import { useCartTotals } from '../hooks/useCartTotals';
 import { lookupPincode } from '../utils/pincode';
 import { sendTelegramNotification } from '../lib/telegram';
+import { formatPhoneNumber } from '../utils/phone';
 
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
@@ -154,7 +155,7 @@ export function Checkout() {
         street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim() 
       };
       finalName = deliveryName;
-      finalPhone = deliveryPhone;
+      finalPhone = formatPhoneNumber(deliveryPhone);
 
       // Auto-save the new address to the user's profile
       addUserAddress({
@@ -183,7 +184,7 @@ export function Checkout() {
         country: selectedAddr.country,
       };
       finalName = selectedAddr.name;
-      finalPhone = selectedAddr.phone;
+      finalPhone = formatPhoneNumber(selectedAddr.phone);
     }
 
     const order: Order = {

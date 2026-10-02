@@ -47,7 +47,7 @@ export function Orders() {
 
   const generateWhatsAppMessage = (order: Order) => {
     const message = `Hi! I want to check the status of my order.\n\nOrder ID: ${order.id}\nName: ${order.userName}\nAmount: ₹${order.finalAmount}\n\n🌟 I would also like to know more about the Refer & Earn process to get a 10% lifelong commission!\n\nThank you!`;
-    return `https://wa.me/919876543210?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/+919963622669?text=${encodeURIComponent(message)}`;
   };
 
   const printInvoice = (order: Order) => {

@@ -16,7 +16,7 @@ export function OrderSuccess() {
     return encodeURIComponent(message);
   };
 
-  const whatsappLink = `https://wa.me/919876543210?text=${generateWhatsAppMessage()}`;
+  const whatsappLink = `https://wa.me/+919963622669?text=${generateWhatsAppMessage()}`;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-16 text-center">

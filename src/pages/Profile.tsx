@@ -7,6 +7,7 @@ import { statesAndCities } from '../data/locations';
 import { lookupPincode } from '../utils/pincode';
 import { supabase } from '../lib/supabase';
 import { Link as RouterLink } from 'react-router-dom';
+import { formatPhoneNumber } from '../utils/phone';
 
 export function Profile() {
   const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, siteFeedbacks, typingStatus, broadcastTyping } = useStore();
@@ -133,7 +134,7 @@ export function Profile() {
       ...user,
       name: formData.name,
       email: formData.email,
-      phone: formData.phone,
+      phone: formatPhoneNumber(formData.phone),
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -159,7 +160,7 @@ export function Profile() {
       id: editingAddress?.id || `addr-${Date.now()}`,
       label: addressForm.label,
       name: addressForm.name,
-      phone: addressForm.phone,
+      phone: formatPhoneNumber(addressForm.phone || ''),
       street: addressForm.street2 ? `${addressForm.street.trim()}, ${addressForm.street2.trim()}` : addressForm.street.trim(),
       city: addressForm.city,
       state: addressForm.state,

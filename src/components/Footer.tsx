@@ -70,7 +70,7 @@ export function Footer() {
               <a href="#" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
                 <span>📸</span>
               </a>
-              <a href="https://wa.me/919963622669?text=Hello!%20I'm%20interested%20in%20your%20pickles.%0A%0A%F0%9F%8C%9F%20P.S.%20I%20want%20to%20learn%20more%20about%20your%20Refer%20%26%20Earn%20program%20to%20get%20a%2010%25%20lifelong%20commission!" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
+              <a href="https://wa.me/+919963622669?text=Hello!%20I'm%20interested%20in%20your%20pickles.%0A%0A%F0%9F%8C%9F%20P.S.%20I%20want%20to%20learn%20more%20about%20your%20Refer%20%26%20Earn%20program%20to%20get%20a%2010%25%20lifelong%20commission!" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center hover:bg-green-500 transition">
                 <span>💬</span>
               </a>
             </div>
