@@ -2,7 +2,9 @@ export function formatPhoneNumber(phone: string): string {
   if (!phone) return phone;
   
   // Remove all non-numeric characters
-  const cleaned = phone.replace(/\\D/g, '');
+  const cleaned = phone.replace(/\D/g, '');
+  
+  if (!cleaned) return '';
   
   // If it's a 10-digit number, prepend +91
   if (cleaned.length === 10) {
