@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 
 export const sendTelegramNotification = async (order: Order) => {
   try {
-    const { data, error } = await supabase.functions.invoke('telegram-notify', {
+    const { error } = await supabase.functions.invoke('telegram-notify', {
       body: { order },
     });
 

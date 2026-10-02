@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useStore } from '../store';
 import { ProductCard } from '../components/ProductCard';
 import { Link } from 'react-router-dom';

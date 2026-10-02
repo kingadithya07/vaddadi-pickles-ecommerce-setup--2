@@ -360,7 +360,7 @@ ${trackingInfo}
 🎁 *Earn Money with Us!*
 Get 10% on every order placed through your referral link! Login to your profile to get your unique link and start earning today.
 
-Track your order: https://vaddadi-pickles.onrender.com/#/orders
+Track your order: https://vaddadi-pickles.onrender.com/orders
 
 Thank you for choosing Vaddadi Pickles!`;
 
@@ -1002,7 +1002,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                       <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} />
-                      <RechartsTooltip formatter={(value: number) => [`₹${value}`, 'Sales']} labelStyle={{ color: '#374151' }} />
+                      <RechartsTooltip formatter={(value: any) => [`₹${value}`, 'Sales']} labelStyle={{ color: '#374151' }} />
                       <Line type="monotone" dataKey="sales" stroke="#16a34a" strokeWidth={3} dot={false} activeDot={{ r: 8, fill: '#16a34a' }} />
                     </LineChart>
                   </ResponsiveContainer>
@@ -1016,7 +1016,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
                       <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                       <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false} width={80} />
-                      <RechartsTooltip formatter={(value: number) => [value, 'Units Sold']} cursor={{ fill: '#f3f4f6' }} />
+                      <RechartsTooltip formatter={(value: any) => [value, 'Units Sold']} cursor={{ fill: '#f3f4f6' }} />
                       <Bar dataKey="sales" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -1196,7 +1196,7 @@ Thank you for choosing Vaddadi Pickles!`;
                   {abandonedCarts.map((cartInfo) => {
                     const cartTotal = cartInfo.cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
                     const handleRemind = () => {
-                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at https://vaddadi-pickles.onrender.com/#/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
+                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at https://vaddadi-pickles.onrender.com/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
                       window.open(`https://wa.me/${cartInfo.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                     };
 

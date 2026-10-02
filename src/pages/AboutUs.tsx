@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ShieldCheck, Leaf, Heart } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
-import { Link, Navigate } from 'react-router-dom';
-import { Copy, TrendingUp, DollarSign, Users, AlertCircle, CheckCircle2, ShoppingBag, CreditCard, Save } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save } from 'lucide-react';
 import { Affiliate, AffiliateSale } from '../types';
 
 export function AffiliateDashboard() {
@@ -32,16 +32,16 @@ export function AffiliateDashboard() {
         let { data: affiliateData, error: affiliateError } = await supabase
           .from('affiliates')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user!.id)
           .single();
 
         // Auto-create affiliate if doesn't exist
         if (!affiliateData || affiliateError?.code === 'PGRST116') {
-          const autoCode = 'VP-' + user.id.split('-')[0].toUpperCase();
+          const autoCode = 'VP-' + user!.id.split('-')[0].toUpperCase();
           const { data: newAffiliate, error: insertError } = await supabase
             .from('affiliates')
             .insert({
-              user_id: user.id,
+              user_id: user!.id,
               referral_code: autoCode,
               commission_rate: 10.00
             })

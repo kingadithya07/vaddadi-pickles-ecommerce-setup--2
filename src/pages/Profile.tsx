@@ -25,7 +25,7 @@ export function Profile() {
   const [isManualCity, setIsManualCity] = useState(false);
   const [pincodeBranches, setPincodeBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState('');
-  const [addressForm, setAddressForm] = useState<Partial<UserAddress>>({
+  const [addressForm, setAddressForm] = useState<Partial<UserAddress> & { street2?: string }>({
     label: '',
     name: '',
     phone: '',
