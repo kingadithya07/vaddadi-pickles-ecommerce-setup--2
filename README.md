@@ -16,16 +16,33 @@ This project is built using modern web development technologies:
 
 ## ✨ Key Features
 
-*   **Real-time Admin Notifications:** Integrated Telegram Bot pushes instant mobile alerts the second a customer places a new order.
-*   **Affiliate Program:** Built-in referral system allowing users to generate unique links, drive sales, and earn a percentage commission on successful orders.
-*   **User Authentication & Profiles:** Customers can log in, save multiple addresses, and view their order history seamlessly.
-*   **Secure Admin Panel:** Dedicated admin dashboard for managing orders, verifying payments, and tracking business metrics.
-*   **Product Catalog:** Browse a variety of products with support for best-seller badges, ratings, and detailed descriptions.
-*   **Dynamic Weight Variants:** Products support multiple size/weight variants (e.g., 250g, 500g, 1kg) with dynamic pricing.
-*   **Advanced Inventory Handling:** Smart "Out of Stock" UI overlay, disabling of specific zero-stock variants, and cart quantity caps based on available stock.
-*   **Shopping Cart:** Persistent cart state using Zustand to handle adding, removing, and updating item quantities seamlessly.
-*   **Responsive Design:** Fully mobile-optimized layout leveraging Tailwind CSS utility classes.
-*   **Zero-Fee Payments:** Manual UPI payment flow with custom QR codes and transaction ID verification.
+### 🛍️ Storefront & User Experience
+* **Responsive Design:** Fully mobile-optimized, beautiful interface utilizing Tailwind CSS.
+* **Product Catalog & Combos:** Browse single products or bundled combos with dynamic pricing, best-seller badges, and ratings.
+* **Dynamic Weight Variants:** Granular support for size/weight variants (e.g., 250g, 500g, 1kg) with real-time price updates.
+* **Wishlist System:** Users can save favorite products for later viewing and easy purchasing.
+* **Advanced Shopping Cart:** Persistent cart state, dynamic total calculation, and seamless item updates via Zustand.
+* **Zero-Fee Payments:** Manual UPI payment flow with custom QR codes and transaction ID verification.
+* **WhatsApp Integration:** Floating chat widget and dynamic, E.164-compliant WhatsApp links for support and order sharing.
+
+### 🔐 Accounts & Profiles
+* **User Authentication:** Secure email/password login and registration powered by Supabase.
+* **Profile Management:** Customers can save multiple delivery addresses, track live order history, and manage personal details.
+* **Auto-Affiliate Enrollment:** Customers are instantly converted into affiliates upon registration, generating a unique referral code to earn lifelong commissions (e.g., 10%) on driven sales.
+
+### ⚙️ Admin & Store Management
+* **Secure Admin Panel:** Comprehensive dashboard to manage orders, update product inventory, and track business revenue.
+* **Advanced Inventory Handling:** Smart "Out of Stock" overlays, zero-stock variant disabling, and cart quantity caps tied directly to available stock.
+* **Abandoned Cart Recovery:** Real-time tracking of incomplete orders in the admin panel with one-click WhatsApp reminder links to follow up with customers.
+* **Real-time Telegram Notifications:** Instant bot alerts pushed to the admin's mobile device the second a customer places a new order.
+* **Coupon & Discount Engine:** Create and manage promotional codes for percentage or flat-rate discounts.
+* **Pincode Validation:** Restrict orders and validate deliveries based on supported local geographic pincodes.
+* **Customer Feedback:** Capture and manage site feedback and reviews directly from the storefront.
+
+### 🚀 Performance & SEO
+* **Search Engine Optimization (SEO):** Dynamic page titles and meta descriptions using `react-helmet-async`, `robots.txt`, and standard `sitemap.xml`.
+* **Clean Routing:** Configured with `BrowserRouter` for crawler-friendly URLs (no hash fragments).
+* **Open Graph Support:** Beautiful rich link previews when sharing the website on WhatsApp, Facebook, or Twitter.
 
 ## 🛠️ Getting Started
 

@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  BarChart, Bar
+} from 'recharts';
 import {
   Package, Users, CreditCard, Tag, LayoutDashboard,
   CheckCircle, XCircle, Clock, FileText, Printer,
@@ -129,6 +133,34 @@ export function Admin() {
     comboPrice: 0,
     stock: 0,
   });
+
+  const last30DaysSales = useMemo(() => {
+    const data = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayOrders = orders.filter(o => o.createdAt.startsWith(dateStr) && o.paymentStatus === 'approved');
+      data.push({
+        date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        sales: dayOrders.reduce((sum, o) => sum + o.finalAmount, 0)
+      });
+    }
+    return data;
+  }, [orders]);
+
+  const topSellingProducts = useMemo(() => {
+    const productSales: Record<string, number> = {};
+    orders.filter(o => o.paymentStatus === 'approved').forEach(order => {
+      order.items.forEach(item => {
+        productSales[item.product.name] = (productSales[item.product.name] || 0) + item.quantity;
+      });
+    });
+    return Object.entries(productSales)
+      .map(([name, sales]) => ({ name, sales }))
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 5);
+  }, [orders]);
 
   const handleAddProduct = async () => {
     if (isCombo) {
@@ -957,6 +989,38 @@ Thank you for choosing Vaddadi Pickles!`;
                   <span className="text-xl md:text-3xl font-bold text-gray-800">{repeatCustomersCount}</span>
                 </div>
                 <p className="text-gray-600 text-sm md:text-base">Repeat Customers</p>
+              </div>
+            </div>
+
+            {/* Analytics Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales (Last 30 Days)</h3>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={last30DaysSales} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val}`} />
+                      <RechartsTooltip formatter={(value: number) => [`₹${value}`, 'Sales']} labelStyle={{ color: '#374151' }} />
+                      <Line type="monotone" dataKey="sales" stroke="#16a34a" strokeWidth={3} dot={false} activeDot={{ r: 8, fill: '#16a34a' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Selling Products</h3>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topSellingProducts} layout="vertical" margin={{ top: 5, right: 20, bottom: 5, left: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
+                      <XAxis type="number" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false} width={80} />
+                      <RechartsTooltip formatter={(value: number) => [value, 'Units Sold']} cursor={{ fill: '#f3f4f6' }} />
+                      <Bar dataKey="sales" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
