@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Search } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useStore } from '../store';
@@ -76,6 +77,10 @@ export function Products() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <Helmet>
+        <title>All Products - Vaddadi Pickles</title>
+        <meta name="description" content="Browse our complete collection of authentic homemade pickles, powders, and fryums. Order online for delivery." />
+      </Helmet>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Our Collection</h1>
         <p className="text-gray-600">Choose from our wide range of authentic homemade products</p>

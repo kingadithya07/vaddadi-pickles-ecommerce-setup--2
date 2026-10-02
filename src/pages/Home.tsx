@@ -1,5 +1,6 @@
 import { ArrowRight, Truck, Shield, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ProductCard } from '../components/ProductCard';
 import { useStore } from '../store';
 
@@ -35,6 +36,10 @@ export function Home() {
 
   return (
     <div>
+      <Helmet>
+        <title>Vaddadi Pickles - Authentic Homemade Pickles</title>
+        <meta name="description" content="Discover authentic, homemade pickles made with traditional recipes passed down through generations. Shop Vaddadi Pickles online now!" />
+      </Helmet>
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 to-green-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4">

@@ -1,9 +1,14 @@
 import React from 'react';
 import { ShieldCheck, Leaf, Heart } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function AboutUs() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
+      <Helmet>
+        <title>About Us - Vaddadi Pickles</title>
+        <meta name="description" content="Learn about the history and tradition behind Vaddadi Pickles. Authentic recipes passed down through generations." />
+      </Helmet>
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">About Vaddadi Pickles</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
