@@ -32,6 +32,7 @@ This project is built using modern web development technologies:
 
 ### ⚙️ Admin & Store Management
 * **Secure Admin Panel:** Comprehensive dashboard to manage orders, update product inventory, and track business revenue.
+* **Visual Analytics:** Interactive charts powered by Recharts detailing sales trends (last 30 days) and top-selling products.
 * **Advanced Inventory Handling:** Smart "Out of Stock" overlays, zero-stock variant disabling, and cart quantity caps tied directly to available stock.
 * **Abandoned Cart Recovery:** Real-time tracking of incomplete orders in the admin panel with one-click WhatsApp reminder links to follow up with customers.
 * **Real-time Telegram Notifications:** Instant bot alerts pushed to the admin's mobile device the second a customer places a new order.
@@ -39,7 +40,8 @@ This project is built using modern web development technologies:
 * **Pincode Validation:** Restrict orders and validate deliveries based on supported local geographic pincodes.
 * **Customer Feedback:** Capture and manage site feedback and reviews directly from the storefront.
 
-### 🚀 Performance & SEO
+### 🚀 Performance, SEO & Mobile
+* **Progressive Web App (PWA):** Fully installable mobile and desktop app experience generated via `vite-plugin-pwa`.
 * **Search Engine Optimization (SEO):** Dynamic page titles and meta descriptions using `react-helmet-async`, `robots.txt`, and standard `sitemap.xml`.
 * **Clean Routing:** Configured with `BrowserRouter` for crawler-friendly URLs (no hash fragments).
 * **Open Graph Support:** Beautiful rich link previews when sharing the website on WhatsApp, Facebook, or Twitter.
