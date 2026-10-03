@@ -18,7 +18,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const wishlist = useStore((state) => state.wishlist) || [];
   const toggleWishlist = useStore((state) => state.toggleWishlist);
   
-  const [selectedWeight, setSelectedWeight] = useState<string>('');
+  const [selectedWeight, setSelectedWeight] = useState<string>(
+    product.variants?.length === 1 ? product.variants[0].weight : ''
+  );
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [noGarlic, setNoGarlic] = useState(false);
 
