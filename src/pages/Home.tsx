@@ -72,12 +72,12 @@ export function Home() {
                 <img
                   src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
                   alt="Vaddadi Pickles"
-                  className="w-64 h-64 md:w-80 md:h-80 rounded-full object-cover border-8 border-yellow-400 shadow-2xl"
+                  className="w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
                 />
-                <div className="absolute -top-4 -right-4 text-5xl animate-bounce">🥭</div>
-                <div className="absolute -bottom-4 -left-4 text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
-                <div className="absolute top-1/2 -left-8 text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
-                <div className="absolute top-1/2 -right-8 text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
+                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-3xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>
+                <div className="absolute -bottom-2 sm:-bottom-4 -left-2 sm:-left-4 text-3xl sm:text-4xl md:text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
+                <div className="absolute top-1/2 -left-6 sm:-left-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
+                <div className="absolute top-1/2 -right-6 sm:-right-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
               </div>
             </div>
           </div>
@@ -85,29 +85,35 @@ export function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="text-green-600" size={32} />
+          <div className="grid md:grid-cols-3 gap-4 md:gap-8">
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Truck className="text-green-600" size={32} /></div>
               </div>
-              <h3 className="font-semibold text-lg mb-2">Free Delivery</h3>
-              <p className="text-gray-600">Free shipping on orders above ₹1000</p>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Free Delivery</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Free shipping on orders above ₹1000</p>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="text-green-600" size={32} />
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Shield className="text-green-600" size={32} /></div>
               </div>
-              <h3 className="font-semibold text-lg mb-2">100% Natural</h3>
-              <p className="text-gray-600">No preservatives or artificial colors</p>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">100% Natural</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">No preservatives or artificial colors</p>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-md text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="text-green-600" size={32} />
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Award className="text-green-600" size={32} /></div>
               </div>
-              <h3 className="font-semibold text-lg mb-2">Traditional Recipes</h3>
-              <p className="text-gray-600">Authentic taste from Andhra Pradesh</p>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Traditional Recipes</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Authentic taste from Andhra Pradesh</p>
+              </div>
             </div>
           </div>
         </div>
@@ -149,11 +155,9 @@ export function Home() {
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Bestsellers</h2>
             <p className="text-gray-600">Most loved pickles by our customers</p>
           </div>
-          <div className="flex overflow-x-auto pb-6 -mx-4 px-4 sm:pb-0 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {featuredProducts.map((product) => (
-              <div key={product.id} className="w-[75vw] sm:w-auto snap-center shrink-0 flex flex-col">
-                <ProductCard product={product} />
-              </div>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
           <div className="text-center mt-8">
@@ -174,34 +178,33 @@ export function Home() {
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Special Combos</h2>
             <p className="text-gray-600">Great value packs for you and your family</p>
           </div>
-          <div className="flex overflow-x-auto pb-6 -mx-4 px-4 sm:pb-0 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {[...(combos || [])].sort((a, b) => {
               const aIsOutOfStock = a.stock <= 0;
               const bIsOutOfStock = b.stock <= 0;
               if (aIsOutOfStock === bIsOutOfStock) return 0;
               return aIsOutOfStock ? 1 : -1;
             }).map((combo) => (
-              <div key={combo.id} className="w-[75vw] sm:w-auto snap-center shrink-0 flex flex-col">
-                <ProductCard
-                  product={{
-                    id: combo.id,
-                    name: combo.name,
-                    description: combo.description,
-                    image: combo.image,
-                    category: 'Combo',
-                    variants: [{
-                      weight: `Pack (${calculateComboWeight(combo.products)})`,
-                      price: combo.comboPrice,
-                      mrp: combo.originalPrice,
-                      stock: combo.stock
-                    }],
-                    inStock: combo.stock > 0,
-                    rating: 5,
-                    reviews: 0,
-                    bestSeller: false,
-                  }}
-                />
-              </div>
+              <ProductCard
+                key={combo.id}
+                product={{
+                  id: combo.id,
+                  name: combo.name,
+                  description: combo.description,
+                  image: combo.image,
+                  category: 'Combo',
+                  variants: [{
+                    weight: `Pack (${calculateComboWeight(combo.products)})`,
+                    price: combo.comboPrice,
+                    mrp: combo.originalPrice,
+                    stock: combo.stock
+                  }],
+                  inStock: combo.stock > 0,
+                  rating: 5,
+                  reviews: 0,
+                  bestSeller: false,
+                }}
+              />
             ))}
           </div>
           <div className="text-center mt-8">
