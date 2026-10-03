@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { useStore } from '../store';
 import { ReviewModal } from './ReviewModal';
+import { ComboDetailsModal } from './ComboDetailsModal';
 
 interface ProductCardProps {
   product: Product;
@@ -22,7 +23,10 @@ export function ProductCard({ product }: ProductCardProps) {
     product.variants?.length === 1 ? product.variants[0].weight : ''
   );
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isComboModalOpen, setIsComboModalOpen] = useState(false);
   const [noGarlic, setNoGarlic] = useState(false);
+
+  const isCombo = product.category === 'Combo';
 
   const selectedVariant = product.variants?.find(v => v.weight === selectedWeight);
   const isWishlisted = wishlist.includes(product.id);
@@ -62,7 +66,12 @@ export function ProductCard({ product }: ProductCardProps) {
     <>
       <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden transition-all duration-300 transform ${isOutOfStock ? 'opacity-80' : 'hover:shadow-xl hover:-translate-y-1'}`}>
         {/* Product Image */}
-        <div className="relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden">
+        <div 
+          className={`relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden ${isCombo ? 'cursor-pointer' : ''}`}
+          onClick={() => {
+            if (isCombo) setIsComboModalOpen(true);
+          }}
+        >
           {product.image.startsWith('http') || product.image.startsWith('/') ? (
             <img
               src={product.image}
@@ -90,6 +99,14 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="absolute top-2 right-10 bg-green-600 text-white text-[10px] sm:text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-sm">
               {totalInCart}
             </span>
+          )}
+
+          {isCombo && (
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[5]">
+              <span className="bg-white text-purple-600 font-bold px-4 py-2 rounded-full shadow-lg text-sm flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                <ShoppingCart size={16} /> View Combo
+              </span>
+            </div>
           )}
 
           <button
@@ -264,6 +281,13 @@ export function ProductCard({ product }: ProductCardProps) {
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
       />
+      {isCombo && (
+        <ComboDetailsModal
+          product={product}
+          isOpen={isComboModalOpen}
+          onClose={() => setIsComboModalOpen(false)}
+        />
+      )}
     </>
   );
 }

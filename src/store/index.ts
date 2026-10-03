@@ -566,12 +566,9 @@ export const useStore = create<StoreState>()(
           description: combo.description,
           image: combo.image,
           combo_products: combo.products,
-          original_price: combo.originalPrice,
-          combo_price: combo.comboPrice,
-          stock: combo.stock,
-          active: combo.active,
           is_combo: true,
-          variants: [], // Empty variants for combos
+          in_stock: combo.active,
+          variants: [{ weight: 'Pack', mrp: combo.originalPrice, price: combo.comboPrice, stock: combo.stock }],
         }).select();
 
         if (error) {
@@ -594,10 +591,8 @@ export const useStore = create<StoreState>()(
           description: combo.description,
           image: combo.image,
           combo_products: combo.products,
-          original_price: combo.originalPrice,
-          combo_price: combo.comboPrice,
-          stock: combo.stock,
-          active: combo.active,
+          in_stock: combo.active,
+          variants: [{ weight: 'Pack', mrp: combo.originalPrice, price: combo.comboPrice, stock: combo.stock }],
           updated_at: new Date().toISOString(),
         }).eq('id', combo.id).select();
 
@@ -1077,10 +1072,10 @@ export const useStore = create<StoreState>()(
               description: p.description,
               image: p.image,
               products: p.combo_products,
-              originalPrice: p.original_price,
-              comboPrice: p.combo_price,
-              stock: p.stock,
-              active: p.active,
+              originalPrice: p.variants?.[0]?.mrp || 0,
+              comboPrice: p.variants?.[0]?.price || 0,
+              stock: p.variants?.[0]?.stock || 0,
+              active: p.in_stock,
             }));
             // Always update state even if arrays items are empty, to reflect DB state
             set({ products, combos });
@@ -1316,10 +1311,10 @@ export const useStore = create<StoreState>()(
                     description: newRecord.description,
                     image: newRecord.image,
                     products: newRecord.combo_products,
-                    originalPrice: newRecord.original_price,
-                    comboPrice: newRecord.combo_price,
-                    stock: newRecord.stock,
-                    active: newRecord.active,
+                    originalPrice: newRecord.variants?.[0]?.mrp || 0,
+                    comboPrice: newRecord.variants?.[0]?.price || 0,
+                    stock: newRecord.variants?.[0]?.stock || 0,
+                    active: newRecord.in_stock,
                   };
                   set((state) => ({
                     combos: eventType === 'INSERT'
