@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -29,6 +29,17 @@ const FAQ = React.lazy(() => import('./pages/FAQ').then(module => ({ default: mo
 const Wishlist = React.lazy(() => import('./pages/Wishlist').then(module => ({ default: module.Wishlist })));
 
 import { WhatsAppButton } from './components/WhatsAppButton';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -38,6 +49,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Footer />
 
       <WhatsAppButton />
+      <PWAInstallPrompt />
     </div>
   );
 }
@@ -150,6 +162,7 @@ export function App() {
   return (
     <HelmetProvider>
       <Router>
+        <ScrollToTop />
         <Suspense fallback={<Loading />}>
         <Routes>
           <Route

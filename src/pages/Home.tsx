@@ -41,43 +41,43 @@ export function Home() {
         <meta name="description" content="Discover authentic, homemade pickles made with traditional recipes passed down through generations. Shop Vaddadi Pickles online now!" />
       </Helmet>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-600 to-green-800 text-white py-12 md:py-20">
+      <section className="bg-gradient-to-br from-green-600 to-green-800 text-white pt-6 pb-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 tracking-tight">
-                Authentic Homemade <span className="inline md:block text-yellow-300">Pickles</span>
+          <div className="flex flex-col-reverse md:flex-row items-center gap-6 sm:gap-8 md:gap-12">
+            <div className="flex-1 text-center md:text-left w-full overflow-hidden">
+              <h1 className="text-[1.35rem] min-[375px]:text-2xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight whitespace-nowrap">
+                Authentic Homemade <span className="text-yellow-300">Pickles</span>
               </h1>
-              <p className="text-lg md:text-xl text-green-100 mb-8">
+              <p className="text-base sm:text-lg md:text-xl text-green-100 mb-6 sm:mb-8">
                 Experience the taste of tradition with Vaddadi Pickles. Made with love,
                 natural ingredients, and recipes passed down through generations.
               </p>
-              <div className="flex flex-row gap-3 sm:gap-4 justify-center md:justify-start w-full">
+              <div className="flex flex-row gap-2 sm:gap-4 justify-center md:justify-start">
                 <Link
                   to="/products"
-                  className="flex-1 sm:flex-none bg-yellow-400 text-green-900 px-4 sm:px-8 py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base whitespace-nowrap"
+                  className="bg-yellow-400 text-green-900 px-4 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-2 text-[0.8rem] min-[375px]:text-sm sm:text-base whitespace-nowrap"
                 >
                   Shop Now <ArrowRight size={16} className="sm:w-5 sm:h-5" />
                 </Link>
                 <Link
                   to="/orders"
-                  className="flex-1 sm:flex-none border-2 border-white px-4 sm:px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition flex items-center justify-center text-sm sm:text-base whitespace-nowrap"
+                  className="border-2 border-white px-4 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition flex items-center justify-center text-[0.8rem] min-[375px]:text-sm sm:text-base whitespace-nowrap"
                 >
                   Track Order
                 </Link>
               </div>
             </div>
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center mt-4 md:mt-0">
               <div className="relative">
                 <img
                   src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
                   alt="Vaddadi Pickles"
-                  className="w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
+                  className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
                 />
-                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-3xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>
-                <div className="absolute -bottom-2 sm:-bottom-4 -left-2 sm:-left-4 text-3xl sm:text-4xl md:text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
-                <div className="absolute top-1/2 -left-6 sm:-left-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
-                <div className="absolute top-1/2 -right-6 sm:-right-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
+                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-2xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>
+                <div className="absolute -bottom-2 sm:-bottom-4 -left-2 sm:-left-4 text-2xl sm:text-4xl md:text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
+                <div className="absolute top-1/2 -left-4 sm:-left-8 text-xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
+                <div className="absolute top-1/2 -right-4 sm:-right-8 text-xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
               </div>
             </div>
           </div>
