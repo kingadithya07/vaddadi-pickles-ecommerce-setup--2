@@ -10,14 +10,14 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-3 mb-4">
+            <Link to="/" onClick={() => window.scrollTo(0, 0)} className="flex items-center gap-3 mb-4 hover:opacity-80 transition cursor-pointer">
               <img
                 src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
                 alt="Vaddadi Pickles"
                 className="w-14 h-14 rounded-full object-cover border-2 border-green-500"
               />
               <h3 className="text-xl font-bold text-white">Vaddadi Pickles</h3>
-            </div>
+            </Link>
             <p className="text-sm mb-4">Authentic homemade pickles made with love and traditional recipes passed down through generations.</p>
             <div className="bg-gray-800 p-3 rounded-lg border border-gray-700 mt-4">
               <p className="text-sm text-green-400 font-semibold mb-1">Bulk Orders & Pelli Saare</p>

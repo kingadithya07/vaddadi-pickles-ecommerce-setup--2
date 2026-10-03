@@ -84,41 +84,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-12 md:py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-4 md:gap-8">
-            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
-              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
-                <div className="scale-75 md:scale-100"><Truck className="text-green-600" size={32} /></div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Free Delivery</h3>
-                <p className="text-xs sm:text-sm md:text-base text-gray-600">Free shipping on orders above ₹1000</p>
-              </div>
-            </div>
-            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
-              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
-                <div className="scale-75 md:scale-100"><Shield className="text-green-600" size={32} /></div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">100% Natural</h3>
-                <p className="text-xs sm:text-sm md:text-base text-gray-600">No preservatives or artificial colors</p>
-              </div>
-            </div>
-            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
-              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
-                <div className="scale-75 md:scale-100"><Award className="text-green-600" size={32} /></div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Traditional Recipes</h3>
-                <p className="text-xs sm:text-sm md:text-base text-gray-600">Authentic taste from Andhra Pradesh</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Shop by Category */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
@@ -167,6 +132,41 @@ export function Home() {
             >
               View All Products <ArrowRight size={20} />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-12 md:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-3 gap-4 md:gap-8">
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Truck className="text-green-600" size={32} /></div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Free Delivery</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Free shipping on orders above ₹1000</p>
+              </div>
+            </div>
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Shield className="text-green-600" size={32} /></div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">100% Natural</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">No preservatives or artificial colors</p>
+              </div>
+            </div>
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-md text-center flex flex-row md:flex-col items-center text-left md:text-center gap-4 md:gap-0">
+              <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 bg-green-100 rounded-full flex items-center justify-center mb-0 md:mb-4">
+                <div className="scale-75 md:scale-100"><Award className="text-green-600" size={32} /></div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-base md:text-lg mb-1 md:mb-2">Traditional Recipes</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">Authentic taste from Andhra Pradesh</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
