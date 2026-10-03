@@ -12,12 +12,12 @@ import {
   Truck, TrendingUp, Network
 } from 'lucide-react';
 import { useStore } from '../store';
-import { Order, Coupon, Product, ProductVariant } from '../types';
+import { Order, Coupon, Product, ProductVariant, ComboProduct } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 import { AdminAffiliates } from '../components/AdminAffiliates';
 import { supabase } from '../lib/supabase';
 
-type Tab = 'dashboard' | 'products' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
+type Tab = 'dashboard' | 'products' | 'combos' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
 const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'payment_pending', label: 'Payment Pending' },
@@ -110,7 +110,7 @@ export function Admin() {
   // Product Form State
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editingComboId, setEditingComboId] = useState<string | null>(null);
-  const [isCombo, setIsCombo] = useState(false);
+  const isCombo = activeTab === 'combos';
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -134,6 +134,7 @@ export function Admin() {
     originalPrice: 0,
     comboPrice: 0,
     stock: 0,
+    active: true
   });
 
   const last30DaysSales = useMemo(() => {
@@ -200,6 +201,7 @@ export function Admin() {
         originalPrice: 0,
         comboPrice: 0,
         stock: 0,
+        active: true,
       });
 
       return;
@@ -259,8 +261,8 @@ export function Admin() {
   };
 
   const handleEditProduct = (product: Product) => {
-    setIsCombo(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setActiveTab('products');
+    window.scrollTo({ top: 0, behavior: 'auto' });
     setNewProduct({
       name: product.name,
       description: product.description,
@@ -274,7 +276,8 @@ export function Admin() {
   };
 
   const handleEditCombo = (combo: ComboProduct) => {
-    setIsCombo(true);
+    setActiveTab('combos');
+    window.scrollTo({ top: 0, behavior: 'auto' });
     setEditingComboId(combo.id);
     setNewCombo({
       name: combo.name,
@@ -284,7 +287,7 @@ export function Admin() {
       originalPrice: combo.originalPrice,
       comboPrice: combo.comboPrice,
       stock: combo.stock,
-      active: combo.active,
+      active: combo.active
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -843,6 +846,7 @@ Thank you for choosing Vaddadi Pickles!`;
               {[
                 { id: 'dashboard', label: 'Dashboard' },
                 { id: 'products', label: 'Products' },
+                { id: 'combos', label: 'Combos' },
                 { id: 'orders', label: 'Orders' },
                 { id: 'payments', label: `Payments ${pendingPayments ? `(${pendingPayments})` : ''}` },
                 { id: 'labels', label: 'Labels' },
@@ -868,6 +872,7 @@ Thank you for choosing Vaddadi Pickles!`;
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'products', label: 'Products', icon: ShoppingBag },
+            { id: 'combos', label: 'Combos', icon: Package },
             { id: 'orders', label: 'Orders', icon: Package },
             { id: 'payments', label: 'Payments', icon: CreditCard, badge: pendingPayments },
             { id: 'labels', label: 'Labels', icon: StickyNote },
@@ -1081,56 +1086,6 @@ Thank you for choosing Vaddadi Pickles!`;
                         </td>
                       </tr>
                     ))}
-                    {/* Render Combos */}
-                    {combos.map((combo) => (
-                      <tr key={combo.id} className="border-b hover:bg-gray-50 bg-purple-50">
-                        <td className="px-6 py-3">
-                          <div className="w-12 h-12 flex-shrink-0 bg-white rounded flex items-center justify-center text-2xl overflow-hidden border">
-                            {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
-                              <img
-                                src={combo.image}
-                                alt={combo.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              combo.image
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-3">
-                          <div className="font-medium text-gray-800">{combo.name}</div>
-                          <div className="text-xs text-gray-500">Combo</div>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
-                            Combo
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 text-sm">
-                          <div className="font-semibold text-green-600">₹{combo.comboPrice}</div>
-                          <div className="text-xs text-gray-500 line-through">₹{combo.originalPrice}</div>
-                        </td>
-                        <td className="px-6 py-3 text-sm">
-                          {combo.stock} Packs
-                        </td>
-                        <td className="px-6 py-3 text-right">
-                          <button
-                            onClick={() => handleEditCombo(combo)}
-                            className="p-1 hover:bg-blue-100 rounded text-blue-500 transition mr-2"
-                            title="Edit Combo"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => deleteCombo(combo.id)}
-                            className="p-1 hover:bg-red-100 rounded text-red-500 transition"
-                            title="Delete Combo"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1157,55 +1112,6 @@ Thank you for choosing Vaddadi Pickles!`;
                     </div>
                   ))}
                 </div>
-
-                {/* Combos Cards */}
-                {combos.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-purple-700 mt-6 mb-2">Active Combos</h4>
-                    {combos.map((combo) => (
-                      <div key={combo.id} className="p-4 border border-purple-100 rounded-xl bg-purple-50/30 space-y-3">
-                        <div className="flex gap-4">
-                          <div className="w-16 h-16 flex-shrink-0 bg-white rounded-lg flex items-center justify-center text-3xl overflow-hidden border">
-                            {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
-                              <img
-                                src={combo.image}
-                                alt={combo.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              combo.image
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <h5 className="font-bold text-gray-800 text-sm">{combo.name}</h5>
-                            <span className="text-[10px] text-purple-600 font-semibold uppercase">Combo Item</span>
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <button
-                              onClick={() => handleEditCombo(combo)}
-                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg h-fit"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => deleteCombo(combo.id)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg h-fit"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center pt-2 border-t border-purple-100">
-                          <div className="text-xs">
-                            <span className="text-green-600 font-bold">₹{combo.comboPrice}</span>{' '}
-                            <span className="text-gray-400 line-through ml-1">₹{combo.originalPrice}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-500">{combo.stock} Packs in stock</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1366,7 +1272,7 @@ Thank you for choosing Vaddadi Pickles!`;
         )}
 
         {/* Products Management */}
-        {activeTab === 'products' && (
+        {(activeTab === 'products' || activeTab === 'combos') && (
           <div className="space-y-6">
             {/* Add New Product Form */}
             <div className="bg-white rounded-xl shadow-md p-6">
@@ -1376,26 +1282,6 @@ Thank you for choosing Vaddadi Pickles!`;
                   <h3 className="text-xl font-semibold text-gray-800">
                     {isCombo ? (editingComboId ? 'Edit Combo' : 'Add New Combo') : (editingProductId ? 'Edit Product' : 'Add New Item')}
                   </h3>
-                </div>
-                <div className="bg-gray-100 p-1 rounded-lg flex">
-                  <button
-                    onClick={() => {
-                      setIsCombo(false);
-                      setEditingComboId(null);
-                    }}
-                    className={`px-4 py-2 rounded-md transition ${!isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
-                  >
-                    Product
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsCombo(true);
-                      setEditingProductId(null);
-                    }}
-                    className={`px-4 py-2 rounded-md transition ${isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
-                  >
-                    Combo
-                  </button>
                 </div>
               </div>
 
@@ -1540,7 +1426,7 @@ Thank you for choosing Vaddadi Pickles!`;
                             originalPrice: 0,
                             comboPrice: 0,
                             stock: 0,
-                            active: true,
+                            active: true
                           });
                         }}
                         className="w-full mt-4 bg-gray-200 text-gray-800 py-3 rounded-lg font-medium hover:bg-gray-300 transition flex items-center justify-center"
@@ -1762,6 +1648,8 @@ Thank you for choosing Vaddadi Pickles!`;
             </div>
 
             {/* Products List */}
+            {!isCombo && (
+              <div className="w-full">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="p-6 border-b">
                 <h3 className="text-lg font-semibold text-gray-800">
@@ -1965,6 +1853,114 @@ Thank you for choosing Vaddadi Pickles!`;
             </div>
           </div>
         )}
+
+        {/* Combos List */}
+        {isCombo && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden mt-12">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-purple-50">
+              <h3 className="text-xl font-bold text-gray-800">Active Combos</h3>
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+                {combos.length} Combos
+              </span>
+            </div>
+            <div className="overflow-x-auto hidden md:block">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Combo</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Price</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600">Stock</th>
+                    <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {combos.map((combo) => (
+                    <tr key={combo.id} className="border-b hover:bg-gray-50 bg-purple-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-2xl overflow-hidden border shrink-0">
+                            {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
+                              <img src={combo.image} alt={combo.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-2xl">{combo.image}</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-800">{combo.name}</div>
+                            <div className="text-xs text-gray-500">Combo</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="font-semibold text-green-600">₹{combo.comboPrice}</div>
+                        <div className="text-xs text-gray-500 line-through">₹{combo.originalPrice}</div>
+                      </td>
+                      <td className="px-6 py-3 text-sm">
+                        {combo.stock} Packs
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        <button
+                          onClick={() => handleEditCombo(combo)}
+                          className="p-1 hover:bg-blue-100 rounded text-blue-500 transition mr-2"
+                          title="Edit Combo"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => deleteCombo(combo.id)}
+                          className="p-1 hover:bg-red-100 rounded text-red-500 transition"
+                          title="Delete Combo"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Mobile Combos */}
+            <div className="md:hidden p-4 grid gap-4 bg-gray-50">
+              {combos.map((combo) => (
+                <div key={combo.id} className="p-4 border border-purple-100 rounded-xl bg-white shadow-sm space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                        {combo.image.startsWith('http') || combo.image.startsWith('/') ? (
+                          <img src={combo.image} alt={combo.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-2xl">{combo.image}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h5 className="font-bold text-gray-800 text-sm">{combo.name}</h5>
+                        <span className="text-[10px] text-purple-600 font-semibold uppercase">Combo Item</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <button onClick={() => handleEditCombo(combo)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg h-fit">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => deleteCombo(combo.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg h-fit">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-purple-100">
+                    <div className="text-xs">
+                      <span className="text-green-600 font-bold">₹{combo.comboPrice}</span>{' '}
+                      <span className="text-gray-400 line-through ml-1">₹{combo.originalPrice}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">{combo.stock} Packs in stock</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
 
         {/* Orders Management */}
         {activeTab === 'orders' && (

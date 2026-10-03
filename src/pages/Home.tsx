@@ -218,6 +218,60 @@ export function Home() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">What Our Customers Say</h2>
+            <p className="text-gray-600">Real love from pickle lovers across India</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm relative">
+              <div className="text-yellow-400 text-lg mb-4 flex">
+                ★★★★★
+              </div>
+              <p className="text-gray-700 italic mb-4">"The Mango Pickle reminds me of my grandmother's recipe. Absolutely authentic taste and perfectly balanced spices. Will definitely order again!"</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-700">S</div>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Sneha R.</h4>
+                  <p className="text-xs text-gray-500">Hyderabad</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm relative">
+              <div className="text-yellow-400 text-lg mb-4 flex">
+                ★★★★★
+              </div>
+              <p className="text-gray-700 italic mb-4">"I tried the Tomato Pickle and it was a burst of flavors! The packaging was secure and delivery was very fast. Highly recommended for spice lovers."</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700">A</div>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Arjun K.</h4>
+                  <p className="text-xs text-gray-500">Bangalore</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm relative">
+              <div className="text-yellow-400 text-lg mb-4 flex">
+                ★★★★★
+              </div>
+              <p className="text-gray-700 italic mb-4">"The Gongura Pickle is just out of this world. The right amount of tanginess and heat. It goes so well with hot rice and ghee."</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700">P</div>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Priya M.</h4>
+                  <p className="text-xs text-gray-500">Chennai</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Forced update to clear cache on hosting provider */}
     </div>
   );
