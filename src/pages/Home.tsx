@@ -45,24 +45,23 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Authentic Homemade
-                <span className="block text-yellow-300">Pickles</span>
+              <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 tracking-tight">
+                Authentic Homemade <span className="inline md:block text-yellow-300">Pickles</span>
               </h1>
               <p className="text-lg md:text-xl text-green-100 mb-8">
                 Experience the taste of tradition with Vaddadi Pickles. Made with love,
                 natural ingredients, and recipes passed down through generations.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start w-full">
+              <div className="flex flex-row gap-3 sm:gap-4 justify-center md:justify-start w-full">
                 <Link
                   to="/products"
-                  className="w-full sm:w-auto bg-yellow-400 text-green-900 px-8 py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-none bg-yellow-400 text-green-900 px-4 sm:px-8 py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base whitespace-nowrap"
                 >
-                  Shop Now <ArrowRight size={20} />
+                  Shop Now <ArrowRight size={16} className="sm:w-5 sm:h-5" />
                 </Link>
                 <Link
                   to="/orders"
-                  className="w-full sm:w-auto border-2 border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition text-center"
+                  className="flex-1 sm:flex-none border-2 border-white px-4 sm:px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition flex items-center justify-center text-sm sm:text-base whitespace-nowrap"
                 >
                   Track Order
                 </Link>
