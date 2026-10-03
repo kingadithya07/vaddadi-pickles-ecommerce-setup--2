@@ -16,6 +16,7 @@ export function Cart() {
     const result = applyCoupon(couponCode);
     setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
     if (result.success) setCouponCode('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCheckout = () => {
@@ -190,6 +191,7 @@ export function Cart() {
                         const result = applyCoupon(c.code);
                         setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
                         if (result.success) setCouponCode('');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }
                     }}
                     className={`p-3 rounded-lg border flex flex-col gap-1 transition ${

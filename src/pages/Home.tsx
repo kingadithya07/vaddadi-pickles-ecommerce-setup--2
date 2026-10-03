@@ -52,16 +52,16 @@ export function Home() {
                 Experience the taste of tradition with Vaddadi Pickles. Made with love,
                 natural ingredients, and recipes passed down through generations.
               </p>
-              <div className="flex flex-row gap-2 sm:gap-4 justify-center md:justify-start">
+              <div className="flex flex-row gap-2 sm:gap-4 justify-center md:justify-start w-full px-1 sm:px-0">
                 <Link
                   to="/products"
-                  className="bg-yellow-400 text-green-900 px-4 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-2 text-[0.8rem] min-[375px]:text-sm sm:text-base whitespace-nowrap"
+                  className="flex-1 sm:flex-none bg-yellow-400 text-green-900 px-2 sm:px-8 py-3 rounded-full font-semibold hover:bg-yellow-300 transition flex items-center justify-center gap-1 sm:gap-2 text-sm min-[375px]:text-base whitespace-nowrap shadow-md"
                 >
-                  Shop Now <ArrowRight size={16} className="sm:w-5 sm:h-5" />
+                  Shop Now <ArrowRight size={18} className="sm:w-5 sm:h-5" />
                 </Link>
                 <Link
                   to="/orders"
-                  className="border-2 border-white px-4 sm:px-8 py-2.5 sm:py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition flex items-center justify-center text-[0.8rem] min-[375px]:text-sm sm:text-base whitespace-nowrap"
+                  className="flex-1 sm:flex-none border-2 border-white px-2 sm:px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-800 transition flex items-center justify-center text-sm min-[375px]:text-base whitespace-nowrap shadow-md bg-green-800/20 sm:bg-transparent"
                 >
                   Track Order
                 </Link>
