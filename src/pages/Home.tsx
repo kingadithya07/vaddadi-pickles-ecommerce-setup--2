@@ -72,12 +72,12 @@ export function Home() {
                 <img
                   src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
                   alt="Vaddadi Pickles"
-                  className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
+                  className="w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
                 />
-                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-2xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>
-                <div className="absolute -bottom-2 sm:-bottom-4 -left-2 sm:-left-4 text-2xl sm:text-4xl md:text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
-                <div className="absolute top-1/2 -left-4 sm:-left-8 text-xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
-                <div className="absolute top-1/2 -right-4 sm:-right-8 text-xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
+                <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-3xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>
+                <div className="absolute -bottom-2 sm:-bottom-4 -left-2 sm:-left-4 text-3xl sm:text-4xl md:text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌶️</div>
+                <div className="absolute top-1/2 -left-4 sm:-left-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🍋</div>
+                <div className="absolute top-1/2 -right-4 sm:-right-8 text-2xl sm:text-3xl md:text-4xl animate-bounce" style={{ animationDelay: '0.6s' }}>🧄</div>
               </div>
             </div>
           </div>
