@@ -12,16 +12,24 @@ export function Products() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialSearch = queryParams.get('search') || '';
+  const initialCategory = queryParams.get('category') || 'all';
 
   const [search, setSearch] = useState(initialSearch);
-  const [category, setCategory] = useState('all');
+  const [category, setCategory] = useState(initialCategory.toLowerCase());
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const urlSearch = queryParams.get('search');
+    const urlCategory = queryParams.get('category');
     if (urlSearch !== null) {
       setSearch(urlSearch);
     }
+    if (urlCategory !== null) {
+      setCategory(urlCategory.toLowerCase());
+    } else {
+      setCategory('all');
+    }
+    window.scrollTo(0, 0);
   }, [location.search]);
 
   const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
