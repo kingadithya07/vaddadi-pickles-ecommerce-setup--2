@@ -44,6 +44,7 @@ export function Admin() {
   const updateProduct = useStore((state) => state.updateProduct);
   const deleteProduct = useStore((state) => state.deleteProduct);
   const addCombo = useStore((state) => state.addCombo);
+  const updateCombo = useStore((state) => state.updateCombo);
   const combos = useStore((state) => state.combos);
   const deleteCombo = useStore((state) => state.deleteCombo);
   const settings = useStore((state) => state.settings);
@@ -108,6 +109,7 @@ export function Admin() {
 
   // Product Form State
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editingComboId, setEditingComboId] = useState<string | null>(null);
   const [isCombo, setIsCombo] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -170,7 +172,7 @@ export function Admin() {
       }
 
       const combo = {
-        id: `combo_${Date.now()}`,
+        id: editingComboId || `combo_${Date.now()}`,
         name: newCombo.name,
         description: newCombo.description,
         image: newCombo.image,
@@ -178,11 +180,18 @@ export function Admin() {
         originalPrice: newCombo.originalPrice,
         comboPrice: newCombo.comboPrice,
         stock: newCombo.stock,
-        active: true,
+        active: newCombo.active !== undefined ? newCombo.active : true,
       };
 
-      await addCombo(combo);
+      if (editingComboId) {
+        await updateCombo(combo);
+        alert('Combo updated successfully!');
+      } else {
+        await addCombo(combo);
+        alert('Combo added successfully!');
+      }
 
+      setEditingComboId(null);
       setNewCombo({
         name: '',
         description: '',
@@ -193,7 +202,6 @@ export function Admin() {
         stock: 0,
       });
 
-      alert('Combo added successfully!');
       return;
     }
 
@@ -263,6 +271,22 @@ export function Admin() {
       hasNoGarlicOption: product.hasNoGarlicOption || false,
     });
     setEditingProductId(product.id);
+  };
+
+  const handleEditCombo = (combo: ComboProduct) => {
+    setIsCombo(true);
+    setEditingComboId(combo.id);
+    setNewCombo({
+      name: combo.name,
+      description: combo.description,
+      image: combo.image,
+      selectedProducts: combo.products,
+      originalPrice: combo.originalPrice,
+      comboPrice: combo.comboPrice,
+      stock: combo.stock,
+      active: combo.active,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (!isAdmin) {
@@ -1091,6 +1115,13 @@ Thank you for choosing Vaddadi Pickles!`;
                         </td>
                         <td className="px-6 py-3 text-right">
                           <button
+                            onClick={() => handleEditCombo(combo)}
+                            className="p-1 hover:bg-blue-100 rounded text-blue-500 transition mr-2"
+                            title="Edit Combo"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
                             onClick={() => deleteCombo(combo.id)}
                             className="p-1 hover:bg-red-100 rounded text-red-500 transition"
                             title="Delete Combo"
@@ -1149,12 +1180,20 @@ Thank you for choosing Vaddadi Pickles!`;
                             <h5 className="font-bold text-gray-800 text-sm">{combo.name}</h5>
                             <span className="text-[10px] text-purple-600 font-semibold uppercase">Combo Item</span>
                           </div>
-                          <button
-                            onClick={() => deleteCombo(combo.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg h-fit"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => handleEditCombo(combo)}
+                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg h-fit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => deleteCombo(combo.id)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg h-fit"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t border-purple-100">
                           <div className="text-xs">
@@ -1335,18 +1374,24 @@ Thank you for choosing Vaddadi Pickles!`;
                 <div className="flex items-center gap-3">
                   <Plus className="text-green-600" size={24} />
                   <h3 className="text-xl font-semibold text-gray-800">
-                    {editingProductId ? 'Edit Product' : 'Add New Item'}
+                    {isCombo ? (editingComboId ? 'Edit Combo' : 'Add New Combo') : (editingProductId ? 'Edit Product' : 'Add New Item')}
                   </h3>
                 </div>
                 <div className="bg-gray-100 p-1 rounded-lg flex">
                   <button
-                    onClick={() => setIsCombo(false)}
+                    onClick={() => {
+                      setIsCombo(false);
+                      setEditingComboId(null);
+                    }}
                     className={`px-4 py-2 rounded-md transition ${!isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
                   >
                     Product
                   </button>
                   <button
-                    onClick={() => setIsCombo(true)}
+                    onClick={() => {
+                      setIsCombo(true);
+                      setEditingProductId(null);
+                    }}
                     className={`px-4 py-2 rounded-md transition ${isCombo ? 'bg-white shadow text-green-700 font-medium' : 'text-gray-500'}`}
                   >
                     Combo
@@ -1479,9 +1524,30 @@ Thank you for choosing Vaddadi Pickles!`;
                       onClick={handleAddProduct}
                       className="w-full mt-8 flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition"
                     >
-                      <Plus size={20} />
-                      Add Combo
+                      {editingComboId ? <Edit size={20} /> : <Plus size={20} />}
+                      {editingComboId ? 'Update Combo' : 'Add Combo'}
                     </button>
+                    {editingComboId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingComboId(null);
+                          setNewCombo({
+                            name: '',
+                            description: '',
+                            image: '',
+                            selectedProducts: [],
+                            originalPrice: 0,
+                            comboPrice: 0,
+                            stock: 0,
+                            active: true,
+                          });
+                        }}
+                        className="w-full mt-4 bg-gray-200 text-gray-800 py-3 rounded-lg font-medium hover:bg-gray-300 transition flex items-center justify-center"
+                      >
+                        Cancel Edit
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
