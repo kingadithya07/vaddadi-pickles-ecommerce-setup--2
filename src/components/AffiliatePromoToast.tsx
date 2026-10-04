@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { X, DollarSign, TrendingUp } from 'lucide-react';
+import { X, IndianRupee, TrendingUp } from 'lucide-react';
 
 export function AffiliatePromoToast() {
   const [isVisible, setIsVisible] = useState(false);
@@ -38,7 +38,7 @@ export function AffiliatePromoToast() {
         
         <div className="flex flex-row p-4 gap-4 items-center">
           <div className="bg-green-100 p-3 rounded-full text-green-600 shrink-0">
-            <DollarSign size={24} className="animate-pulse" />
+            <IndianRupee size={24} className="animate-pulse" />
           </div>
           <div className="flex-1 pr-6">
             <h3 className="font-bold text-gray-800 text-sm mb-1 flex items-center gap-1">
