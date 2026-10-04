@@ -16,6 +16,11 @@ export default defineConfig({
     tailwindcss(), 
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true
+      },
       includeAssets: ['logo192.png', 'logo512.png'],
       manifest: {
         name: 'Vaddadi Pickles',
