@@ -30,6 +30,8 @@ const Wishlist = React.lazy(() => import('./pages/Wishlist').then(module => ({ d
 
 import { WhatsAppButton } from './components/WhatsAppButton';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { WelcomePopup } from './components/WelcomePopup';
+import { AffiliatePromoToast } from './components/AffiliatePromoToast';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -50,6 +52,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 
       <WhatsAppButton />
       <PWAInstallPrompt />
+      <WelcomePopup />
+      <AffiliatePromoToast />
     </div>
   );
 }
