@@ -3,12 +3,13 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { App } from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+// @ts-ignore
 import { registerSW } from "virtual:pwa-register";
 
 // Force check for service worker updates immediately on load
 registerSW({
   immediate: true,
-  onRegistered(r) {
+  onRegistered(r: any) {
     if (r) {
       // Check for updates periodically (every hour)
       setInterval(() => {
