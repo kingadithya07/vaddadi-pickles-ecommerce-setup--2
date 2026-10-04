@@ -119,6 +119,7 @@ interface StoreState {
   initializeRealtimeProducts: () => () => void;
   initializeRealtimeCoupons: () => () => void;
   initializeRealtimeOrders: () => () => void;
+  initializeRealtimeVisits: () => () => void;
 
   // Analytics actions
   dailyVisits: number;
@@ -1415,6 +1416,24 @@ export const useStore = create<StoreState>()(
                   orders: s.orders.filter((o) => o.id !== oldRecord.id),
                 }));
               }
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      },
+
+      initializeRealtimeVisits: () => {
+        const channelId = `visits-sync-${Date.now()}`;
+        const channel = supabase
+          .channel(channelId)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'daily_visits' },
+            () => {
+              get().fetchDailyVisits();
             }
           )
           .subscribe();

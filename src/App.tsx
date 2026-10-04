@@ -100,6 +100,7 @@ export function App() {
     const cleanupProducts = useStore.getState().initializeRealtimeProducts();
     const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();
     const cleanupOrders = useStore.getState().initializeRealtimeOrders();
+    const cleanupVisits = useStore.getState().initializeRealtimeVisits();
     useStore.getState().subscribeToFeedbacks();
     let cleanupUserSync = () => { };
 
@@ -153,6 +154,7 @@ export function App() {
       cleanupProducts();
       cleanupCoupons();
       cleanupOrders();
+      cleanupVisits();
       cleanupUserSync();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
