@@ -35,6 +35,7 @@ export function Admin() {
   const coupons = useStore((state) => state.coupons);
   const products = useStore((state) => state.products);
   const isAdmin = useStore((state) => state.isAdmin);
+  const setAdmin = useStore((state) => state.setAdmin);
   const updateOrderStatus = useStore((state) => state.updateOrderStatus);
   const updatePaymentStatus = useStore((state) => state.updatePaymentStatus);
   const updateOrderTracking = useStore((state) => state.updateOrderTracking);
@@ -312,8 +313,10 @@ export function Admin() {
         
       if (error || !data || data.role !== 'admin') {
         // Not a real admin, force logout or navigate away
+        setAdmin(false);
         navigate('/');
       } else {
+        setAdmin(true);
         setIsVerifyingAdmin(false);
       }
     }
@@ -427,7 +430,7 @@ ${trackingInfo}
 🎁 *Earn Money with Us!*
 Get 10% on every order placed through your referral link! Login to your profile to get your unique link and start earning today.
 
-Track your order: https://vaddadi-pickles.onrender.com/orders
+Track your order: ${window.location.origin}/orders
 
 Thank you for choosing Vaddadi Pickles!`;
 
@@ -1181,7 +1184,7 @@ Thank you for choosing Vaddadi Pickles!`;
                   {abandonedCarts.map((cartInfo) => {
                     const cartTotal = cartInfo.cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
                     const handleRemind = () => {
-                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at https://vaddadi-pickles.onrender.com/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
+                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at ${window.location.origin}/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
                       window.open(`https://wa.me/${cartInfo.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                     };
 
@@ -2193,9 +2196,9 @@ Thank you for choosing Vaddadi Pickles!`;
                             const itemsHtml = order.items.map(item => `
                               <tr class="item-row">
                                 <td>
-                                  <div class="item-name">${item.product.name}</div>
+                                  <div class="item-name">${sanitizeHtml(item.product.name)}</div>
                                   <div class="item-weight">
-                                    ${item.variant.weight}
+                                    ${sanitizeHtml(item.variant.weight)}
                                     ${item.noGarlic ? '<span style="margin-left: 8px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 9999px; font-size: 10px;">No Garlic</span>' : ''}
                                   </div>
                                 </td>

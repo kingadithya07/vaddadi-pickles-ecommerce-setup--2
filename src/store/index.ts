@@ -873,16 +873,24 @@ export const useStore = create<StoreState>()(
         }));
       },
       broadcastTyping: (feedbackId, sender) => {
+        // Reuse a stable channel name so we don't create infinite channels on every keystroke
         const channel = supabase.channel('feedback_typing', { config: { broadcast: { self: false } } });
-        channel.send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: { feedbackId, sender }
+        channel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            channel.send({
+              type: 'broadcast',
+              event: 'typing',
+              payload: { feedbackId, sender }
+            });
+            // Immediately cleanup after sending
+            setTimeout(() => supabase.removeChannel(channel), 500);
+          }
         });
       },
       subscribeToFeedbacks: () => {
         // Postgres subscription for real-time messages
-        const channel = supabase.channel('site_feedback_changes')
+        const channelId = `site_feedback_changes_${Date.now()}`;
+        const channel = supabase.channel(channelId)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'site_feedback' },
@@ -928,6 +936,7 @@ export const useStore = create<StoreState>()(
           .subscribe();
 
         // Broadcast subscription for typing indicators
+        let typingTimeout: NodeJS.Timeout;
         const typingChannel = supabase.channel('feedback_typing');
         typingChannel.on(
           'broadcast',
@@ -935,8 +944,10 @@ export const useStore = create<StoreState>()(
           (payload) => {
             const { feedbackId, sender } = payload.payload;
             get().setTypingStatus(feedbackId, sender);
+            
+            if (typingTimeout) clearTimeout(typingTimeout);
             // Clear typing status after 3 seconds
-            setTimeout(() => {
+            typingTimeout = setTimeout(() => {
               get().setTypingStatus(feedbackId, '');
             }, 3000);
           }
@@ -945,6 +956,7 @@ export const useStore = create<StoreState>()(
         return () => {
           supabase.removeChannel(channel);
           supabase.removeChannel(typingChannel);
+          if (typingTimeout) clearTimeout(typingTimeout);
         };
       },
 
@@ -1489,6 +1501,9 @@ export const useStore = create<StoreState>()(
     {
       name: 'vaddadi-pickles-store',
       version: 7,
+      partialize: (state) => Object.fromEntries(
+        Object.entries(state).filter(([key]) => !['isAdmin'].includes(key))
+      ),
       migrate: (persistedState: any, version) => {
         if (version === 0) {
           // Migration from version 0 to 2

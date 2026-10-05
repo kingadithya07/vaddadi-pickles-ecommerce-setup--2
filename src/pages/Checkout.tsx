@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -7,7 +7,7 @@ import { Order, Address } from '../types';
 import { statesAndCities } from '../data/locations';
 
 import { useCartTotals } from '../hooks/useCartTotals';
-import { lookupPincode } from '../utils/pincode';
+import { lookupPincode, PostOfficeBranch } from '../utils/pincode';
 import { sendTelegramNotification } from '../lib/telegram';
 import { formatPhoneNumber } from '../utils/phone';
 import toast from 'react-hot-toast';
@@ -24,6 +24,16 @@ export function Checkout() {
   const [isMobile, setIsMobile] = useState(false);
   const [showQR, setShowQR] = useState(true);
   const [showUtrHelp, setShowUtrHelp] = useState(false);
+
+  // Track timeouts to prevent state updates on unmounted components
+  const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts when component unmounts
+      timeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   // Address selection state
   const userAddresses = user?.addresses || [];
@@ -46,7 +56,7 @@ export function Checkout() {
   const [deliveryName, setDeliveryName] = useState(user?.name || '');
   const [deliveryPhone, setDeliveryPhone] = useState(user?.phone || '');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [pincodeBranches, setPincodeBranches] = useState<any[]>([]);
+  const [pincodeBranches, setPincodeBranches] = useState<PostOfficeBranch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState('');
 
   // Detect mobile device
@@ -106,7 +116,8 @@ export function Checkout() {
   const copyUpiId = () => {
     navigator.clipboard.writeText(upiId);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const t = setTimeout(() => setCopied(false), 2000);
+    timeoutsRef.current.push(t);
   };
 
   const openPaymentApp = (appUrl: string, fallbackUrl: string) => {
@@ -114,14 +125,16 @@ export function Checkout() {
     window.location.href = appUrl;
 
     // If app doesn't open within 2 seconds, try fallback
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       if (Date.now() - startTime < 2500) {
         window.location.href = fallbackUrl;
       }
     }, 2000);
+    timeoutsRef.current.push(t2);
   };
 
   const handlePlaceOrder = async () => {
+    if (!user) return toast.error('You must be logged in to place an order.');
     if (paymentMethod !== 'cod') {
       if (!transactionId) {
         toast.error('Please enter transaction ID');
@@ -210,9 +223,9 @@ export function Checkout() {
 
     const order: Order = {
       id: orderId,
-      userId: user!.id,
+      userId: user.id,
       userName: finalName,
-      userEmail: user!.email,
+      userEmail: user.email,
       userPhone: finalPhone,
       items: cart,
       total: subtotal,

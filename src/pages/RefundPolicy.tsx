@@ -1,8 +1,13 @@
 import { RefreshCw, AlertTriangle, CheckCircle, XCircle, Phone, Mail, DollarSign, Package } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function RefundPolicy() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
+            <Helmet>
+                <title>Refund & Return Policy - Vaddadi Pickles</title>
+                <meta name="description" content="View our Refund and Return policy. Learn about our guidelines for food product returns and issue resolution." />
+            </Helmet>
             <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                 <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-2">REFUND & RETURN POLICY</h1>
                 <h2 className="text-xl text-green-600 font-semibold mb-6">Vaddadi Pickles</h2>

@@ -1,8 +1,13 @@
 import { ShoppingBag, DollarSign, Truck, AlertTriangle, UserCheck, ShieldAlert, Phone, Mail, CheckCircle, Info } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function TermsAndConditions() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
+            <Helmet>
+                <title>Terms & Conditions - Vaddadi Pickles</title>
+                <meta name="description" content="Read the Terms and Conditions for using Vaddadi Pickles website and ordering our authentic homemade products." />
+            </Helmet>
             <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                 <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-2">TERMS & CONDITIONS</h1>
                 <h2 className="text-xl text-green-600 font-semibold mb-6">Vaddadi Pickles</h2>

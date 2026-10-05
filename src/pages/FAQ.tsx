@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const faqs = [
   {
@@ -37,6 +38,10 @@ export function FAQ() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
+      <Helmet>
+        <title>FAQ - Vaddadi Pickles</title>
+        <meta name="description" content="Got questions? Read our Frequently Asked Questions about shipping, ingredients, and storage for Vaddadi Pickles." />
+      </Helmet>
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h1>
         <p className="text-lg text-gray-600">

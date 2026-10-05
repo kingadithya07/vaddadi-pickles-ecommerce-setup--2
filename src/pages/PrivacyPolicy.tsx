@@ -1,8 +1,13 @@
 import { Shield, Lock, Eye, Share2, Cookie, UserCheck, RefreshCw, Phone, Mail } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 export function PrivacyPolicy() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
+            <Helmet>
+                <title>Privacy Policy - Vaddadi Pickles</title>
+                <meta name="description" content="Read the Privacy Policy of Vaddadi Pickles. Understand how we collect, use, and safeguard your data." />
+            </Helmet>
             <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                 <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-2">PRIVACY POLICY</h1>
                 <h2 className="text-xl text-green-600 font-semibold mb-6">Vaddadi Pickles</h2>
