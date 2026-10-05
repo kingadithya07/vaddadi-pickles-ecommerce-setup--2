@@ -8,6 +8,7 @@ import { useStore } from './store';
 import { supabase } from './lib/supabase';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 
 // Lazy load pages for better performance
@@ -323,9 +324,11 @@ export function App() {
           <Route
             path="/admin"
             element={
-              <AdminLayout>
-                <Admin />
-              </AdminLayout>
+              <ProtectedRoute>
+                <AdminLayout>
+                  <Admin />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
         </Routes>
