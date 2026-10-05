@@ -17,6 +17,16 @@
     <meta property="og:type" content="website" />
   </head>
   <body>
+    <div id="error-display" style="color: red; padding: 20px; font-family: monospace; z-index: 9999; position: relative;"></div>
+    <script>
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        document.getElementById('error-display').innerText += '\nError: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo + '\nColumn: ' + columnNo + '\nStack: ' + (error ? error.stack : '') + '\n\n';
+        return false;
+      };
+      window.onunhandledrejection = function(event) {
+        document.getElementById('error-display').innerText += '\nUnhandled Promise Rejection: ' + event.reason + '\n\n';
+      };
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
