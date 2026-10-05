@@ -16,7 +16,7 @@ import { Order, Coupon, Product, ProductVariant, ComboProduct } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 import { AdminAffiliates } from '../components/AdminAffiliates';
 import { supabase } from '../lib/supabase';
-import { SITE_URL } from '../utils/constants';
+import toast from 'react-hot-toast';
 import { sanitizeHtml } from '../utils/sanitize';
 
 type Tab = 'dashboard' | 'products' | 'combos' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';

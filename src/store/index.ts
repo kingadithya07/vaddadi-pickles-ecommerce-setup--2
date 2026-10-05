@@ -105,7 +105,7 @@ interface StoreState {
   typingStatus: Record<string, string>;
   setTypingStatus: (feedbackId: string, sender: string) => void;
   broadcastTyping: (feedbackId: string, sender: string) => void;
-  subscribeToFeedbacks: () => void;
+  subscribeToFeedbacks: () => () => void;
 
   // Admin actions
   setAdmin: (isAdmin: boolean) => void;
