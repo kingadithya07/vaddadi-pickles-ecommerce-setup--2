@@ -208,10 +208,10 @@ export function Checkout() {
       try {
         const { data, error } = await supabase
           .from('affiliates')
-          .select('status')
+          .select('status, user_id')
           .eq('referral_code', rawAffiliateCode)
           .single();
-        if (!error && data && data.status === 'active') {
+        if (!error && data && data.status === 'active' && data.user_id !== user.id) {
           validatedAffiliateCode = rawAffiliateCode;
         } else {
           localStorage.removeItem('affiliate_ref');

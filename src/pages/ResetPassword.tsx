@@ -47,8 +47,8 @@ export function ResetPassword() {
 
             if (error) throw error;
 
-            // Sign out the recovery session so they are forced to log in with the new password
-            await supabase.auth.signOut();
+            // Sign out from ALL devices to ensure complete security
+            await supabase.auth.signOut({ scope: 'global' });
             
             // Hard refresh and redirect to login page immediately
             window.location.href = '/login';
@@ -100,6 +100,7 @@ export function ResetPassword() {
                                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
+                                    autoComplete="new-password"
                                     required
                                     placeholder="New Password"
                                     value={password}
@@ -119,6 +120,7 @@ export function ResetPassword() {
                                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
+                                    autoComplete="new-password"
                                     required
                                     placeholder="Confirm New Password"
                                     value={confirmPassword}
