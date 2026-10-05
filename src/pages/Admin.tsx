@@ -360,7 +360,8 @@ export function Admin() {
   const todaysOrdersCount = orders.filter(o => new Date(o.createdAt) >= todayStart).length;
   
   const customerOrderCounts = orders.reduce((acc, order) => {
-    acc[order.userId || order.userPhone] = (acc[order.userId || order.userPhone] || 0) + 1;
+    const phone = order.userPhone || 'unknown';
+    acc[phone] = (acc[phone] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   const repeatCustomersCount = Object.values(customerOrderCounts).filter(count => count > 1).length;
