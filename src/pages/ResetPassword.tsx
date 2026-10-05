@@ -50,6 +50,9 @@ export function ResetPassword() {
             // Sign out from ALL devices to ensure complete security
             await supabase.auth.signOut({ scope: 'global' });
             
+            // Wait 500ms to guarantee Supabase finishes clearing the session
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             // Hard refresh and redirect to login page immediately
             window.location.href = '/login';
         } catch (err: any) {

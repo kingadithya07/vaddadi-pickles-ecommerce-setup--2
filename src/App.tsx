@@ -89,6 +89,17 @@ export function App() {
   }, [isAdmin]);
 
   React.useEffect(() => {
+    // Force homepage on new app open, except for password reset flows
+    const isAppInitialized = sessionStorage.getItem('app_initialized');
+    if (!isAppInitialized) {
+      sessionStorage.setItem('app_initialized', 'true');
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      if (path !== '/' && !hash.includes('type=recovery') && !path.includes('/reset-password')) {
+        window.location.href = '/';
+      }
+    }
+
     fetchInitialData();
 
     // Increment daily visit on first load per session per day
