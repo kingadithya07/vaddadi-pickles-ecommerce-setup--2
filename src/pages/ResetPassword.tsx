@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -10,7 +10,6 @@ export function ResetPassword() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [expiredLink, setExpiredLink] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
         // Check if we have an active recovery session
@@ -48,7 +47,11 @@ export function ResetPassword() {
 
             if (error) throw error;
 
-            navigate('/auth-success', { state: { type: 'password_reset' } });
+            // Sign out the recovery session so they are forced to log in with the new password
+            await supabase.auth.signOut();
+            
+            // Hard refresh and redirect to login page immediately
+            window.location.href = '/login';
         } catch (err: any) {
             setError(err.message || 'An error occurred. Please try again.');
         } finally {
