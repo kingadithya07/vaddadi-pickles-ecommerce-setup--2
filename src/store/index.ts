@@ -889,7 +889,7 @@ export const useStore = create<StoreState>()(
       },
       subscribeToFeedbacks: () => {
         // Postgres subscription for real-time messages
-        const channelId = `site_feedback_changes_${Date.now()}`;
+        const channelId = `site_feedback_changes_${crypto.randomUUID()}`;
         const channel = supabase.channel(channelId)
           .on(
             'postgres_changes',
@@ -1223,7 +1223,7 @@ export const useStore = create<StoreState>()(
         const user = get().user;
         if (!user) return () => { };
 
-        const channelId = `user-sync-${user.id}-${Date.now()}`;
+        const channelId = `user-sync-${user.id}-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1260,7 +1260,7 @@ export const useStore = create<StoreState>()(
         const state = get();
         if (!state.isAdmin) return () => {};
 
-        const channelId = `admin-profiles-sync-${Date.now()}`;
+        const channelId = `admin-profiles-sync-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1284,7 +1284,7 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeSettings: () => {
-        const channelId = `settings-${Date.now()}`;
+        const channelId = `settings-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1315,7 +1315,7 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeProducts: () => {
-        const channelId = `products-sync-${Date.now()}`;
+        const channelId = `products-sync-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1377,7 +1377,7 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeOrders: () => {
-        const channelId = `orders-sync-${Date.now()}`;
+        const channelId = `orders-sync-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1444,7 +1444,7 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeVisits: () => {
-        const channelId = `visits-sync-${Date.now()}`;
+        const channelId = `visits-sync-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
@@ -1462,7 +1462,7 @@ export const useStore = create<StoreState>()(
       },
 
       initializeRealtimeCoupons: () => {
-        const channelId = `coupons-sync-${Date.now()}`;
+        const channelId = `coupons-sync-${crypto.randomUUID()}`;
         const channel = supabase
           .channel(channelId)
           .on(
