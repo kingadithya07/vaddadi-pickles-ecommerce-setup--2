@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -10,6 +10,8 @@ import { useCartTotals } from '../hooks/useCartTotals';
 import { lookupPincode } from '../utils/pincode';
 import { sendTelegramNotification } from '../lib/telegram';
 import { formatPhoneNumber } from '../utils/phone';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 export function Checkout() {
   const { cart, user, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
@@ -87,7 +89,7 @@ export function Checkout() {
   // UPI Payment details
   const upiId = settings.upiId;
   const merchantName = settings.businessAddress.name;
-  const orderId = `ORD-${Date.now()}`;
+  const orderId = useMemo(() => `ORD-${crypto.randomUUID().slice(0, 8).toUpperCase()}`, []);
 
   // IMPORTANT: Use exact same amount format for QR code and display
   // UPI spec requires amount with 2 decimal places
@@ -122,11 +124,11 @@ export function Checkout() {
   const handlePlaceOrder = async () => {
     if (paymentMethod !== 'cod') {
       if (!transactionId) {
-        alert('Please enter transaction ID');
+        toast.error('Please enter transaction ID');
         return;
       }
-      if (!/^\d{12}$/.test(transactionId)) {
-        alert('Transaction ID must be exactly 12 numeric digits');
+      if (!/^[A-Za-z0-9]{12,22}$/.test(transactionId)) {
+        toast.error('Transaction ID (UTR) must be between 12 and 22 characters');
         return;
       }
     }
@@ -138,15 +140,15 @@ export function Checkout() {
 
     if (useNewAddress || selectedAddressId === 'new') {
       if (!newAddress.pincode) {
-        alert('Please enter your pincode for delivery.');
+        toast.error('Please enter your pincode for delivery.');
         return;
       }
       if (newAddress.pincode.length !== 6) {
-        alert('Please enter a valid 6-digit pincode.');
+        toast.error('Please enter a valid 6-digit pincode.');
         return;
       }
       if (!deliveryName || !deliveryPhone || !newAddress.street || !newAddress.city || !newAddress.state) {
-        alert('Please fill all delivery address fields');
+        toast.error('Please fill all delivery address fields');
         return;
       }
       
@@ -173,7 +175,7 @@ export function Checkout() {
     } else {
       const selectedAddr = userAddresses.find(addr => addr.id === selectedAddressId);
       if (!selectedAddr) {
-        alert('Please select a valid address');
+        toast.error('Please select a valid address');
         return;
       }
       finalAddress = {
@@ -187,6 +189,25 @@ export function Checkout() {
       finalPhone = formatPhoneNumber(selectedAddr.phone);
     }
 
+    let validatedAffiliateCode = undefined;
+    const rawAffiliateCode = localStorage.getItem('affiliate_ref');
+    if (rawAffiliateCode) {
+      try {
+        const { data, error } = await supabase
+          .from('affiliates')
+          .select('status')
+          .eq('referral_code', rawAffiliateCode)
+          .single();
+        if (!error && data && data.status === 'active') {
+          validatedAffiliateCode = rawAffiliateCode;
+        } else {
+          localStorage.removeItem('affiliate_ref');
+        }
+      } catch (err) {
+        console.error('Affiliate validation error', err);
+      }
+    }
+
     const order: Order = {
       id: orderId,
       userId: user!.id,
@@ -198,7 +219,7 @@ export function Checkout() {
       discount,
       finalAmount: total,
       couponCode: appliedCoupon?.code,
-      affiliateCode: localStorage.getItem('affiliate_ref') || undefined,
+      affiliateCode: validatedAffiliateCode,
       address: finalAddress,
       status: 'payment_pending',
       paymentStatus: 'awaiting_approval',
@@ -215,7 +236,7 @@ export function Checkout() {
       clearCart();
       navigate('/order-success', { state: { orderId: order.id } });
     } catch (error: any) {
-      alert(`Failed to place order. Error: ${error?.message || JSON.stringify(error)}`);
+      toast.error(`Failed to place order. Error: ${error?.message || JSON.stringify(error)}`);
       console.error(error);
     }
   };

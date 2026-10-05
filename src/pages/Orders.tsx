@@ -7,6 +7,7 @@ import {
 import { useStore } from '../store';
 import { Order } from '../types';
 import { getTrackingUrl } from '../utils/tracking';
+import { sanitizeHtml } from '../utils/sanitize';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
@@ -57,9 +58,9 @@ export function Orders() {
     const itemsHtml = order.items.map(item => `
       <tr class="item-row">
         <td>
-          <div class="item-name">${item.product.name}</div>
+          <div class="item-name">${sanitizeHtml(item.product.name)}</div>
           <div class="item-weight">
-            ${item.variant.weight}
+            ${sanitizeHtml(item.variant.weight)}
             ${item.noGarlic ? '<span style="margin-left: 8px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 9999px; font-size: 10px;">No Garlic</span>' : ''}
           </div>
         </td>
@@ -111,22 +112,22 @@ export function Orders() {
           </div>
           <div class="invoice-title">
             <h2>INVOICE</h2>
-            <p>#INV-${order.id.slice(-8).toUpperCase()}</p>
+            <p>#INV-${sanitizeHtml(order.id).slice(-8).toUpperCase()}</p>
           </div>
         </div>
 
         <div class="details-grid">
           <div class="detail-box">
             <h3>Billed To</h3>
-            <p><strong>${order.userName}</strong><br>${order.userEmail}<br>${order.userPhone}</p>
+            <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(order.userPhone)}</p>
           </div>
           <div class="detail-box">
             <h3>Shipped To</h3>
-            <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>PIN: ${order.address.pincode}</p>
+            <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}</p>
           </div>
           <div class="detail-box">
             <h3>Order Details</h3>
-            <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${order.id}<br><strong>Payment:</strong> ${order.paymentMethod.toUpperCase()}</p>
+            <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${sanitizeHtml(order.id)}<br><strong>Payment:</strong> ${sanitizeHtml(order.paymentMethod).toUpperCase()}</p>
           </div>
         </div>
 

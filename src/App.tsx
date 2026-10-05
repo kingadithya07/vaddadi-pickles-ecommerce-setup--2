@@ -6,6 +6,8 @@ import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { useStore } from './store';
 import { supabase } from './lib/supabase';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Toaster } from 'react-hot-toast';
 
 
 // Lazy load pages for better performance
@@ -101,7 +103,7 @@ export function App() {
     const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();
     const cleanupOrders = useStore.getState().initializeRealtimeOrders();
     const cleanupVisits = useStore.getState().initializeRealtimeVisits();
-    useStore.getState().subscribeToFeedbacks();
+    const cleanupFeedbacks = useStore.getState().subscribeToFeedbacks();
     let cleanupUserSync = () => { };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
@@ -155,6 +157,7 @@ export function App() {
       cleanupCoupons();
       cleanupOrders();
       cleanupVisits();
+      if (cleanupFeedbacks) cleanupFeedbacks();
       cleanupUserSync();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
@@ -167,8 +170,10 @@ export function App() {
 
   return (
     <HelmetProvider>
+      <Toaster position="bottom-center" />
       <Router>
         <ScrollToTop />
+        <ErrorBoundary>
         <Suspense fallback={<Loading />}>
         <Routes>
           <Route
@@ -325,6 +330,7 @@ export function App() {
           />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
       </Router>
     </HelmetProvider>
   );

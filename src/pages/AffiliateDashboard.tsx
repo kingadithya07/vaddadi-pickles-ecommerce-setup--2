@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { Navigate } from 'react-router-dom';
 import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save } from 'lucide-react';
 import { Affiliate, AffiliateSale } from '../types';
+import { SITE_URL } from '../utils/constants';
+import toast from 'react-hot-toast';
 
 export function AffiliateDashboard() {
   const { user } = useStore();
@@ -137,7 +139,7 @@ export function AffiliateDashboard() {
 
   const copyToClipboard = () => {
     if (!affiliate) return;
-    const link = `https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`;
+    const link = `${SITE_URL}/?ref=${affiliate.referralCode}`;
     navigator.clipboard.writeText(link);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
@@ -146,7 +148,7 @@ export function AffiliateDashboard() {
   const handleWithdrawRequest = async () => {
     if (!affiliate) return;
     if (!affiliate.paymentUpi) {
-      alert("Please save your UPI ID below before requesting a withdrawal.");
+      toast.error("Please save your UPI ID below before requesting a withdrawal.");
       return;
     }
     
@@ -154,12 +156,12 @@ export function AffiliateDashboard() {
     const amountToWithdraw = Number(withdrawAmountInput) || availableToWithdraw;
     
     if (amountToWithdraw < 500) {
-      alert("Minimum ₹500 is required to request a withdrawal.");
+      toast.error("Minimum ₹500 is required to request a withdrawal.");
       return;
     }
 
     if (amountToWithdraw > availableToWithdraw) {
-      alert(`You can only withdraw up to ₹${availableToWithdraw}`);
+      toast.error(`You can only withdraw up to ₹${availableToWithdraw}`);
       return;
     }
 
@@ -175,7 +177,7 @@ export function AffiliateDashboard() {
 
       if (error) throw error;
       
-      alert("Withdrawal request submitted successfully! It will be processed soon.");
+      toast.success("Withdrawal request submitted successfully! It will be processed soon.");
       
       // Refresh payouts
       const { data: payoutData } = await supabase
@@ -188,7 +190,7 @@ export function AffiliateDashboard() {
       
     } catch (err) {
       console.error("Error requesting withdrawal:", err);
-      alert("Failed to submit withdrawal request.");
+      toast.error("Failed to submit withdrawal request.");
     } finally {
       setIsLoading(false);
     }
@@ -335,7 +337,7 @@ export function AffiliateDashboard() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-700 break-all text-sm font-mono">
-                  {`https://vaddadi-pickles.onrender.com/?ref=${affiliate.referralCode}`}
+                  {`${SITE_URL}/?ref=${affiliate.referralCode}`}
                 </div>
                 <button
                   onClick={copyToClipboard}

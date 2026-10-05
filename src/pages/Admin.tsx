@@ -16,6 +16,8 @@ import { Order, Coupon, Product, ProductVariant, ComboProduct } from '../types';
 import { TRACKING_CARRIERS } from '../utils/tracking';
 import { AdminAffiliates } from '../components/AdminAffiliates';
 import { supabase } from '../lib/supabase';
+import { SITE_URL } from '../utils/constants';
+import { sanitizeHtml } from '../utils/sanitize';
 
 type Tab = 'dashboard' | 'products' | 'combos' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
@@ -55,8 +57,10 @@ export function Admin() {
   const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
   const abandonedCarts = useStore((state) => state.abandonedCarts);
   const fetchAbandonedCarts = useStore((state) => state.fetchAbandonedCarts);
+  const user = useStore((state) => state.user);
   const navigate = useNavigate();
   const [draftSettings, setDraftSettings] = useState(settings);
+  const [isVerifyingAdmin, setIsVerifyingAdmin] = useState(true);
 
   const dailyVisits = useStore((state) => state.dailyVisits);
   const totalVisits = useStore((state) => state.totalVisits);
@@ -168,7 +172,7 @@ export function Admin() {
   const handleAddProduct = async () => {
     if (isCombo) {
       if (!newCombo.name || !newCombo.image || newCombo.selectedProducts.length < 2) {
-        alert('Please fill in name, image, and select at least 2 products with variants');
+        toast.error('Please fill in name, image, and select at least 2 products with variants');
         return;
       }
 
@@ -186,10 +190,10 @@ export function Admin() {
 
       if (editingComboId) {
         await updateCombo(combo);
-        alert('Combo updated successfully!');
+        toast.success('Combo updated successfully!');
       } else {
         await addCombo(combo);
-        alert('Combo added successfully!');
+        toast.success('Combo added successfully!');
       }
 
       setEditingComboId(null);
@@ -208,7 +212,7 @@ export function Admin() {
     }
 
     if (!newProduct.name || !newProduct.image) {
-      alert('Please fill in product name and image URL');
+      toast.error('Please fill in product name and image URL');
       return;
     }
 
@@ -217,7 +221,7 @@ export function Admin() {
       .map(v => ({ weight: v.weight, price: v.price, mrp: v.mrp, stock: v.stock }));
 
     if (enabledVariants.length === 0) {
-      alert('Please enable at least one weight variant');
+      toast.error('Please enable at least one weight variant');
       return;
     }
 
@@ -238,10 +242,10 @@ export function Admin() {
     if (editingProductId) {
       await updateProduct(product);
       setEditingProductId(null);
-      alert('Product updated successfully!');
+      toast.success('Product updated successfully!');
     } else {
       await addProduct(product);
-      alert('Product added successfully!');
+      toast.success('Product added successfully!');
     }
 
     // Reset form
@@ -292,6 +296,42 @@ export function Admin() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    async function verifyAdmin() {
+      if (!user) {
+        setIsVerifyingAdmin(false);
+        navigate('/login');
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+        
+      if (error || !data || data.role !== 'admin') {
+        // Not a real admin, force logout or navigate away
+        navigate('/');
+      } else {
+        setIsVerifyingAdmin(false);
+      }
+    }
+    
+    verifyAdmin();
+  }, [user, navigate]);
+
+  if (isVerifyingAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-xl text-gray-600 flex items-center gap-2">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+          Verifying secure access...
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     navigate('/login');
     return null;
@@ -317,7 +357,7 @@ export function Admin() {
   const todaysOrdersCount = orders.filter(o => new Date(o.createdAt) >= todayStart).length;
   
   const customerOrderCounts = orders.reduce((acc, order) => {
-    acc[order.userPhone] = (acc[order.userPhone] || 0) + 1;
+    acc[order.userId || order.userPhone] = (acc[order.userId || order.userPhone] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   const repeatCustomersCount = Object.values(customerOrderCounts).filter(count => count > 1).length;
@@ -350,8 +390,8 @@ export function Admin() {
 
   const earliestOrderDates = orders.reduce((acc, order) => {
     const orderDate = new Date(order.createdAt).getTime();
-    if (!acc[order.userPhone] || orderDate < acc[order.userPhone]) {
-      acc[order.userPhone] = orderDate;
+    if (!acc[order.userId || order.userPhone] || orderDate < acc[order.userId || order.userPhone]) {
+      acc[order.userId || order.userPhone] = orderDate;
     }
     return acc;
   }, {} as Record<string, number>);
@@ -471,13 +511,13 @@ Thank you for choosing Vaddadi Pickles!`;
           <div class="content">
             <div class="to-box">
               <div class="title">📦 DELIVER TO:</div>
-              <div class="name">${order.userName}</div>
+              <div class="name">${sanitizeHtml(order.userName)}</div>
               <div class="address">
-                ${formatStreetAddress(order.address.street)}<br>
-                ${order.address.city}, ${order.address.state}
+                ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
+                ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
               </div>
-              <div class="pincode">📍 ${order.address.pincode}</div>
-              <div class="phone">📱 ${order.userPhone}</div>
+              <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}</div>
+              <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
             </div>
             
             <div class="from-box">
@@ -490,7 +530,7 @@ Thank you for choosing Vaddadi Pickles!`;
             </div>
             
             <div class="order-section">
-              <div class="order-id">${order.id}</div>
+              <div class="order-id">${sanitizeHtml(order.id)}</div>
               <div class="order-details">
                 <span>📦 ${order.items.length} Items</span>
                 <span>⚖️ ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
@@ -539,13 +579,13 @@ Thank you for choosing Vaddadi Pickles!`;
       <body>
         <div class="label">
           ${codBadge}
-          <div class="name">${order.userName}</div>
+          <div class="name">${sanitizeHtml(order.userName)}</div>
           <div class="address">
-            ${formatStreetAddress(order.address.street)}<br>
-            ${order.address.city}, ${order.address.state}
+            ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
+            ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
           </div>
-          <div class="pin">PIN: ${order.address.pincode} | 📱 ${order.userPhone}</div>
-          <div class="order-id">${order.id}</div>
+          <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)} | 📱 ${sanitizeHtml(order.userPhone)}</div>
+          <div class="order-id">${sanitizeHtml(order.id)}</div>
         </div>
         <script>window.print();</script>
       </body>
@@ -584,20 +624,20 @@ Thank you for choosing Vaddadi Pickles!`;
           
           <div class="to-section">
             <div class="title">📦 DELIVER TO:</div>
-            <div class="name">${order.userName}</div>
+            <div class="name">${sanitizeHtml(order.userName)}</div>
             <div class="address">
-              ${formatStreetAddress(order.address.street)}<br>
-              ${order.address.city}, ${order.address.state}<br>
-              <strong>PIN: ${order.address.pincode}</strong>
+              ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
+              ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>
+              <strong>PIN: ${sanitizeHtml(order.address.pincode)}</strong>
             </div>
-            <div class="phone">📱 ${order.userPhone}</div>
+            <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
           </div>
           
           ${codBadge}
           <div class="fragile">🫙</div>
           
           <div class="order-info">
-            <div class="order-id">${order.id}</div>
+            <div class="order-id">${sanitizeHtml(order.id)}</div>
             <div class="details">
               <span>Items: ${order.items.length}</span>
               <span>Weight: ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
@@ -719,13 +759,13 @@ Thank you for choosing Vaddadi Pickles!`;
           <div class="courier-header" style="min-height: 52px;"></div>
           
           <div class="row">
-            <div class="routing-code" style="width: 100%;">${order.address.pincode}</div>
+            <div class="routing-code" style="width: 100%;">${sanitizeHtml(order.address.pincode)}</div>
           </div>
           
           <div class="row">
             <div class="barcode-container" style="width: 100%;">
-              <div class="barcode-font">*${order.id.toUpperCase()}*</div>
-              <div class="barcode-text">${order.id.toUpperCase()}</div>
+              <div class="barcode-font">*${sanitizeHtml(order.id).toUpperCase()}*</div>
+              <div class="barcode-text">${sanitizeHtml(order.id).toUpperCase()}</div>
             </div>
           </div>
           
@@ -733,11 +773,11 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="col" style="flex: 1; padding: 15px;">
               <div class="address-title">SHIP TO:</div>
               <div class="to-address">
-                <strong>${order.userName.toUpperCase()}</strong><br>
-                ${formatStreetAddress(order.address.street).toUpperCase()}<br>
-                ${order.address.city.toUpperCase()}, ${order.address.state.toUpperCase()}<br>
-                PIN: ${order.address.pincode}<br>
-                <div class="to-phone">PH: ${order.userPhone}</div>
+                <strong>${sanitizeHtml(order.userName).toUpperCase()}</strong><br>
+                ${sanitizeHtml(formatStreetAddress(order.address.street)).toUpperCase()}<br>
+                ${sanitizeHtml(order.address.city).toUpperCase()}, ${sanitizeHtml(order.address.state).toUpperCase()}<br>
+                PIN: ${sanitizeHtml(order.address.pincode)}<br>
+                <div class="to-phone">PH: ${sanitizeHtml(order.userPhone)}</div>
               </div>
             </div>
           </div>
@@ -1257,7 +1297,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 <button
                   onClick={async () => {
                     await updateSettings(draftSettings);
-                    alert('Settings saved successfully!');
+                    toast.success('Settings saved successfully!');
                   }}
                   className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
                 >
@@ -2088,11 +2128,11 @@ Thank you for choosing Vaddadi Pickles!`;
                               const trackingInput = document.getElementById(`tracking-${order.id}`) as HTMLInputElement;
                               if (carrierSelect && trackingInput) {
                                 if (!trackingInput.value) {
-                                  alert('Please enter a tracking ID');
+                                  toast.error('Please enter a tracking ID');
                                   return;
                                 }
                                 updateOrderTracking(order.id, trackingInput.value, carrierSelect.value || 'Other');
-                                alert('Tracking details updated!');
+                                toast.error('Tracking details updated!');
                                 sendWhatsAppUpdate(order, 'shipped');
                               }
                             }}
@@ -2124,11 +2164,11 @@ Thank you for choosing Vaddadi Pickles!`;
                               if (expenseInput) {
                                 const val = parseFloat(expenseInput.value);
                                 if (isNaN(val) || val < 0) {
-                                  alert('Please enter a valid expense amount');
+                                  toast.error('Please enter a valid expense amount');
                                   return;
                                 }
                                 updateOrderShippingExpense(order.id, val);
-                                alert('Expense details updated!');
+                                toast.error('Expense details updated!');
                               }
                             }}
                             className="w-full md:w-auto bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition"
@@ -2172,6 +2212,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                 <title>Invoice - ${order.id}</title>
                                 <style>
                                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+import toast from 'react-hot-toast';
                                   body { font-family: 'Inter', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1f2937; line-height: 1.5; }
                                   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #f3f4f6; }
                                   .logo-container { display: flex; align-items: center; gap: 15px; }
@@ -2207,22 +2248,22 @@ Thank you for choosing Vaddadi Pickles!`;
                                   </div>
                                   <div class="invoice-title">
                                     <h2>INVOICE</h2>
-                                    <p>#INV-${order.id.slice(-8).toUpperCase()}</p>
+                                    <p>#INV-${sanitizeHtml(order.id).slice(-8).toUpperCase()}</p>
                                   </div>
                                 </div>
 
                                 <div class="details-grid">
                                   <div class="detail-box">
                                     <h3>Billed To</h3>
-                                    <p><strong>${order.userName}</strong><br>${order.userEmail}<br>${order.userPhone}</p>
+                                    <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(order.userPhone)}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>${order.address.street}<br>${order.address.city}, ${order.address.state}<br>PIN: ${order.address.pincode}</p>
+                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>
-                                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${order.id}<br><strong>Payment:</strong> ${order.paymentMethod.toUpperCase()}</p>
+                                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br><strong>Order ID:</strong> ${sanitizeHtml(order.id)}<br><strong>Payment:</strong> ${sanitizeHtml(order.paymentMethod).toUpperCase()}</p>
                                   </div>
                                 </div>
 

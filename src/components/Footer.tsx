@@ -2,6 +2,7 @@ import { Phone, Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useStore } from '../store';
+import toast from 'react-hot-toast';
 
 export function Footer() {
   const { settings } = useStore();
@@ -76,7 +77,7 @@ export function Footer() {
             </div>
 
             <h4 className="text-white font-semibold mb-4">Newsletter</h4>
-            <form className="flex" onSubmit={(e) => { e.preventDefault(); alert('Subscribed successfully!'); }}>
+            <form className="flex" onSubmit={(e) => { e.preventDefault(); toast.success('Subscribed successfully!'); }}>
               <input 
                 type="email" 
                 placeholder="Your email address" 

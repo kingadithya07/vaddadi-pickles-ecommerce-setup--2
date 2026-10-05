@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Clock, IndianRupee, Network, Users } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface AffiliateAdminData {
   id: string;
@@ -107,11 +108,11 @@ export function AdminAffiliates() {
 
   const submitPayout = async (affiliateId: string, currentPaid: number, requestId?: string) => {
     if (!payoutForm.transactionId.trim()) {
-      alert('Transaction ID is required.');
+      toast.error('Transaction ID is required.');
       return;
     }
     if (payoutForm.amount <= 0) {
-      alert('Amount must be greater than 0.');
+      toast.error('Amount must be greater than 0.');
       return;
     }
 
@@ -163,10 +164,10 @@ export function AdminAffiliates() {
       }
       
       setActivePayoutId(null);
-      alert('Payout recorded successfully!');
+      toast.success('Payout recorded successfully!');
     } catch (error) {
       console.error('Error recording payout:', error);
-      alert('Failed to record payout. Please check console for details.');
+      toast.error('Failed to record payout. Please check console for details.');
     }
   };
 

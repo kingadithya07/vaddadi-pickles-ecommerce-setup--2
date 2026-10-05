@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback, AbandonedCart, FeedbackMessage } from '../types';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 // Sample Products with variants and stock
 const sampleProducts: Product[] = [];
@@ -452,7 +453,7 @@ export const useStore = create<StoreState>()(
 
         if (error) {
           console.error('Error adding coupon to Supabase:', error);
-          alert('Error adding coupon: ' + error.message);
+          toast.error('Error adding coupon: ' + error.message);
         } else {
           console.log('Coupon added successfully to Supabase:', data);
         }
@@ -474,7 +475,7 @@ export const useStore = create<StoreState>()(
         const { error } = await supabase.from('coupons').update({ active: newActive }).eq('code', code);
         if (error) {
           console.error('Error toggling coupon in Supabase:', error);
-          alert('Error updating coupon: ' + error.message);
+          toast.error('Error updating coupon: ' + error.message);
         } else {
           console.log('Coupon toggled successfully in Supabase');
         }
@@ -485,7 +486,7 @@ export const useStore = create<StoreState>()(
         const { error } = await supabase.from('coupons').delete().eq('code', code);
         if (error) {
           console.error('Error deleting coupon in Supabase:', error);
-          alert('Error deleting coupon: ' + error.message);
+          toast.error('Error deleting coupon: ' + error.message);
         }
       },
 
@@ -509,7 +510,7 @@ export const useStore = create<StoreState>()(
 
         if (error) {
           console.error('Error adding product to Supabase:', error);
-          alert('Error adding product: ' + error.message);
+          toast.error('Error adding product: ' + error.message);
         } else {
           console.log('Product added successfully to Supabase:', data);
         }
@@ -537,7 +538,7 @@ export const useStore = create<StoreState>()(
 
         if (error) {
           console.error('Error updating product in Supabase:', error);
-          alert('Error updating product: ' + error.message);
+          toast.error('Error updating product: ' + error.message);
         } else {
           console.log('Product updated successfully in Supabase:', data);
         }
@@ -551,7 +552,7 @@ export const useStore = create<StoreState>()(
         const { error } = await supabase.from('products').delete().eq('id', productId);
         if (error) {
           console.error('Error deleting product from Supabase:', error);
-          alert('Error deleting product: ' + error.message);
+          toast.error('Error deleting product: ' + error.message);
         } else {
           console.log('Product deleted successfully from Supabase');
         }
@@ -575,7 +576,7 @@ export const useStore = create<StoreState>()(
 
         if (error) {
           console.error('Error adding combo to Supabase:', error);
-          alert('Error adding combo: ' + error.message);
+          toast.error('Error adding combo: ' + error.message);
         } else {
           console.log('Combo added successfully to Supabase:', data);
         }
@@ -601,7 +602,7 @@ export const useStore = create<StoreState>()(
 
         if (error) {
           console.error('Error updating combo in Supabase:', error);
-          alert('Error updating combo: ' + error.message);
+          toast.error('Error updating combo: ' + error.message);
         } else {
           console.log('Combo updated successfully in Supabase:', data);
         }
@@ -615,7 +616,7 @@ export const useStore = create<StoreState>()(
         const { error } = await supabase.from('products').delete().eq('id', comboId);
         if (error) {
           console.error('Error deleting combo from Supabase:', error);
-          alert('Error deleting combo: ' + error.message);
+          toast.error('Error deleting combo: ' + error.message);
         } else {
           console.log('Combo deleted successfully from Supabase');
         }
@@ -835,7 +836,7 @@ export const useStore = create<StoreState>()(
         const { error, data } = await supabase.from('site_feedback').update({ status }).eq('id', feedbackId).select();
         if (error || !data || data.length === 0) {
           console.error("Error updating feedback status:", error || "No rows updated (RLS policy might be blocking updates)");
-          alert("Failed to update status. Please check your Supabase RLS policies.");
+          toast.error("Failed to update status. Please check your Supabase RLS policies.");
         }
       },
 
@@ -861,7 +862,7 @@ export const useStore = create<StoreState>()(
         
         if (error || !data || data.length === 0) {
           console.error("Error updating feedback reply:", error || "No rows updated (RLS policy might be blocking updates)");
-          alert("Failed to send reply. Please check your Supabase RLS policies for the site_feedback table.");
+          toast.error("Failed to send reply. Please check your Supabase RLS policies for the site_feedback table.");
         }
       },
 
@@ -881,7 +882,7 @@ export const useStore = create<StoreState>()(
       },
       subscribeToFeedbacks: () => {
         // Postgres subscription for real-time messages
-        supabase.channel('site_feedback_changes')
+        const channel = supabase.channel('site_feedback_changes')
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'site_feedback' },
@@ -940,6 +941,11 @@ export const useStore = create<StoreState>()(
             }, 3000);
           }
         ).subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+          supabase.removeChannel(typingChannel);
+        };
       },
 
       fetchDailyVisits: async () => {

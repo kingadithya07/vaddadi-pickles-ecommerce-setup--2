@@ -5,6 +5,7 @@ import { Product } from '../types';
 import { useStore } from '../store';
 import { ReviewModal } from './ReviewModal';
 import { ComboDetailsModal } from './ComboDetailsModal';
+import toast from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -126,7 +127,7 @@ export function ProductCard({ product }: ProductCardProps) {
               e.preventDefault();
               e.stopPropagation();
               if (!user) {
-                alert('Please login to review');
+                toast.error('Please login to review');
                 navigate('/login');
               } else {
                 setIsReviewModalOpen(true);

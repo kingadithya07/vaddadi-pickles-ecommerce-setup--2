@@ -8,6 +8,8 @@ import { lookupPincode } from '../utils/pincode';
 import { supabase } from '../lib/supabase';
 import { Link as RouterLink } from 'react-router-dom';
 import { formatPhoneNumber } from '../utils/phone';
+import { SITE_URL } from '../utils/constants';
+import toast from 'react-hot-toast';
 
 export function Profile() {
   const { user, updateUser, logout, addUserAddress, updateUserAddress, deleteUserAddress, setDefaultAddress, siteFeedbacks, typingStatus, broadcastTyping } = useStore();
@@ -72,7 +74,7 @@ export function Profile() {
   }, [user]);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       siteFeedbacks.forEach(f => {
         const el = document.getElementById(`chat-${f.id}`);
         if (el) {
@@ -80,13 +82,14 @@ export function Profile() {
         }
       });
     }, 100);
+    return () => clearTimeout(timer);
   }, [siteFeedbacks, typingStatus]);
 
   const location = useLocation();
 
   const copyToClipboard = () => {
     if (!referralCode) return;
-    const link = `https://vaddadi-pickles.onrender.com/?ref=${referralCode}`;
+    const link = `${SITE_URL}/?ref=${referralCode}`;
     navigator.clipboard.writeText(link);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
@@ -94,9 +97,10 @@ export function Profile() {
 
   useEffect(() => {
     if (location.hash === '#support-tickets') {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         document.getElementById('support-tickets')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [location.hash]);
 
@@ -147,12 +151,12 @@ export function Profile() {
 
   const handleAddAddress = () => {
     if (!addressForm.label || !addressForm.name || !addressForm.phone || !addressForm.street || !addressForm.city || !addressForm.state || !addressForm.pincode) {
-      alert('Please fill all address fields');
+      toast.error('Please fill all address fields');
       return;
     }
     
     if (addressForm.pincode.length !== 6) {
-      alert('Please enter a valid 6-digit pincode');
+      toast.error('Please enter a valid 6-digit pincode');
       return;
     }
 
@@ -327,7 +331,7 @@ export function Profile() {
               <p className="text-sm text-gray-600 mb-3">Share this link to earn a 10% commission on every sale!</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 bg-white border border-green-200 rounded-lg px-4 py-3 text-gray-700 text-sm break-all font-mono">
-                  https://vaddadi-pickles.onrender.com/?ref={referralCode}
+                  {SITE_URL}/?ref={referralCode}
                 </div>
                 <button
                   onClick={copyToClipboard}
