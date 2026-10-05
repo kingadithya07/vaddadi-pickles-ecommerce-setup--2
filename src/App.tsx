@@ -142,13 +142,19 @@ export function App() {
     // Also listen to window focus as a fallback
     window.addEventListener('focus', handleVisibilityChange);
 
-    // Track affiliate referral code
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
+    // Track affiliate referral code (supports both standard and HashRouter URLs)
+    let refCode = new URLSearchParams(window.location.search).get('ref');
+    if (!refCode && window.location.hash.includes('?')) {
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      refCode = hashParams.get('ref');
+    }
+
     if (refCode) {
       localStorage.setItem('affiliate_ref', refCode);
-      // Optional: remove it from the URL to make it clean
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Optional: clean up standard search params
+      if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      }
     }
 
     return () => {
