@@ -109,7 +109,7 @@ export function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
       if (event === 'PASSWORD_RECOVERY') {
-        window.location.hash = '#/reset-password';
+        window.location.href = '/reset-password';
       }
 
       // Re-initialize user sync and re-fetch data on auth change
