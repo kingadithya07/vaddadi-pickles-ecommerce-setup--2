@@ -19,8 +19,9 @@ import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { sanitizeHtml } from '../utils/sanitize';
 import { lookupPincode } from '../utils/pincode';
+import { formatPhoneNumber } from '../utils/phone';
 
-const poCache = new Map<string, string>();
+
 
 type Tab = 'dashboard' | 'products' | 'combos' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
@@ -43,6 +44,7 @@ export function Admin() {
   const updatePaymentStatus = useStore((state) => state.updatePaymentStatus);
   const updateOrderTracking = useStore((state) => state.updateOrderTracking);
   const updateOrderShippingExpense = useStore((state) => state.updateOrderShippingExpense);
+  const updateOrderAddress = useStore((state) => state.updateOrderAddress);
   const addCoupon = useStore((state) => state.addCoupon);
   const toggleCoupon = useStore((state) => state.toggleCoupon);
   const deleteCoupon = useStore((state) => state.deleteCoupon);
@@ -89,23 +91,7 @@ export function Admin() {
     fetchAffiliatePayouts();
   }, [fetchDailyVisits, fetchAbandonedCarts]);
 
-  // Pre-warm post office branches cache for order pincodes
-  useEffect(() => {
-    orders.forEach(order => {
-      const pin = order.address?.pincode;
-      if (pin && pin.length === 6 && !poCache.has(pin)) {
-        if (order.address?.postOffice) {
-          poCache.set(pin, order.address.postOffice);
-        } else {
-          lookupPincode(pin).then(info => {
-            if (info?.branches?.length) {
-              poCache.set(pin, info.branches[0].name);
-            }
-          }).catch(() => {});
-        }
-      }
-    });
-  }, [orders]);
+
 
   // Sync draft settings with store settings when they change externally
   useEffect(() => {
@@ -502,13 +488,20 @@ Thank you for choosing Vaddadi Pickles!`;
       }
     }
 
-    let postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+    let postOfficeName = (order.address?.postOffice || '').trim();
     if (!postOfficeName && order.address?.pincode && order.address.pincode.length === 6) {
       try {
         const info = await lookupPincode(order.address.pincode);
-        if (info?.branches?.length) {
+        if (info?.branches?.length === 1) {
           postOfficeName = info.branches[0].name;
-          poCache.set(order.address.pincode, postOfficeName);
+          updateOrderAddress(order.id, { ...order.address, postOffice: postOfficeName });
+        } else if (info?.branches && info.branches.length > 1) {
+          const branchNames = info.branches.map(b => b.name);
+          const selected = window.prompt(`Select Post Office Branch for Pincode ${order.address.pincode}:\nAvailable branches:\n${branchNames.map((n, i) => `${i + 1}. ${n}`).join('\n')}\n\nEnter branch name:`, branchNames[0]);
+          if (selected && selected.trim()) {
+            postOfficeName = selected.trim();
+            updateOrderAddress(order.id, { ...order.address, postOffice: postOfficeName });
+          }
         }
       } catch (err) {
         console.error('Failed to lookup post office for single label:', err);
@@ -566,8 +559,9 @@ Thank you for choosing Vaddadi Pickles!`;
                 ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
                 ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
               </div>
-              <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` <span style="font-size: 13px; font-weight: 700; color: #166534; margin-left: 6px;">(${sanitizeHtml(postOfficeName).toUpperCase()})</span>` : ''}</div>
-              <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
+              <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}</div>
+              ${postOfficeName ? `<div style="margin-top: 6px; padding: 4px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; font-size: 13px; font-weight: 800; color: #166534; text-transform: uppercase;">POST OFFICE: ${sanitizeHtml(postOfficeName).toUpperCase()}</div>` : ''}
+              <div class="phone">📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
             </div>
             
             <div class="from-box">
@@ -575,7 +569,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="text">
                 <strong>${senderName}</strong><br>
                 ${settings.businessAddress.street}, ${settings.businessAddress.city}<br>
-                ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+                ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${sanitizeHtml(formatPhoneNumber(settings.businessAddress.phone))}
               </div>
             </div>
             
@@ -606,7 +600,7 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
-    const postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+    const postOfficeName = (order.address?.postOffice || '').trim();
 
     const codBadge = order.paymentMethod === 'cod'
       ? '<div class="cod">COD</div>'
@@ -636,7 +630,7 @@ Thank you for choosing Vaddadi Pickles!`;
             ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
             ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
           </div>
-          <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''} | 📱 ${sanitizeHtml(order.userPhone)}</div>
+          <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''} | 📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
           <div class="order-id">${sanitizeHtml(order.id)}</div>
         </div>
         <script>window.print();</script>
@@ -667,7 +661,7 @@ Thank you for choosing Vaddadi Pickles!`;
         }
       }
 
-      const postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+      const postOfficeName = (order.address?.postOffice || '').trim();
 
       const codBadge = order.paymentMethod === 'cod'
         ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
@@ -681,7 +675,7 @@ Thank you for choosing Vaddadi Pickles!`;
           
           <div class="from-section">
             <div class="title">FROM:</div>
-            <strong>${senderName}</strong>, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${settings.businessAddress.phone}
+            <strong>${senderName}</strong>, ${settings.businessAddress.city}, ${settings.businessAddress.state} - ${settings.businessAddress.pincode} | Ph: ${sanitizeHtml(formatPhoneNumber(settings.businessAddress.phone))}
           </div>
           
           <div class="to-section">
@@ -692,7 +686,7 @@ Thank you for choosing Vaddadi Pickles!`;
               ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>
               <strong>PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</strong>
             </div>
-            <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
+            <div class="phone">📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
           </div>
           
           ${codBadge}
@@ -770,13 +764,20 @@ Thank you for choosing Vaddadi Pickles!`;
       }
     }
 
-    let postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+    let postOfficeName = (order.address?.postOffice || '').trim();
     if (!postOfficeName && order.address?.pincode && order.address.pincode.length === 6) {
       try {
         const info = await lookupPincode(order.address.pincode);
-        if (info?.branches?.length) {
+        if (info?.branches?.length === 1) {
           postOfficeName = info.branches[0].name;
-          poCache.set(order.address.pincode, postOfficeName);
+          updateOrderAddress(order.id, { ...order.address, postOffice: postOfficeName });
+        } else if (info?.branches && info.branches.length > 1) {
+          const branchNames = info.branches.map(b => b.name);
+          const selected = window.prompt(`Select Post Office Branch for Pincode ${order.address.pincode}:\nAvailable branches:\n${branchNames.map((n, i) => `${i + 1}. ${n}`).join('\n')}\n\nEnter branch name:`, branchNames[0]);
+          if (selected && selected.trim()) {
+            postOfficeName = selected.trim();
+            updateOrderAddress(order.id, { ...order.address, postOffice: postOfficeName });
+          }
         }
       } catch (err) {
         console.error('Failed to lookup post office for order label:', err);
@@ -869,7 +870,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 ${sanitizeHtml(formatStreetAddress(order.address.street)).toUpperCase()}<br>
                 ${sanitizeHtml(order.address.city).toUpperCase()}, ${sanitizeHtml(order.address.state).toUpperCase()}<br>
                 PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}<br>
-                <div class="to-phone">PH: ${sanitizeHtml(order.userPhone)}</div>
+                <div class="to-phone">PH: ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
               </div>
             </div>
           </div>
@@ -881,7 +882,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 <strong>${senderName}</strong><br>
                 Sujathanagar, Visakhapatnam<br>
                 Andhra Pradesh - 530051<br>
-                PH: 8008129309
+                PH: ${sanitizeHtml(formatPhoneNumber(settings.businessAddress?.phone || '8008129309'))}
               </div>
             </div>
           </div>
@@ -2119,7 +2120,7 @@ Thank you for choosing Vaddadi Pickles!`;
                       </div>
                       <div className="text-sm">
                         <p className="font-medium">{order.userName}</p>
-                        <p className="text-gray-500">{order.userPhone}</p>
+                        <p className="text-gray-500">{formatPhoneNumber(order.userPhone)}</p>
                       </div>
                       <div className="font-bold text-green-700">₹{order.finalAmount}</div>
                       <select
@@ -2173,10 +2174,46 @@ Thank you for choosing Vaddadi Pickles!`;
                             {order.address.street}<br />
                             {order.address.city}, {order.address.state}<br />
                             PIN: {order.address.pincode}
-                            {(order.address.postOffice || poCache.get(order.address.pincode)) && (
-                              <span className="font-semibold text-gray-700"> (PO: {order.address.postOffice || poCache.get(order.address.pincode)})</span>
-                            )}
                           </p>
+                          <div className="mt-2 text-xs">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-gray-600">Branch:</span>
+                              {order.address.postOffice ? (
+                                <span className="font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                                  {order.address.postOffice}
+                                </span>
+                              ) : (
+                                <span className="font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                  Not specified
+                                </span>
+                              )}
+                              <button
+                                onClick={async () => {
+                                  let availableBranches: string[] = [];
+                                  if (order.address.pincode && order.address.pincode.length === 6) {
+                                    const info = await lookupPincode(order.address.pincode);
+                                    if (info?.branches) {
+                                      availableBranches = info.branches.map(b => b.name);
+                                    }
+                                  }
+                                  const promptMsg = availableBranches.length > 0
+                                    ? `Available branches for pincode ${order.address.pincode}:\n${availableBranches.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n\nEnter branch name:`
+                                    : 'Enter Post Office branch name:';
+                                  const chosen = window.prompt(promptMsg, order.address.postOffice || (availableBranches[0] || ''));
+                                  if (chosen !== null && chosen.trim() !== '') {
+                                    await updateOrderAddress(order.id, {
+                                      ...order.address,
+                                      postOffice: chosen.trim(),
+                                    });
+                                    toast.success('Post office branch updated!');
+                                  }
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 underline font-medium ml-1 cursor-pointer"
+                              >
+                                {order.address.postOffice ? 'Change Branch' : 'Select Branch'}
+                              </button>
+                            </div>
+                          </div>
                           {(order.address.isOffline || order.address.adminAdditionalAmount || order.address.adminAdditionalWeight) && (
                             <div className="mt-2 text-xs bg-amber-50 p-2 rounded-lg border border-amber-200 text-amber-900 space-y-1">
                               {order.address.isOffline && <div className="font-bold">🏷️ Offline Customer Order</div>}
@@ -2359,11 +2396,11 @@ import toast from 'react-hot-toast';
                                 <div class="details-grid">
                                   <div class="detail-box">
                                     <h3>Billed To</h3>
-                                    <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(order.userPhone)}</p>
+                                    <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(formatPhoneNumber(order.userPhone))}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice || poCache.get(order.address.pincode) ? ` (${sanitizeHtml(order.address.postOffice || poCache.get(order.address.pincode) || '').toUpperCase()})` : ''}</p>
+                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>
@@ -2451,7 +2488,7 @@ import toast from 'react-hot-toast';
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <p className="font-mono font-bold text-gray-800">{order.id}</p>
-                        <p className="text-sm text-gray-500">{order.userName} • {order.userPhone}</p>
+                        <p className="text-sm text-gray-500">{order.userName} • {formatPhoneNumber(order.userPhone)}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-sm text-gray-500">Transaction ID</p>
@@ -2571,11 +2608,11 @@ import toast from 'react-hot-toast';
                       <p className="text-sm text-gray-600">{order.address.city}, {order.address.state}</p>
                       <p className="text-sm font-bold text-gray-800">
                         PIN: {order.address.pincode}
-                        {(order.address.postOffice || poCache.get(order.address.pincode)) && (
-                          <span className="text-xs text-gray-600 font-normal"> (PO: {order.address.postOffice || poCache.get(order.address.pincode)})</span>
+                        {order.address.postOffice && (
+                          <span className="text-xs text-green-700 font-semibold ml-1"> (PO: {order.address.postOffice})</span>
                         )}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">📱 {order.userPhone}</p>
+                      <p className="text-sm text-gray-600 mt-1">📱 {formatPhoneNumber(order.userPhone)}</p>
                     </div>
 
                     <div className="border-t border-dashed pt-3 mb-4">

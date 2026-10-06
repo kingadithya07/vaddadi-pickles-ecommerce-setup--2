@@ -75,6 +75,10 @@ export function Checkout() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [pincodeBranches, setPincodeBranches] = useState<PostOfficeBranch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState('');
+  const [savedAddrBranch, setSavedAddrBranch] = useState<Record<string, string>>({});
+  const [addrBranches, setAddrBranches] = useState<Record<string, PostOfficeBranch[]>>({});
+  const [isCustomBranch, setIsCustomBranch] = useState(false);
+  const [customBranchName, setCustomBranchName] = useState('');
 
   // Detect mobile device
   useEffect(() => {
@@ -103,9 +107,13 @@ export function Checkout() {
           }));
           setIsManualCity(false);
           setPincodeBranches(info.branches);
-          const defaultBranch = info.branches && info.branches.length > 0 ? info.branches[0].name : '';
-          setSelectedBranch(defaultBranch);
-          setNewAddress(prev => ({ ...prev, postOffice: defaultBranch }));
+          const branchNames = (info.branches || []).map(b => b.name);
+          const current = selectedBranch || newAddress.postOffice;
+          const chosenBranch = (current && branchNames.includes(current))
+            ? current
+            : (info.branches && info.branches.length === 1 ? info.branches[0].name : '');
+          setSelectedBranch(chosenBranch);
+          setNewAddress(prev => ({ ...prev, postOffice: chosenBranch }));
         }
       } else {
         setPincodeBranches([]);
@@ -114,6 +122,24 @@ export function Checkout() {
     };
     fetchLocation();
   }, [newAddress.pincode]);
+
+  // Pre-load branches for selected saved address
+  useEffect(() => {
+    if (!useNewAddress && selectedAddressId && selectedAddressId !== 'new') {
+      const addr = userAddresses.find(a => a.id === selectedAddressId);
+      if (addr && addr.pincode && addr.pincode.length === 6 && !addrBranches[addr.id]) {
+        lookupPincode(addr.pincode).then(info => {
+          if (info && info.branches) {
+            setAddrBranches(prev => ({ ...prev, [addr.id]: info.branches }));
+            if (!savedAddrBranch[addr.id]) {
+              const defaultB = addr.postOffice || (info.branches.length === 1 ? info.branches[0].name : '');
+              setSavedAddrBranch(prev => ({ ...prev, [addr.id]: defaultB }));
+            }
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [selectedAddressId, useNewAddress, userAddresses]);
 
   // UPI Payment details
   const upiId = settings.upiId;
@@ -188,7 +214,7 @@ export function Checkout() {
       finalAddress = { 
         ...newAddress, 
         street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim(),
-        postOffice: selectedBranch || newAddress.postOffice,
+        postOffice: (isCustomBranch ? customBranchName.trim() : selectedBranch) || newAddress.postOffice || undefined,
         isOffline: isAdmin,
         adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
         adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0
@@ -222,7 +248,7 @@ export function Checkout() {
         state: selectedAddr.state,
         pincode: selectedAddr.pincode,
         country: selectedAddr.country,
-        postOffice: selectedAddr.postOffice || selectedBranch || undefined,
+        postOffice: savedAddrBranch[selectedAddr.id] || selectedAddr.postOffice || undefined,
         isOffline: isAdmin,
         adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
         adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0
@@ -310,7 +336,7 @@ export function Checkout() {
             <div className="space-y-3 text-gray-600">
               <p className="flex items-center gap-2"><User size={16} /> {user.name}</p>
               <p className="flex items-center gap-2"><Mail size={16} /> {user.email}</p>
-              <p className="flex items-center gap-2"><Phone size={16} /> {user.phone}</p>
+              <p className="flex items-center gap-2"><Phone size={16} /> {formatPhoneNumber(user.phone)}</p>
             </div>
           </div>
 
@@ -352,9 +378,36 @@ export function Checkout() {
                         )}
                       </div>
                       <p className="text-gray-700 font-medium">{addr.name}</p>
-                      <p className="text-gray-600 text-sm">{addr.phone}</p>
+                      <p className="text-gray-600 text-sm">{formatPhoneNumber(addr.phone)}</p>
                       <p className="text-gray-600 text-sm">
                         {addr.street}, {addr.city}, {addr.state} - {addr.pincode}
+                        {(savedAddrBranch[addr.id] || addr.postOffice) && (
+                          <span className="font-semibold text-green-700 ml-1">
+                            ({savedAddrBranch[addr.id] || addr.postOffice})
+                          </span>
+                        )}
+                      </p>
+                      {selectedAddressId === addr.id && !useNewAddress && addrBranches[addr.id] && addrBranches[addr.id].length > 1 && (
+                        <div className="mt-3 pt-2 border-t border-green-200" onClick={(e) => e.stopPropagation()}>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Select Local Post Office Branch:
+                          </label>
+                          <select
+                            value={savedAddrBranch[addr.id] || addr.postOffice || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setSavedAddrBranch(prev => ({ ...prev, [addr.id]: val }));
+                            }}
+                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                          >
+                            <option value="">Select Local Branch</option>
+                            {addrBranches[addr.id].map((b, idx) => (
+                              <option key={idx} value={b.name}>{b.name} ({b.branchType})</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <p style={{ display: 'none' }}>
                       </p>
                     </div>
                   </label>
@@ -537,10 +590,16 @@ export function Checkout() {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Select Post Office Branch</label>
                     <select
-                      value={selectedBranch}
+                      value={isCustomBranch ? 'custom' : (selectedBranch || newAddress.postOffice || '')}
                       onChange={(e) => {
                         const branchName = e.target.value;
-                        setSelectedBranch(branchName);
+                        if (branchName === 'custom') {
+                          setIsCustomBranch(true);
+                        } else {
+                          setIsCustomBranch(false);
+                          setSelectedBranch(branchName);
+                          setNewAddress(prev => ({ ...prev, postOffice: branchName }));
+                        }
                       }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                     >
@@ -550,7 +609,22 @@ export function Checkout() {
                           {branch.name} ({branch.branchType})
                         </option>
                       ))}
+                      <option value="custom">Other (Enter Manually)</option>
                     </select>
+                    {isCustomBranch && (
+                      <input
+                        type="text"
+                        placeholder="Enter local post office branch name"
+                        value={customBranchName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomBranchName(val);
+                          setSelectedBranch(val);
+                          setNewAddress(prev => ({ ...prev, postOffice: val }));
+                        }}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white mt-2 text-sm"
+                      />
+                    )}
                   </div>
                 )}
               </div>

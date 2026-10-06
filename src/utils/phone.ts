@@ -6,23 +6,28 @@ export function formatPhoneNumber(phone: string): string {
   
   if (!cleaned) return '';
   
-  // If it's a 10-digit number, prepend +91
-  if (cleaned.length === 10) {
-    return '+91' + cleaned;
-  }
-  
-  // If it's 12 digits and starts with 91, just add +
+  // If it starts with 91 and has 12 digits (e.g. 919876543210)
   if (cleaned.length === 12 && cleaned.startsWith('91')) {
-    return '+' + cleaned;
-  }
-  
-  // If it has other lengths, but starts with 91, add +
-  if (cleaned.startsWith('91')) {
-    return '+' + cleaned;
+    return '+91 ' + cleaned.slice(2);
   }
 
-  // Fallback, just ensure it has +91 if not present
-  return '+91' + cleaned;
+  // If it has 11 digits and starts with 0 (e.g. 09876543210)
+  if (cleaned.length === 11 && cleaned.startsWith('0')) {
+    return '+91 ' + cleaned.slice(1);
+  }
+  
+  // If it's a 10-digit number (e.g. 9876543210)
+  if (cleaned.length === 10) {
+    return '+91 ' + cleaned;
+  }
+  
+  // If it starts with 91 and has other lengths
+  if (cleaned.startsWith('91') && cleaned.length > 2) {
+    return '+91 ' + cleaned.slice(2);
+  }
+
+  // Fallback: ensure +91 with space
+  return '+91 ' + cleaned;
 }
 
 export function formatWhatsAppNumber(phone: string): string {

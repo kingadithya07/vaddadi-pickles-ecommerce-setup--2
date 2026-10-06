@@ -8,6 +8,7 @@ import { useStore } from '../store';
 import { Order } from '../types';
 import { getTrackingUrl } from '../utils/tracking';
 import { sanitizeHtml } from '../utils/sanitize';
+import { formatPhoneNumber } from '../utils/phone';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
@@ -119,11 +120,11 @@ export function Orders() {
         <div class="details-grid">
           <div class="detail-box">
             <h3>Billed To</h3>
-            <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(order.userPhone)}</p>
+            <p><strong>${sanitizeHtml(order.userName)}</strong><br>${sanitizeHtml(order.userEmail)}<br>${sanitizeHtml(formatPhoneNumber(order.userPhone))}</p>
           </div>
           <div class="detail-box">
             <h3>Shipped To</h3>
-            <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}</p>
+            <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}</p>
           </div>
           <div class="detail-box">
             <h3>Order Details</h3>

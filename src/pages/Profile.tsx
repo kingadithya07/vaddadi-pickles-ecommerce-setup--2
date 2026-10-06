@@ -123,7 +123,15 @@ export function Profile() {
           }));
           setIsManualCity(false);
           setPincodeBranches(info.branches);
-          setSelectedBranch('');
+          setSelectedBranch(prev => {
+            if (prev && info.branches.some(b => b.name.toLowerCase() === prev.toLowerCase())) {
+              return prev;
+            }
+            if (addressForm.postOffice && info.branches.some(b => b.name.toLowerCase() === addressForm.postOffice?.toLowerCase())) {
+              return addressForm.postOffice;
+            }
+            return info.branches.length === 1 ? info.branches[0].name : '';
+          });
         }
       } else {
         setPincodeBranches([]);
@@ -170,6 +178,7 @@ export function Profile() {
       state: addressForm.state,
       pincode: addressForm.pincode,
       country: addressForm.country || 'India',
+      postOffice: selectedBranch || addressForm.postOffice || undefined,
       isDefault: addressForm.isDefault || false,
     };
 
@@ -194,6 +203,7 @@ export function Profile() {
       street: parts[0]?.trim() || '',
       street2: parts.slice(1).join(',').trim() || ''
     } as any);
+    setSelectedBranch(address.postOffice || '');
     setIsManualCity(isManual);
     setShowAddressForm(true);
   };
@@ -575,6 +585,7 @@ export function Profile() {
                       onChange={(e) => {
                         const branchName = e.target.value;
                         setSelectedBranch(branchName);
+                        setAddressForm(prev => ({ ...prev, postOffice: branchName }));
                       }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
                     >
@@ -646,10 +657,15 @@ export function Profile() {
                         )}
                       </div>
                       <p className="text-gray-700 font-medium">{address.name}</p>
-                      <p className="text-gray-600 text-sm">{address.phone}</p>
+                      <p className="text-gray-600 text-sm">{formatPhoneNumber(address.phone)}</p>
                       <p className="text-gray-600 text-sm mt-1">
                         {address.street}, {address.city}, {address.state} - {address.pincode}
                       </p>
+                      {address.postOffice && (
+                        <p className="text-xs text-green-700 font-semibold mt-0.5">
+                          Post Office Branch: {address.postOffice}
+                        </p>
+                      )}
                       <p className="text-gray-500 text-sm">{address.country}</p>
                     </div>
                     <div className="flex flex-col gap-2 ml-4">

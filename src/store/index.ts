@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Review, SiteFeedback, AbandonedCart, FeedbackMessage } from '../types';
+import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Address, Review, SiteFeedback, AbandonedCart, FeedbackMessage } from '../types';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -65,6 +65,7 @@ interface StoreState {
   updateOrderTracking: (orderId: string, trackingId: string, carrier: string) => void;
   updateOrderShippingExpense: (orderId: string, expense: number) => void;
   updatePaymentStatus: (orderId: string, status: Order['paymentStatus']) => void;
+  updateOrderAddress: (orderId: string, address: Address) => Promise<void>;
 
   // Coupon actions
   applyCoupon: (code: string) => { success: boolean; message: string };
@@ -405,6 +406,26 @@ export const useStore = create<StoreState>()(
 
         await supabase.from('orders').update({
           shipping_expense: expense,
+          updated_at: updatedAt,
+        }).eq('id', orderId);
+      },
+
+      updateOrderAddress: async (orderId, address) => {
+        const updatedAt = new Date().toISOString();
+        set({
+          orders: get().orders.map((order) =>
+            order.id === orderId
+              ? {
+                ...order,
+                address,
+                updatedAt,
+              }
+              : order
+          ),
+        });
+
+        await supabase.from('orders').update({
+          address,
           updated_at: updatedAt,
         }).eq('id', orderId);
       },
