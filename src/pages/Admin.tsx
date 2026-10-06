@@ -471,7 +471,10 @@ Thank you for choosing Vaddadi Pickles!`;
     let displayWeight = (calculateOrderWeight(order) * 1000).toFixed(0) + 'g';
     if (order.address?.isOffline) {
       const override = window.prompt('Enter weight (in grams) for offline customer label:', displayWeight);
-      if (override !== null) displayWeight = override + (override.includes('g') ? '' : 'g');
+      if (override !== null) {
+        const clean = override.replace(/[^0-9.]/g, '').trim();
+        displayWeight = (clean || (calculateOrderWeight(order) * 1000).toFixed(0)) + 'g';
+      }
     }
 
     const codBadge = order.paymentMethod === 'cod'
@@ -542,7 +545,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="order-id">${sanitizeHtml(order.id)}</div>
               <div class="order-details">
                 <span>📦 ${order.items.length} Items</span>
-                <span>⚖️ ~${displayWeight}</span>
+                <span>⚖️ ~${sanitizeHtml(displayWeight)}</span>
                 <span>${paymentInfo}</span>
               </div>
             </div>
@@ -617,8 +620,11 @@ Thank you for choosing Vaddadi Pickles!`;
       const senderName = isBikeParcel ? 'Vaddadi Pickles' : 'Vaddadi Udayaakumar, KK Homes 2';
       let displayWeight = (calculateOrderWeight(order) * 1000).toFixed(0) + 'g';
       if (order.address?.isOffline) {
-        const override = window.prompt('Enter weight (in grams) for offline customer '+order.userName+':', displayWeight);
-        if (override !== null) displayWeight = override + (override.includes('g') ? '' : 'g');
+        const override = window.prompt('Enter weight (in grams) for offline customer ' + (order.userName || '') + ':', displayWeight);
+        if (override !== null) {
+          const clean = override.replace(/[^0-9.]/g, '').trim();
+          displayWeight = (clean || (calculateOrderWeight(order) * 1000).toFixed(0)) + 'g';
+        }
       }
 
       const codBadge = order.paymentMethod === 'cod'
@@ -654,7 +660,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="order-id">${sanitizeHtml(order.id)}</div>
             <div class="details">
               <span>Items: ${order.items.length}</span>
-              <span>Weight: ~${displayWeight}</span>
+              <span>Weight: ~${sanitizeHtml(displayWeight)}</span>
               <span>${paymentText}</span>
             </div>
           </div>
@@ -715,8 +721,11 @@ Thank you for choosing Vaddadi Pickles!`;
     const senderName = isBikeParcel ? 'VADDADI PICKLES' : 'VADDADI UDAYAAKUMAR, KK HOMES 2';
     let displayWeight = calculateOrderWeight(order).toFixed(2) + ' KG';
     if (order.address?.isOffline) {
-      const override = window.prompt('Enter weight for offline customer label:', displayWeight);
-      if (override !== null) displayWeight = override + (override.toLowerCase().includes('kg') ? '' : ' KG');
+      const override = window.prompt('Enter weight for offline customer label (in KG):', displayWeight);
+      if (override !== null) {
+        const clean = override.replace(/[^0-9.]/g, '').trim();
+        displayWeight = (clean || calculateOrderWeight(order).toFixed(2)) + ' KG';
+      }
     }
 
     const labelHtml = `
@@ -781,12 +790,14 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="routing-code" style="width: 100%;">${sanitizeHtml(order.address.pincode)}</div>
           </div>
           
+          ${isBikeParcel ? `
           <div class="row">
             <div class="barcode-container" style="width: 100%;">
               <div class="barcode-font">*${sanitizeHtml(order.id).toUpperCase()}*</div>
               <div class="barcode-text">${sanitizeHtml(order.id).toUpperCase()}</div>
             </div>
           </div>
+          ` : ''}
           
           <div class="row" style="flex: 1;">
             <div class="col" style="flex: 1; padding: 15px;">
@@ -821,7 +832,7 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <div class="detail-item">
                 <div class="detail-label">Weight (Est)</div>
-                <div class="detail-value">${displayWeight}</div>
+                <div class="detail-value">${sanitizeHtml(displayWeight)}</div>
               </div>
               <div class="detail-item" style="border-bottom: none;">
                 <div class="detail-label">Items</div>
