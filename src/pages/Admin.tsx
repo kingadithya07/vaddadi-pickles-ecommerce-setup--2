@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import { sanitizeHtml } from '../utils/sanitize';
 import { lookupPincode } from '../utils/pincode';
 import { formatPhoneNumber } from '../utils/phone';
+import { getAddress3Lines, formatStreetAddress } from '../utils/address';
 
 
 
@@ -449,29 +450,6 @@ Thank you for choosing Vaddadi Pickles!`;
     window.open(`https://wa.me/${order.userPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const formatStreetAddress = (street: string) => {
-    if (!street) return '';
-    if (street.includes(',')) {
-      const parts = street.split(',');
-      return `${parts[0].trim()},<br>${parts.slice(1).join(',').trim()}`;
-    }
-    const middle = Math.floor(street.length / 2);
-    let splitIndex = -1;
-    let minDistance = street.length;
-    for (let i = 0; i < street.length; i++) {
-      if (street[i] === ' ') {
-        const distance = Math.abs(i - middle);
-        if (distance < minDistance) {
-          minDistance = distance;
-          splitIndex = i;
-        }
-      }
-    }
-    if (splitIndex !== -1 && street.length > 15) {
-      return `${street.substring(0, splitIndex).trim()}<br>${street.substring(splitIndex + 1).trim()}`;
-    }
-    return street;
-  };
 
   const printSingleLabel = async (order: Order) => {
     const labelWindow = window.open('', '_blank');
@@ -516,6 +494,8 @@ Thank you for choosing Vaddadi Pickles!`;
       ? `💵 Collect: ₹${order.finalAmount}`
       : '✅ PREPAID';
 
+    const addr3 = getAddress3Lines(order.address);
+
     const singleLabelHtml = `
       <!DOCTYPE html>
       <html>
@@ -528,13 +508,14 @@ Thank you for choosing Vaddadi Pickles!`;
           .content { padding: 15px; }
           .from-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
           .from-box .title { font-size: 10px; font-weight: bold; color: #6b7280; margin-bottom: 5px; }
-          .from-box .text { font-size: 11px; color: #374151; }
-          .to-box { border: 2px solid #16a34a; border-radius: 8px; padding: 15px; }
-          .to-box .title { font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
-          .to-box .name { font-size: 20px; font-weight: bold; color: #111827; margin-bottom: 8px; }
-          .to-box .address { font-size: 14px; color: #374151; line-height: 1.6; }
-          .to-box .pincode { font-size: 18px; font-weight: bold; color: #111827; margin-top: 8px; background: #fef3c7; padding: 5px 10px; display: inline-block; border-radius: 4px; }
-          .to-box .phone { font-size: 14px; margin-top: 10px; color: #111827; font-weight: 500; }
+          .from-box .text { font-size: 12px; color: #374151; line-height: 1.4; }
+          .to-box { border: 3px solid #16a34a; border-radius: 8px; padding: 16px; background: #ffffff; }
+          .to-box .title { font-size: 13px; font-weight: 800; color: #15803d; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
+          .to-box .name { font-size: 24px; font-weight: 900; color: #000000; margin-bottom: 10px; letter-spacing: 0.5px; }
+          .to-box .address { font-size: 18px; font-weight: 700; color: #000000; line-height: 1.5; margin-bottom: 8px; }
+          .to-box .address .addr-line { margin-bottom: 3px; font-size: 18px; font-weight: 700; color: #000000; }
+          .to-box .pincode { font-size: 22px; font-weight: 900; color: #000000; margin-top: 10px; background: #fef3c7; border: 2px solid #f59e0b; padding: 6px 14px; display: inline-block; border-radius: 6px; letter-spacing: 1px; }
+          .to-box .phone { font-size: 18px; margin-top: 10px; color: #000000; font-weight: 800; }
           .order-section { border-top: 2px dashed #d1d5db; margin-top: 15px; padding-top: 15px; }
           .order-id { font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; text-align: center; letter-spacing: 3px; margin-bottom: 10px; padding: 8px; background: #f3f4f6; border-radius: 4px; }
           .order-details { display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; }
@@ -556,11 +537,12 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="title">📦 DELIVER TO:</div>
               <div class="name">${sanitizeHtml(order.userName)}</div>
               <div class="address">
-                ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
-                ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
+                <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
+                ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
+                <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
               </div>
               <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}</div>
-              ${postOfficeName ? `<div style="margin-top: 6px; padding: 4px 8px; background: #dcfce7; border: 1px solid #86efac; border-radius: 4px; font-size: 13px; font-weight: 800; color: #166534; text-transform: uppercase;">POST OFFICE: ${sanitizeHtml(postOfficeName).toUpperCase()}</div>` : ''}
+              ${postOfficeName ? `<div style="margin-top: 8px; padding: 5px 10px; background: #dcfce7; border: 2px solid #16a34a; border-radius: 6px; font-size: 15px; font-weight: 900; color: #14532d; text-transform: uppercase;">POST OFFICE: ${sanitizeHtml(postOfficeName).toUpperCase()}</div>` : ''}
               <div class="phone">📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
             </div>
             
@@ -601,6 +583,7 @@ Thank you for choosing Vaddadi Pickles!`;
     if (!labelWindow) return;
 
     const postOfficeName = (order.address?.postOffice || '').trim();
+    const addr3 = getAddress3Lines(order.address);
 
     const codBadge = order.paymentMethod === 'cod'
       ? '<div class="cod">COD</div>'
@@ -614,9 +597,10 @@ Thank you for choosing Vaddadi Pickles!`;
         <style>
           body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f3f4f6; }
           .label { width: 62mm; height: 40mm; background: white; border: 2px solid #000; padding: 8px; position: relative; }
-          .name { font-size: 12px; font-weight: bold; margin-bottom: 3px; }
-          .address { font-size: 9px; line-height: 1.4; color: #333; }
-          .pin { font-weight: bold; font-size: 11px; margin-top: 3px; }
+          .name { font-size: 14px; font-weight: 800; margin-bottom: 3px; color: #000; }
+          .address { font-size: 11px; font-weight: 700; line-height: 1.35; color: #000; }
+          .address .addr-line { margin-bottom: 2px; }
+          .pin { font-weight: 900; font-size: 12px; margin-top: 4px; color: #000; }
           .order-id { position: absolute; bottom: 5px; left: 8px; right: 8px; text-align: center; font-family: monospace; font-size: 10px; border-top: 1px dashed #ccc; padding-top: 3px; }
           .cod { position: absolute; top: 5px; right: 5px; background: red; color: white; font-size: 8px; padding: 2px 5px; font-weight: bold; }
           @media print { body { background: white; } }
@@ -627,8 +611,9 @@ Thank you for choosing Vaddadi Pickles!`;
           ${codBadge}
           <div class="name">${sanitizeHtml(order.userName)}</div>
           <div class="address">
-            ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
-            ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
+            <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
+            ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
+            <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
           </div>
           <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''} | 📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
           <div class="order-id">${sanitizeHtml(order.id)}</div>
@@ -662,6 +647,7 @@ Thank you for choosing Vaddadi Pickles!`;
       }
 
       const postOfficeName = (order.address?.postOffice || '').trim();
+      const addr3 = getAddress3Lines(order.address);
 
       const codBadge = order.paymentMethod === 'cod'
         ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
@@ -682,9 +668,10 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="title">📦 DELIVER TO:</div>
             <div class="name">${sanitizeHtml(order.userName)}</div>
             <div class="address">
-              ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
-              ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>
-              <strong>PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</strong>
+              <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
+              ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
+              <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
+              <div class="addr-line pin-line">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</div>
             </div>
             <div class="phone">📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
           </div>
@@ -719,10 +706,12 @@ Thank you for choosing Vaddadi Pickles!`;
           .from-section { background: #f3f4f6; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 11px; }
           .from-section .title { font-weight: bold; color: #666; margin-bottom: 5px; }
           .to-section { padding: 10px 0; }
-          .to-section .title { font-weight: bold; color: #16a34a; font-size: 14px; margin-bottom: 8px; border-bottom: 2px solid #16a34a; padding-bottom: 4px; }
-          .to-section .name { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
-          .to-section .address { font-size: 14px; line-height: 1.6; }
-          .to-section .phone { font-size: 14px; margin-top: 8px; font-weight: bold; }
+          .to-section .title { font-weight: 800; color: #16a34a; font-size: 14px; margin-bottom: 8px; border-bottom: 2px solid #16a34a; padding-bottom: 4px; }
+          .to-section .name { font-size: 22px; font-weight: 900; color: #000; margin-bottom: 8px; letter-spacing: 0.5px; }
+          .to-section .address { font-size: 18px; font-weight: 700; line-height: 1.45; color: #000; }
+          .to-section .address .addr-line { margin-bottom: 3px; font-size: 18px; font-weight: 700; color: #000; word-break: break-word; }
+          .to-section .address .pin-line { font-size: 20px; font-weight: 900; color: #000; margin-top: 5px; }
+          .to-section .phone { font-size: 18px; margin-top: 8px; font-weight: 800; color: #000; }
           .order-info { position: absolute; bottom: 15px; left: 15px; right: 15px; border-top: 2px dashed #ccc; padding-top: 10px; }
           .order-info .order-id { font-family: monospace; font-size: 16px; font-weight: bold; text-align: center; letter-spacing: 2px; margin-bottom: 5px; }
           .order-info .details { display: flex; justify-content: space-between; font-size: 11px; color: #666; }
@@ -784,6 +773,8 @@ Thank you for choosing Vaddadi Pickles!`;
       }
     }
 
+    const addr3 = getAddress3Lines(order.address);
+
     const labelHtml = `
       <!DOCTYPE html>
       <html>
@@ -809,14 +800,16 @@ Thank you for choosing Vaddadi Pickles!`;
           .barcode-text { font-size: 14px; font-weight: 600; letter-spacing: 2px; font-family: monospace; }
           
           .address-block { padding: 12px; flex: 1; }
-          .address-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+          .address-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
           
-          .from-address { font-size: 11px; line-height: 1.4; }
-          .from-address strong { font-size: 12px; }
+          .from-address { font-size: 13px; line-height: 1.4; }
+          .from-address strong { font-size: 15px; }
           
-          .to-address { font-size: 14px; line-height: 1.5; }
-          .to-address strong { font-size: 20px; display: block; margin-bottom: 4px; }
-          .to-phone { font-size: 16px; font-weight: 800; margin-top: 8px; display: inline-block; border: 2px solid #000; padding: 4px 8px; }
+          .to-address { font-size: 18px; line-height: 1.45; font-weight: 700; color: #000; }
+          .to-name { font-size: 24px; font-weight: 900; margin-bottom: 6px; color: #000; letter-spacing: 0.5px; }
+          .to-address .addr-line { margin-bottom: 3px; font-size: 18px; font-weight: 700; color: #000; word-break: break-word; }
+          .to-address .pin-line { font-size: 22px; font-weight: 900; margin-top: 6px; }
+          .to-phone { font-size: 19px; font-weight: 900; margin-top: 10px; display: inline-block; border: 3px solid #000; padding: 4px 10px; }
           
           .details-grid { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
           .detail-item { padding: 8px 12px; border-bottom: 2px solid #000; border-right: 2px solid #000; }
@@ -866,10 +859,11 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="col" style="flex: 1; padding: 15px;">
               <div class="address-title">SHIP TO:</div>
               <div class="to-address">
-                <strong>${sanitizeHtml(order.userName).toUpperCase()}</strong><br>
-                ${sanitizeHtml(formatStreetAddress(order.address.street)).toUpperCase()}<br>
-                ${sanitizeHtml(order.address.city).toUpperCase()}, ${sanitizeHtml(order.address.state).toUpperCase()}<br>
-                PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}<br>
+                <div class="to-name">${sanitizeHtml(order.userName).toUpperCase()}</div>
+                <div class="addr-line">${sanitizeHtml(addr3.line1).toUpperCase()}</div>
+                ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2).toUpperCase()}</div>` : ''}
+                <div class="addr-line">${sanitizeHtml(addr3.line3).toUpperCase()}</div>
+                <div class="addr-line pin-line">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</div>
                 <div class="to-phone">PH: ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
               </div>
             </div>
@@ -2170,11 +2164,17 @@ Thank you for choosing Vaddadi Pickles!`;
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-800 mb-2">Delivery Address</h4>
-                          <p className="text-sm text-gray-600">
-                            {order.address.street}<br />
-                            {order.address.city}, {order.address.state}<br />
-                            PIN: {order.address.pincode}
-                          </p>
+                          {(() => {
+                            const addr3 = getAddress3Lines(order.address);
+                            return (
+                              <div className="text-sm font-semibold text-gray-800 space-y-0.5">
+                                <p>{addr3.line1}</p>
+                                {addr3.line2 && <p>{addr3.line2}</p>}
+                                <p>{addr3.line3}</p>
+                                <p className="font-bold text-gray-900">PIN: {order.address.pincode}</p>
+                              </div>
+                            );
+                          })()}
                           <div className="mt-2 text-xs">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-medium text-gray-600">Branch:</span>
@@ -2233,7 +2233,7 @@ Thank you for choosing Vaddadi Pickles!`;
 
                                   await updateOrderAddress(order.id, {
                                     ...order.address,
-                                    street: newStreet.trim() || currentStreet,
+                                    street: formatStreetAddress(newStreet.trim()) || currentStreet,
                                     city: newCity.trim() || currentCity,
                                     state: newState.trim() || currentState,
                                     pincode: newPin.trim() || currentPin,
@@ -2378,6 +2378,8 @@ Thank you for choosing Vaddadi Pickles!`;
                               </tr>
                             `).join('');
 
+                            const invAddr3 = getAddress3Lines(order.address);
+
                             const invoiceHtml = `
                               <!DOCTYPE html>
                               <html>
@@ -2385,7 +2387,6 @@ Thank you for choosing Vaddadi Pickles!`;
                                 <title>Invoice - ${order.id}</title>
                                 <style>
                                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-import toast from 'react-hot-toast';
                                   body { font-family: 'Inter', sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1f2937; line-height: 1.5; }
                                   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #f3f4f6; }
                                   .logo-container { display: flex; align-items: center; gap: 15px; }
@@ -2432,7 +2433,12 @@ import toast from 'react-hot-toast';
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}</p>
+                                    <p>
+                                      ${sanitizeHtml(invAddr3.line1)}<br>
+                                      ${invAddr3.line2 ? `${sanitizeHtml(invAddr3.line2)}<br>` : ''}
+                                      ${sanitizeHtml(invAddr3.line3)}<br>
+                                      PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}
+                                    </p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>

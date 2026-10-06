@@ -9,6 +9,7 @@ import { Order } from '../types';
 import { getTrackingUrl } from '../utils/tracking';
 import { sanitizeHtml } from '../utils/sanitize';
 import { formatPhoneNumber } from '../utils/phone';
+import { getAddress3Lines } from '../utils/address';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },
@@ -71,6 +72,8 @@ export function Orders() {
       </tr>
     `).join('');
 
+    const addr3 = getAddress3Lines(order.address);
+
     const invoiceHtml = `
       <!DOCTYPE html>
       <html>
@@ -124,7 +127,12 @@ export function Orders() {
           </div>
           <div class="detail-box">
             <h3>Shipped To</h3>
-            <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}</p>
+            <p>
+              ${sanitizeHtml(addr3.line1)}<br>
+              ${addr3.line2 ? `${sanitizeHtml(addr3.line2)}<br>` : ''}
+              ${sanitizeHtml(addr3.line3)}<br>
+              PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}
+            </p>
           </div>
           <div class="detail-box">
             <h3>Order Details</h3>
@@ -381,11 +389,17 @@ export function Orders() {
                   <div className="grid sm:grid-cols-2 gap-4 text-sm">
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-700 mb-1">Delivery Address</h4>
-                      <p className="text-gray-600 leading-relaxed">
-                        {order.address.street}<br />
-                        {order.address.city}, {order.address.state}<br />
-                        PIN: {order.address.pincode}
-                      </p>
+                      {(() => {
+                        const addr3 = getAddress3Lines(order.address);
+                        return (
+                          <div className="text-gray-700 font-medium leading-relaxed">
+                            <p>{addr3.line1}</p>
+                            {addr3.line2 && <p>{addr3.line2}</p>}
+                            <p>{addr3.line3}</p>
+                            <p className="font-semibold text-gray-900">PIN: {order.address.pincode}</p>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-700 mb-1">Payment</h4>
