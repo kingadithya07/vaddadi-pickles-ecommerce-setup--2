@@ -468,6 +468,11 @@ Thank you for choosing Vaddadi Pickles!`;
 
     const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
     const senderName = isBikeParcel ? 'Vaddadi Pickles' : 'Vaddadi Udayaakumar, KK Homes 2';
+    let displayWeight = (calculateOrderWeight(order) * 1000).toFixed(0) + 'g';
+    if (order.address?.isOffline) {
+      const override = window.prompt('Enter weight (in grams) for offline customer label:', displayWeight);
+      if (override !== null) displayWeight = override + (override.includes('g') ? '' : 'g');
+    }
 
     const codBadge = order.paymentMethod === 'cod'
       ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
@@ -537,7 +542,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="order-id">${sanitizeHtml(order.id)}</div>
               <div class="order-details">
                 <span>📦 ${order.items.length} Items</span>
-                <span>⚖️ ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
+                <span>⚖️ ~${displayWeight}</span>
                 <span>${paymentInfo}</span>
               </div>
             </div>
@@ -610,6 +615,11 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelsContent = readyOrders.map(order => {
       const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
       const senderName = isBikeParcel ? 'Vaddadi Pickles' : 'Vaddadi Udayaakumar, KK Homes 2';
+      let displayWeight = (calculateOrderWeight(order) * 1000).toFixed(0) + 'g';
+      if (order.address?.isOffline) {
+        const override = window.prompt('Enter weight (in grams) for offline customer '+order.userName+':', displayWeight);
+        if (override !== null) displayWeight = override + (override.includes('g') ? '' : 'g');
+      }
 
       const codBadge = order.paymentMethod === 'cod'
         ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
@@ -644,7 +654,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="order-id">${sanitizeHtml(order.id)}</div>
             <div class="details">
               <span>Items: ${order.items.length}</span>
-              <span>Weight: ~${(calculateOrderWeight(order) * 1000).toFixed(0)}g</span>
+              <span>Weight: ~${displayWeight}</span>
               <span>${paymentText}</span>
             </div>
           </div>
@@ -703,6 +713,11 @@ Thank you for choosing Vaddadi Pickles!`;
 
     const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
     const senderName = isBikeParcel ? 'VADDADI PICKLES' : 'VADDADI UDAYAAKUMAR, KK HOMES 2';
+    let displayWeight = calculateOrderWeight(order).toFixed(2) + ' KG';
+    if (order.address?.isOffline) {
+      const override = window.prompt('Enter weight for offline customer label:', displayWeight);
+      if (override !== null) displayWeight = override + (override.toLowerCase().includes('kg') ? '' : ' KG');
+    }
 
     const labelHtml = `
       <!DOCTYPE html>
@@ -806,7 +821,7 @@ Thank you for choosing Vaddadi Pickles!`;
               </div>
               <div class="detail-item">
                 <div class="detail-label">Weight (Est)</div>
-                <div class="detail-value">${calculateOrderWeight(order).toFixed(2)} KG</div>
+                <div class="detail-value">${displayWeight}</div>
               </div>
               <div class="detail-item" style="border-bottom: none;">
                 <div class="detail-label">Items</div>

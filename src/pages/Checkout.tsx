@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 export function Checkout() {
-  const { cart, user, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
+  const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
   const navigate = useNavigate();
   const { subtotal, discount, total, shipping, displayAmount, displayAmountWhole } = useCartTotals();
 
@@ -24,6 +24,7 @@ export function Checkout() {
   const [isMobile, setIsMobile] = useState(false);
   const [showQR, setShowQR] = useState(true);
   const [showUtrHelp, setShowUtrHelp] = useState(false);
+  const [adminAdditionalAmount, setAdminAdditionalAmount] = useState<number>(0);
 
   // Track timeouts to prevent state updates on unmounted components
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
@@ -103,7 +104,8 @@ export function Checkout() {
 
   // IMPORTANT: Use exact same amount format for QR code and display
   // UPI spec requires amount with 2 decimal places
-  const paymentAmount = total.toFixed(2);
+  const finalOrderTotal = total + (isAdmin ? Number(adminAdditionalAmount) || 0 : 0);
+  const paymentAmount = finalOrderTotal.toFixed(2);
 
   // Generate UPI payment URL for QR code and deep links
   const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${paymentAmount}&cu=INR&tn=${encodeURIComponent(`Order ${orderId}`)}&tr=${orderId}`;
@@ -167,7 +169,9 @@ export function Checkout() {
       
       finalAddress = { 
         ...newAddress, 
-        street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim() 
+        street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim(),
+        isOffline: isAdmin,
+        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0
       };
       finalName = deliveryName;
       finalPhone = formatPhoneNumber(deliveryPhone);
@@ -197,6 +201,8 @@ export function Checkout() {
         state: selectedAddr.state,
         pincode: selectedAddr.pincode,
         country: selectedAddr.country,
+        isOffline: isAdmin,
+        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0
       };
       finalName = selectedAddr.name;
       finalPhone = formatPhoneNumber(selectedAddr.phone);
@@ -230,7 +236,7 @@ export function Checkout() {
       items: cart,
       total: subtotal,
       discount,
-      finalAmount: total,
+      finalAmount: finalOrderTotal,
       couponCode: appliedCoupon?.code,
       affiliateCode: validatedAffiliateCode,
       address: finalAddress,
@@ -908,6 +914,7 @@ export function Checkout() {
               </p>
             </div>
 
+            {isAdmin && (<div className="mt-4 mb-4"><label className="block text-sm font-medium text-gray-700 mb-1">Additional Amount (Admin only)</label><input type="number" value={adminAdditionalAmount || ''} onChange={(e) => setAdminAdditionalAmount(Number(e.target.value))} placeholder="e.g., extra shipping, weight" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" /></div>)}
             <div className="mt-4 mb-4">
               <label className="flex items-start gap-2 cursor-pointer select-none">
                 <input

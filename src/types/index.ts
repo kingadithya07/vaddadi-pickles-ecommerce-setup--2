@@ -77,6 +77,8 @@ export interface Address {
   state: string;
   pincode: string;
   country: string;
+  isOffline?: boolean;
+  adminAdditionalAmount?: number;
 }
 
 export interface Order {
