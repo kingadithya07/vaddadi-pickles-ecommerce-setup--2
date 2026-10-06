@@ -51,6 +51,7 @@ export interface UserAddress {
   state: string;
   pincode: string;
   country: string;
+  postOffice?: string;
   isDefault: boolean;
 }
 
@@ -77,8 +78,10 @@ export interface Address {
   state: string;
   pincode: string;
   country: string;
+  postOffice?: string;
   isOffline?: boolean;
   adminAdditionalAmount?: number;
+  adminAdditionalWeight?: number;
 }
 
 export interface Order {
@@ -94,6 +97,8 @@ export interface Order {
   couponCode?: string;
   affiliateCode?: string;
   address: Address;
+  adminAdditionalAmount?: number;
+  adminAdditionalWeight?: number;
   status: 'pending' | 'payment_pending' | 'payment_approved' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'awaiting_approval' | 'approved' | 'rejected';
   paymentMethod: string;

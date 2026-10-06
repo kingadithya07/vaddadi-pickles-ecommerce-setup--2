@@ -25,6 +25,22 @@ export function Checkout() {
   const [showQR, setShowQR] = useState(true);
   const [showUtrHelp, setShowUtrHelp] = useState(false);
   const [adminAdditionalAmount, setAdminAdditionalAmount] = useState<number>(0);
+  const [adminAdditionalWeight, setAdminAdditionalWeight] = useState<number>(0);
+
+  const cartWeightGrams = useMemo(() => {
+    return cart.reduce((totalGrams, item) => {
+      let w = 0;
+      const weightStr = item.variant?.weight?.toLowerCase() || '250g';
+      if (weightStr.includes('kg')) {
+        w = parseFloat(weightStr) * 1000;
+      } else if (weightStr.includes('g')) {
+        w = parseFloat(weightStr);
+      } else {
+        w = 250;
+      }
+      return totalGrams + (w * item.quantity);
+    }, 0);
+  }, [cart]);
 
   // Track timeouts to prevent state updates on unmounted components
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
@@ -87,7 +103,9 @@ export function Checkout() {
           }));
           setIsManualCity(false);
           setPincodeBranches(info.branches);
-          setSelectedBranch('');
+          const defaultBranch = info.branches && info.branches.length > 0 ? info.branches[0].name : '';
+          setSelectedBranch(defaultBranch);
+          setNewAddress(prev => ({ ...prev, postOffice: defaultBranch }));
         }
       } else {
         setPincodeBranches([]);
@@ -170,8 +188,10 @@ export function Checkout() {
       finalAddress = { 
         ...newAddress, 
         street: newAddress.street2 ? `${newAddress.street.trim()}, ${newAddress.street2.trim()}` : newAddress.street.trim(),
+        postOffice: selectedBranch || newAddress.postOffice,
         isOffline: isAdmin,
-        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0
+        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
+        adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0
       };
       finalName = deliveryName;
       finalPhone = formatPhoneNumber(deliveryPhone);
@@ -187,6 +207,7 @@ export function Checkout() {
         state: finalAddress.state,
         pincode: finalAddress.pincode,
         country: finalAddress.country || 'India',
+        postOffice: finalAddress.postOffice,
         isDefault: userAddresses.length === 0, // Make it default if it's their first address
       });
     } else {
@@ -201,8 +222,10 @@ export function Checkout() {
         state: selectedAddr.state,
         pincode: selectedAddr.pincode,
         country: selectedAddr.country,
+        postOffice: selectedAddr.postOffice || selectedBranch || undefined,
         isOffline: isAdmin,
-        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0
+        adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
+        adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0
       };
       finalName = selectedAddr.name;
       finalPhone = formatPhoneNumber(selectedAddr.phone);
@@ -240,6 +263,8 @@ export function Checkout() {
       couponCode: appliedCoupon?.code,
       affiliateCode: validatedAffiliateCode,
       address: finalAddress,
+      adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
+      adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0,
       status: 'payment_pending',
       paymentStatus: 'awaiting_approval',
       paymentMethod,
@@ -914,7 +939,68 @@ export function Checkout() {
               </p>
             </div>
 
-            {isAdmin && (<div className="mt-4 mb-4"><label className="block text-sm font-medium text-gray-700 mb-1">Additional Amount (Admin only)</label><input type="number" value={adminAdditionalAmount || ''} onChange={(e) => setAdminAdditionalAmount(Number(e.target.value))} placeholder="e.g., extra shipping, weight" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" /></div>)}
+            {isAdmin && (
+              <div className="mt-4 mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                    🛠️ Offline Order Customization (Admin Only)
+                  </span>
+                  <span className="text-[11px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-semibold">
+                    Offline Customer
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Additional Amount (₹)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-400 text-sm font-medium">₹</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={adminAdditionalAmount || ''}
+                        onChange={(e) => setAdminAdditionalAmount(Math.max(0, Number(e.target.value)))}
+                        placeholder="e.g. 50"
+                        className="w-full pl-7 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1">Extra charge added to final order total</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Additional Weight (Grams)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        value={adminAdditionalWeight || ''}
+                        onChange={(e) => setAdminAdditionalWeight(Math.max(0, Number(e.target.value)))}
+                        placeholder="e.g. 250"
+                        className="w-full pl-3 pr-12 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                      />
+                      <span className="absolute right-3 top-2 text-gray-400 text-xs font-medium">grams</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-1">Extra weight counted in shipping labels</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-900">
+                  <span>Calculated Package Weight:</span>
+                  <span className="font-bold">
+                    ~{((cartWeightGrams + (Number(adminAdditionalWeight) || 0)) / 1000).toFixed(2)} KG
+                    {Number(adminAdditionalWeight) > 0 && (
+                      <span className="text-[11px] font-normal text-amber-700 ml-1">
+                        (Base: {(cartWeightGrams / 1000).toFixed(2)} KG + {adminAdditionalWeight}g)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="mt-4 mb-4">
               <label className="flex items-start gap-2 cursor-pointer select-none">
                 <input

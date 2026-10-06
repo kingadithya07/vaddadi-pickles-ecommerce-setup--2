@@ -18,6 +18,9 @@ import { AdminAffiliates } from '../components/AdminAffiliates';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { sanitizeHtml } from '../utils/sanitize';
+import { lookupPincode } from '../utils/pincode';
+
+const poCache = new Map<string, string>();
 
 type Tab = 'dashboard' | 'products' | 'combos' | 'orders' | 'payments' | 'coupons' | 'labels' | 'settings' | 'feedback' | 'abandoned' | 'affiliates';
 
@@ -85,6 +88,24 @@ export function Admin() {
     };
     fetchAffiliatePayouts();
   }, [fetchDailyVisits, fetchAbandonedCarts]);
+
+  // Pre-warm post office branches cache for order pincodes
+  useEffect(() => {
+    orders.forEach(order => {
+      const pin = order.address?.pincode;
+      if (pin && pin.length === 6 && !poCache.has(pin)) {
+        if (order.address?.postOffice) {
+          poCache.set(pin, order.address.postOffice);
+        } else {
+          lookupPincode(pin).then(info => {
+            if (info?.branches?.length) {
+              poCache.set(pin, info.branches[0].name);
+            }
+          }).catch(() => {});
+        }
+      }
+    });
+  }, [orders]);
 
   // Sync draft settings with store settings when they change externally
   useEffect(() => {
@@ -389,6 +410,10 @@ export function Admin() {
       }
       totalGrams += weight * item.quantity;
     });
+    // Add manual additional weight added by admin (in grams)
+    const extraWeight = Number(order.adminAdditionalWeight || order.address?.adminAdditionalWeight || 0);
+    totalGrams += extraWeight;
+
     return totalGrams / 1000; // Returns weight in KG
   };
 
@@ -462,7 +487,7 @@ Thank you for choosing Vaddadi Pickles!`;
     return street;
   };
 
-  const printSingleLabel = (order: Order) => {
+  const printSingleLabel = async (order: Order) => {
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
@@ -474,6 +499,19 @@ Thank you for choosing Vaddadi Pickles!`;
       if (override !== null) {
         const clean = override.replace(/[^0-9.]/g, '').trim();
         displayWeight = (clean || (calculateOrderWeight(order) * 1000).toFixed(0)) + 'g';
+      }
+    }
+
+    let postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+    if (!postOfficeName && order.address?.pincode && order.address.pincode.length === 6) {
+      try {
+        const info = await lookupPincode(order.address.pincode);
+        if (info?.branches?.length) {
+          postOfficeName = info.branches[0].name;
+          poCache.set(order.address.pincode, postOfficeName);
+        }
+      } catch (err) {
+        console.error('Failed to lookup post office for single label:', err);
       }
     }
 
@@ -528,7 +566,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
                 ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
               </div>
-              <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}</div>
+              <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` <span style="font-size: 13px; font-weight: 700; color: #166534; margin-left: 6px;">(${sanitizeHtml(postOfficeName).toUpperCase()})</span>` : ''}</div>
               <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
             </div>
             
@@ -568,6 +606,8 @@ Thank you for choosing Vaddadi Pickles!`;
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
+    const postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+
     const codBadge = order.paymentMethod === 'cod'
       ? '<div class="cod">COD</div>'
       : '';
@@ -596,7 +636,7 @@ Thank you for choosing Vaddadi Pickles!`;
             ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
             ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}
           </div>
-          <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)} | 📱 ${sanitizeHtml(order.userPhone)}</div>
+          <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''} | 📱 ${sanitizeHtml(order.userPhone)}</div>
           <div class="order-id">${sanitizeHtml(order.id)}</div>
         </div>
         <script>window.print();</script>
@@ -627,6 +667,8 @@ Thank you for choosing Vaddadi Pickles!`;
         }
       }
 
+      const postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+
       const codBadge = order.paymentMethod === 'cod'
         ? `<div class="cod-badge">COD ₹${order.finalAmount}</div>`
         : '';
@@ -648,7 +690,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="address">
               ${sanitizeHtml(formatStreetAddress(order.address.street))}<br>
               ${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>
-              <strong>PIN: ${sanitizeHtml(order.address.pincode)}</strong>
+              <strong>PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</strong>
             </div>
             <div class="phone">📱 ${sanitizeHtml(order.userPhone)}</div>
           </div>
@@ -713,7 +755,7 @@ Thank you for choosing Vaddadi Pickles!`;
     labelWindow.document.close();
   };
 
-  const printOrderLabel = (order: Order) => {
+  const printOrderLabel = async (order: Order) => {
     const labelWindow = window.open('', '_blank');
     if (!labelWindow) return;
 
@@ -725,6 +767,19 @@ Thank you for choosing Vaddadi Pickles!`;
       if (override !== null) {
         const clean = override.replace(/[^0-9.]/g, '').trim();
         displayWeight = (clean || calculateOrderWeight(order).toFixed(2)) + ' KG';
+      }
+    }
+
+    let postOfficeName = order.address?.postOffice || poCache.get(order.address?.pincode) || '';
+    if (!postOfficeName && order.address?.pincode && order.address.pincode.length === 6) {
+      try {
+        const info = await lookupPincode(order.address.pincode);
+        if (info?.branches?.length) {
+          postOfficeName = info.branches[0].name;
+          poCache.set(order.address.pincode, postOfficeName);
+        }
+      } catch (err) {
+        console.error('Failed to lookup post office for order label:', err);
       }
     }
 
@@ -746,6 +801,7 @@ Thank you for choosing Vaddadi Pickles!`;
           .courier-header p { margin: 0; font-size: 14px; font-weight: 700; border: 2px solid #fff; padding: 2px 8px; border-radius: 4px; }
           
           .routing-code { font-size: 48px; font-weight: 900; text-align: center; padding: 10px; letter-spacing: 2px; }
+          .post-office-name { font-size: 16px; font-weight: 900; text-align: center; padding: 7px 10px; letter-spacing: 1px; text-transform: uppercase; }
           
           .barcode-container { padding: 15px 10px; text-align: center; }
           .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 64px; line-height: 1; margin-bottom: 5px; font-weight: normal; }
@@ -790,6 +846,12 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="routing-code" style="width: 100%;">${sanitizeHtml(order.address.pincode)}</div>
           </div>
           
+          ${postOfficeName ? `
+          <div class="row" style="background: #fff; justify-content: center; align-items: center;">
+            <div class="post-office-name" style="width: 100%;">POST OFFICE: ${sanitizeHtml(postOfficeName).toUpperCase()}</div>
+          </div>
+          ` : ''}
+          
           ${isBikeParcel ? `
           <div class="row">
             <div class="barcode-container" style="width: 100%;">
@@ -806,7 +868,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 <strong>${sanitizeHtml(order.userName).toUpperCase()}</strong><br>
                 ${sanitizeHtml(formatStreetAddress(order.address.street)).toUpperCase()}<br>
                 ${sanitizeHtml(order.address.city).toUpperCase()}, ${sanitizeHtml(order.address.state).toUpperCase()}<br>
-                PIN: ${sanitizeHtml(order.address.pincode)}<br>
+                PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}<br>
                 <div class="to-phone">PH: ${sanitizeHtml(order.userPhone)}</div>
               </div>
             </div>
@@ -2111,6 +2173,18 @@ Thank you for choosing Vaddadi Pickles!`;
                             {order.address.street}<br />
                             {order.address.city}, {order.address.state}<br />
                             PIN: {order.address.pincode}
+                            {(order.address.postOffice || poCache.get(order.address.pincode)) && (
+                              <span className="font-semibold text-gray-700"> (PO: {order.address.postOffice || poCache.get(order.address.pincode)})</span>
+                            )}
+                          </p>
+                          {(order.address.isOffline || order.address.adminAdditionalAmount || order.address.adminAdditionalWeight) && (
+                            <div className="mt-2 text-xs bg-amber-50 p-2 rounded-lg border border-amber-200 text-amber-900 space-y-1">
+                              {order.address.isOffline && <div className="font-bold">🏷️ Offline Customer Order</div>}
+                              {order.address.adminAdditionalAmount ? <div>Extra Amount: ₹{order.address.adminAdditionalAmount}</div> : null}
+                              {order.address.adminAdditionalWeight ? <div>Extra Weight: +{order.address.adminAdditionalWeight}g</div> : null}
+                            </div>
+                          )}
+                          <p style={{ display: 'none' }}>
                           </p>
                         </div>
                         <div>
@@ -2289,7 +2363,7 @@ import toast from 'react-hot-toast';
                                   </div>
                                   <div class="detail-box">
                                     <h3>Shipped To</h3>
-                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}</p>
+                                    <p>${sanitizeHtml(order.address.street)}<br>${sanitizeHtml(order.address.city)}, ${sanitizeHtml(order.address.state)}<br>PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice || poCache.get(order.address.pincode) ? ` (${sanitizeHtml(order.address.postOffice || poCache.get(order.address.pincode) || '').toUpperCase()})` : ''}</p>
                                   </div>
                                   <div class="detail-box">
                                     <h3>Order Details</h3>
@@ -2495,7 +2569,12 @@ import toast from 'react-hot-toast';
                       <p className="font-bold text-gray-800">{order.userName}</p>
                       <p className="text-sm text-gray-600">{order.address.street}</p>
                       <p className="text-sm text-gray-600">{order.address.city}, {order.address.state}</p>
-                      <p className="text-sm font-bold text-gray-800">PIN: {order.address.pincode}</p>
+                      <p className="text-sm font-bold text-gray-800">
+                        PIN: {order.address.pincode}
+                        {(order.address.postOffice || poCache.get(order.address.pincode)) && (
+                          <span className="text-xs text-gray-600 font-normal"> (PO: {order.address.postOffice || poCache.get(order.address.pincode)})</span>
+                        )}
+                      </p>
                       <p className="text-sm text-gray-600 mt-1">📱 {order.userPhone}</p>
                     </div>
 
