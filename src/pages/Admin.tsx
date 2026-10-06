@@ -2212,6 +2212,38 @@ Thank you for choosing Vaddadi Pickles!`;
                               >
                                 {order.address.postOffice ? 'Change Branch' : 'Select Branch'}
                               </button>
+                              <button
+                                onClick={async () => {
+                                  const currentStreet = order.address.street || '';
+                                  const currentCity = order.address.city || '';
+                                  const currentState = order.address.state || '';
+                                  const currentPin = order.address.pincode || '';
+
+                                  const newStreet = window.prompt('Edit Street Address (Door No, Landmark, Area):', currentStreet);
+                                  if (newStreet === null) return;
+
+                                  const newCity = window.prompt('Edit City (preserves current selected city by default):', currentCity);
+                                  if (newCity === null) return;
+
+                                  const newState = window.prompt('Edit State:', currentState);
+                                  if (newState === null) return;
+
+                                  const newPin = window.prompt('Edit 6-Digit Pincode:', currentPin);
+                                  if (newPin === null) return;
+
+                                  await updateOrderAddress(order.id, {
+                                    ...order.address,
+                                    street: newStreet.trim() || currentStreet,
+                                    city: newCity.trim() || currentCity,
+                                    state: newState.trim() || currentState,
+                                    pincode: newPin.trim() || currentPin,
+                                  });
+                                  toast.success('Order address updated successfully!');
+                                }}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 underline font-medium ml-2 cursor-pointer"
+                              >
+                                Edit Address
+                              </button>
                             </div>
                           </div>
                           {(order.address.isOffline || order.address.adminAdditionalAmount || order.address.adminAdditionalWeight) && (

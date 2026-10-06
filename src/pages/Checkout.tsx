@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../store';
-import { Order, Address } from '../types';
+import { Order, Address, UserAddress } from '../types';
 import { statesAndCities } from '../data/locations';
 
 import { useCartTotals } from '../hooks/useCartTotals';
@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 export function Checkout() {
-  const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress } = useStore();
+  const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress, updateUserAddress } = useStore();
   const navigate = useNavigate();
   const { subtotal, discount, total, shipping, displayAmount, displayAmountWhole } = useCartTotals();
 
@@ -57,6 +57,7 @@ export function Checkout() {
   const defaultAddress = userAddresses.find(addr => addr.isDefault) || userAddresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddress?.id || 'new');
   const [useNewAddress, setUseNewAddress] = useState(!defaultAddress);
+  const [editingSavedAddress, setEditingSavedAddress] = useState<UserAddress | null>(null);
   const [newAddress, setNewAddress] = useState<Address & { street2?: string }>(user?.address ? {
     ...user.address,
     street: user.address.street.split(',')[0]?.trim() || '',
@@ -69,7 +70,13 @@ export function Checkout() {
     pincode: '',
     country: 'India',
   });
-  const [isManualCity, setIsManualCity] = useState(false);
+  const [isManualCity, setIsManualCity] = useState(() => {
+    const city = user?.address?.city;
+    const state = user?.address?.state;
+    if (!city || !state) return false;
+    const hasCities = statesAndCities[state];
+    return !hasCities || !hasCities.includes(city);
+  });
   const [deliveryName, setDeliveryName] = useState(user?.name || '');
   const [deliveryPhone, setDeliveryPhone] = useState(user?.phone || '');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -79,6 +86,29 @@ export function Checkout() {
   const [addrBranches, setAddrBranches] = useState<Record<string, PostOfficeBranch[]>>({});
   const [isCustomBranch, setIsCustomBranch] = useState(false);
   const [customBranchName, setCustomBranchName] = useState('');
+
+  const handleEditSavedAddress = (addr: UserAddress) => {
+    const hasCities = statesAndCities[addr.state];
+    const isManual = !hasCities || !hasCities.includes(addr.city);
+    const parts = addr.street.split(',');
+
+    setEditingSavedAddress(addr);
+    setSelectedAddressId(addr.id);
+    setDeliveryName(addr.name);
+    setDeliveryPhone(addr.phone);
+    setNewAddress({
+      street: parts[0]?.trim() || '',
+      street2: parts.slice(1).join(',').trim() || '',
+      city: addr.city,
+      state: addr.state,
+      pincode: addr.pincode,
+      country: addr.country || 'India',
+      postOffice: addr.postOffice,
+    });
+    setSelectedBranch(addr.postOffice || '');
+    setIsManualCity(isManual);
+    setUseNewAddress(true);
+  };
 
   // Detect mobile device
   useEffect(() => {
@@ -99,16 +129,38 @@ export function Checkout() {
       if (newAddress.pincode.length === 6) {
         const info = await lookupPincode(newAddress.pincode);
         if (info) {
-          setNewAddress(prev => ({
-            ...prev,
-            state: info.state,
-            city: info.city,
-            country: info.country
-          }));
-          setIsManualCity(false);
+          const isEditingSaved = Boolean(editingSavedAddress && editingSavedAddress.pincode === newAddress.pincode);
+
+          setNewAddress(prev => {
+            // If customer or admin selected the city already, don't change it again if they edit the same address
+            const keepCity = Boolean((isEditingSaved && editingSavedAddress?.city) || (prev.city && prev.city.trim() !== ''));
+            const keepState = Boolean((isEditingSaved && editingSavedAddress?.state) || (prev.state && prev.state.trim() !== ''));
+
+            const finalCity = keepCity ? (prev.city || editingSavedAddress?.city || info.city) : info.city;
+            const finalState = keepState ? (prev.state || editingSavedAddress?.state || info.state) : info.state;
+
+            return {
+              ...prev,
+              state: finalState,
+              city: finalCity,
+              country: info.country || prev.country || 'India'
+            };
+          });
+
+          // Check if city is manual or in predefined list
+          const currentCity = newAddress.city || (isEditingSaved ? editingSavedAddress?.city : '');
+          if (currentCity) {
+            const currentState = newAddress.state || (isEditingSaved ? editingSavedAddress?.state : '') || info.state;
+            const hasCities = statesAndCities[currentState];
+            const isManual = Boolean(!hasCities || !hasCities.includes(currentCity));
+            setIsManualCity(isManual);
+          } else {
+            setIsManualCity(false);
+          }
+
           setPincodeBranches(info.branches);
           const branchNames = (info.branches || []).map(b => b.name);
-          const current = selectedBranch || newAddress.postOffice;
+          const current = selectedBranch || newAddress.postOffice || (isEditingSaved ? editingSavedAddress?.postOffice : '');
           const chosenBranch = (current && branchNames.includes(current))
             ? current
             : (info.branches && info.branches.length === 1 ? info.branches[0].name : '');
@@ -121,7 +173,7 @@ export function Checkout() {
       }
     };
     fetchLocation();
-  }, [newAddress.pincode]);
+  }, [newAddress.pincode, editingSavedAddress]);
 
   // Pre-load branches for selected saved address
   useEffect(() => {
@@ -222,20 +274,36 @@ export function Checkout() {
       finalName = deliveryName;
       finalPhone = formatPhoneNumber(deliveryPhone);
 
-      // Auto-save the new address to the user's profile
-      addUserAddress({
-        id: `addr-${Date.now()}`,
-        label: 'Other',
-        name: finalName,
-        phone: finalPhone,
-        street: finalAddress.street,
-        city: finalAddress.city,
-        state: finalAddress.state,
-        pincode: finalAddress.pincode,
-        country: finalAddress.country || 'India',
-        postOffice: finalAddress.postOffice,
-        isDefault: userAddresses.length === 0, // Make it default if it's their first address
-      });
+      // Auto-save the new address or update the existing address in profile
+      if (editingSavedAddress) {
+        updateUserAddress({
+          id: editingSavedAddress.id,
+          label: editingSavedAddress.label,
+          name: finalName,
+          phone: finalPhone,
+          street: finalAddress.street,
+          city: finalAddress.city,
+          state: finalAddress.state,
+          pincode: finalAddress.pincode,
+          country: finalAddress.country || 'India',
+          postOffice: finalAddress.postOffice,
+          isDefault: editingSavedAddress.isDefault,
+        });
+      } else {
+        addUserAddress({
+          id: `addr-${Date.now()}`,
+          label: 'Other',
+          name: finalName,
+          phone: finalPhone,
+          street: finalAddress.street,
+          city: finalAddress.city,
+          state: finalAddress.state,
+          pincode: finalAddress.pincode,
+          country: finalAddress.country || 'India',
+          postOffice: finalAddress.postOffice,
+          isDefault: userAddresses.length === 0, // Make it default if it's their first address
+        });
+      }
     } else {
       const selectedAddr = userAddresses.find(addr => addr.id === selectedAddressId);
       if (!selectedAddr) {
@@ -376,6 +444,18 @@ export function Checkout() {
                             Default
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEditSavedAddress(addr);
+                          }}
+                          className="ml-auto p-1 text-blue-600 hover:bg-blue-50 rounded transition flex items-center gap-1 text-xs font-medium"
+                          title="Edit this address"
+                        >
+                          <Edit2 size={13} /> Edit
+                        </button>
                       </div>
                       <p className="text-gray-700 font-medium">{addr.name}</p>
                       <p className="text-gray-600 text-sm">{formatPhoneNumber(addr.phone)}</p>
@@ -438,6 +518,21 @@ export function Checkout() {
             {/* New Address Form */}
             {useNewAddress && (
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                {editingSavedAddress && (
+                  <div className="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-lg text-sm">
+                    <span>Editing Saved Address: <strong>{editingSavedAddress.label}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingSavedAddress(null);
+                        setUseNewAddress(false);
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline font-semibold"
+                    >
+                      Cancel Edit
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">Recipient Name</label>

@@ -115,13 +115,35 @@ export function Profile() {
       if (addressForm.pincode && addressForm.pincode.length === 6) {
         const info = await lookupPincode(addressForm.pincode);
         if (info) {
-          setAddressForm(prev => ({
-            ...prev,
-            state: info.state,
-            city: info.city,
-            country: info.country
-          }));
-          setIsManualCity(false);
+          const isEditingSameAddress = Boolean(editingAddress && editingAddress.pincode === addressForm.pincode);
+
+          setAddressForm(prev => {
+            // If customer or admin selected the city already, don't change it again if they edit the same address
+            const keepCity = Boolean((isEditingSameAddress && editingAddress?.city) || (prev.city && prev.city.trim() !== ''));
+            const keepState = Boolean((isEditingSameAddress && editingAddress?.state) || (prev.state && prev.state.trim() !== ''));
+
+            const finalCity = keepCity ? (prev.city || editingAddress?.city || info.city) : info.city;
+            const finalState = keepState ? (prev.state || editingAddress?.state || info.state) : info.state;
+
+            return {
+              ...prev,
+              state: finalState,
+              city: finalCity,
+              country: info.country || prev.country || 'India'
+            };
+          });
+
+          // Check if the preserved or selected city is manual or in predefined list
+          const currentCity = addressForm.city || (isEditingSameAddress ? editingAddress?.city : '');
+          if (currentCity) {
+            const currentState = addressForm.state || (isEditingSameAddress ? editingAddress?.state : '') || info.state;
+            const hasCities = statesAndCities[currentState];
+            const isManual = Boolean(!hasCities || !hasCities.includes(currentCity));
+            setIsManualCity(isManual);
+          } else {
+            setIsManualCity(false);
+          }
+
           setPincodeBranches(info.branches);
           setSelectedBranch(prev => {
             if (prev && info.branches.some(b => b.name.toLowerCase() === prev.toLowerCase())) {
@@ -129,6 +151,9 @@ export function Profile() {
             }
             if (addressForm.postOffice && info.branches.some(b => b.name.toLowerCase() === addressForm.postOffice?.toLowerCase())) {
               return addressForm.postOffice;
+            }
+            if (editingAddress?.postOffice && info.branches.some(b => b.name.toLowerCase() === editingAddress.postOffice?.toLowerCase())) {
+              return editingAddress.postOffice;
             }
             return info.branches.length === 1 ? info.branches[0].name : '';
           });
@@ -139,7 +164,7 @@ export function Profile() {
       }
     };
     fetchLocation();
-  }, [addressForm.pincode]);
+  }, [addressForm.pincode, editingAddress]);
 
   const handleSave = () => {
     updateUser({
@@ -236,6 +261,26 @@ export function Profile() {
       country: 'India',
       isDefault: false,
     });
+  };
+
+  const handleOpenAddAddress = () => {
+    setEditingAddress(null);
+    setIsManualCity(false);
+    setPincodeBranches([]);
+    setSelectedBranch('');
+    setAddressForm({
+      label: 'Home',
+      name: user.name || '',
+      phone: user.phone || '',
+      street: '',
+      street2: '',
+      city: '',
+      state: '',
+      pincode: '',
+      country: 'India',
+      isDefault: userAddresses.length === 0,
+    });
+    setShowAddressForm(true);
   };
 
   const userAddresses = user.addresses || [];
@@ -366,7 +411,7 @@ export function Profile() {
               <MapPin size={20} /> Saved Addresses
             </h3>
             <button
-              onClick={() => setShowAddressForm(true)}
+              onClick={handleOpenAddAddress}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
             >
               <Plus size={18} />
