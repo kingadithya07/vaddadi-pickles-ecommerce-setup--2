@@ -67,7 +67,7 @@ export function PWAInstallPrompt() {
         <div className="flex justify-between items-start">
           <div className="flex gap-3 items-center">
             <img 
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
+              src="/logo.png" 
               alt="Logo" 
               className="w-12 h-12 rounded-xl object-cover"
             />

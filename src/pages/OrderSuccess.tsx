@@ -23,7 +23,7 @@ export function OrderSuccess() {
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <div className="relative w-24 h-24 mx-auto mb-6">
           <img 
-            src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" 
+            src="/logo.png" 
             alt="Vaddadi Pickles" 
             className="w-24 h-24 rounded-full object-cover border-4 border-green-500"
           />

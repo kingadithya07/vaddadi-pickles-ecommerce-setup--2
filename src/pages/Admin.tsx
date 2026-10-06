@@ -886,7 +886,7 @@ Thank you for choosing Vaddadi Pickles!`;
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              src="/logo.png"
               alt="Vaddadi Pickles"
               className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-green-500"
             />
@@ -2270,7 +2270,7 @@ import toast from 'react-hot-toast';
                               <body>
                                 <div class="header">
                                   <div class="logo-container">
-                                    <img src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg" alt="Vaddadi Pickles" class="logo" />
+                                    <img src="${window.location.origin}/logo.png" alt="Vaddadi Pickles" class="logo" />
                                     <div class="brand">
                                       <h1>Vaddadi Pickles</h1>
                                       <p>Authentic Homemade Pickles<br>Sujathanagar, Visakhapatnam, Andhra Pradesh - 530051</p>

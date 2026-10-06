@@ -13,7 +13,7 @@ export function Footer() {
           <div>
             <Link to="/" onClick={() => window.scrollTo(0, 0)} className="flex items-center gap-3 mb-4 hover:opacity-80 transition cursor-pointer">
               <img
-                src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+                src="/logo.png"
                 alt="Vaddadi Pickles"
                 className="w-14 h-14 rounded-full object-cover border-2 border-green-500"
               />

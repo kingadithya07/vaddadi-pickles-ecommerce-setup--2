@@ -70,7 +70,7 @@ export function Home() {
             <div className="flex-1 flex justify-center mt-4 md:mt-0">
               <div className="relative">
                 <img
-                  src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+                  src="/logo.png"
                   alt="Vaddadi Pickles"
                   className="w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
                 />

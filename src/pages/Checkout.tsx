@@ -649,7 +649,7 @@ export function Checkout() {
                           level="H"
                           includeMargin={true}
                           imageSettings={{
-                            src: "https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg",
+                            src: "/logo.png",
                             x: undefined,
                             y: undefined,
                             height: 40,
@@ -787,7 +787,7 @@ export function Checkout() {
                         level="H"
                         includeMargin={true}
                         imageSettings={{
-                          src: "https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg",
+                          src: "/logo.png",
                           x: undefined,
                           y: undefined,
                           height: 36,

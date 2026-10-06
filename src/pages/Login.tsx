@@ -179,7 +179,7 @@ export function Login() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <img
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              src="/logo.png"
               alt="Vaddadi Pickles"
               className="w-20 h-20 rounded-full object-cover mx-auto border-4 border-green-500 shadow-lg"
             />

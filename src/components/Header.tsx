@@ -41,7 +41,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" onClick={() => window.scrollTo(0, 0)} className="flex items-center gap-2 cursor-pointer">
             <img
-              src="https://i.ibb.co/vxZ4c3sw/Whats-App-Image-2026-01-23-at-20-42-40.jpg"
+              src="/logo.png"
               alt="Vaddadi Pickles"
               className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md hover:opacity-90 transition"
             />
