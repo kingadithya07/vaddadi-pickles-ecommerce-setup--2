@@ -539,7 +539,7 @@ Thank you for choosing Vaddadi Pickles!`;
               <div class="address">
                 <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
                 ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
-                <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
+                ${addr3.line3 ? `<div class="addr-line">${sanitizeHtml(addr3.line3)}</div>` : ''}
               </div>
               <div class="pincode">📍 ${sanitizeHtml(order.address.pincode)}</div>
               ${postOfficeName ? `<div style="margin-top: 8px; padding: 5px 10px; background: #dcfce7; border: 2px solid #16a34a; border-radius: 6px; font-size: 15px; font-weight: 900; color: #14532d; text-transform: uppercase;">POST OFFICE: ${sanitizeHtml(postOfficeName).toUpperCase()}</div>` : ''}
@@ -613,7 +613,7 @@ Thank you for choosing Vaddadi Pickles!`;
           <div class="address">
             <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
             ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
-            <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
+            ${addr3.line3 ? `<div class="addr-line">${sanitizeHtml(addr3.line3)}</div>` : ''}
           </div>
           <div class="pin">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''} | 📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
           <div class="order-id">${sanitizeHtml(order.id)}</div>
@@ -670,7 +670,7 @@ Thank you for choosing Vaddadi Pickles!`;
             <div class="address">
               <div class="addr-line">${sanitizeHtml(addr3.line1)}</div>
               ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2)}</div>` : ''}
-              <div class="addr-line">${sanitizeHtml(addr3.line3)}</div>
+              ${addr3.line3 ? `<div class="addr-line">${sanitizeHtml(addr3.line3)}</div>` : ''}
               <div class="addr-line pin-line">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</div>
             </div>
             <div class="phone">📱 ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
@@ -745,7 +745,7 @@ Thank you for choosing Vaddadi Pickles!`;
     const isBikeParcel = ['uber', 'ola', 'rapido', 'swiggy', 'dunzo', 'bike'].some(bike => order.carrier?.toLowerCase().includes(bike));
     const senderName = isBikeParcel ? 'VADDADI PICKLES' : 'VADDADI UDAYAAKUMAR, KK HOMES 2';
     let displayWeight = calculateOrderWeight(order).toFixed(2) + ' KG';
-    if (order.address?.isOffline) {
+    if (isBikeParcel && order.address?.isOffline) {
       const override = window.prompt('Enter weight for offline customer label (in KG):', displayWeight);
       if (override !== null) {
         const clean = override.replace(/[^0-9.]/g, '').trim();
@@ -788,9 +788,8 @@ Thank you for choosing Vaddadi Pickles!`;
           .col { border-right: 2px solid #000; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; }
           .col:last-child { border-right: none; }
           
-          .courier-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #000; color: #fff; }
-          .courier-header h1 { margin: 0; font-size: 24px; font-weight: 900; font-style: italic; letter-spacing: 1px; }
-          .courier-header p { margin: 0; font-size: 14px; font-weight: 700; border: 2px solid #fff; padding: 2px 8px; border-radius: 4px; }
+          .courier-header { display: flex; justify-content: center; align-items: center; padding: 10px 15px; background: #000; color: #fff; min-height: 48px; }
+          .courier-header h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
           
           .routing-code { font-size: 48px; font-weight: 900; text-align: center; padding: 10px; letter-spacing: 2px; }
           .post-office-name { font-size: 16px; font-weight: 900; text-align: center; padding: 7px 10px; letter-spacing: 1px; text-transform: uppercase; }
@@ -800,10 +799,10 @@ Thank you for choosing Vaddadi Pickles!`;
           .barcode-text { font-size: 14px; font-weight: 600; letter-spacing: 2px; font-family: monospace; }
           
           .address-block { padding: 12px; flex: 1; }
-          .address-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+          .address-title { font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
           
-          .from-address { font-size: 13px; line-height: 1.4; }
-          .from-address strong { font-size: 15px; }
+          .from-address { font-size: 16px; line-height: 1.45; }
+          .from-address strong { font-size: 18px; }
           
           .to-address { font-size: 18px; line-height: 1.45; font-weight: 700; color: #000; }
           .to-name { font-size: 24px; font-weight: 900; margin-bottom: 6px; color: #000; letter-spacing: 0.5px; }
@@ -834,7 +833,9 @@ Thank you for choosing Vaddadi Pickles!`;
       </head>
       <body>
         <div class="label">
-          <div class="courier-header" style="min-height: 52px;"></div>
+          <div class="courier-header">
+            <h1>${isBikeParcel ? 'LOCAL DELIVERY' : 'REGISTERED PARCEL'}</h1>
+          </div>
           
           <div class="row">
             <div class="routing-code" style="width: 100%;">${sanitizeHtml(order.address.pincode)}</div>
@@ -862,7 +863,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 <div class="to-name">${sanitizeHtml(order.userName).toUpperCase()}</div>
                 <div class="addr-line">${sanitizeHtml(addr3.line1).toUpperCase()}</div>
                 ${addr3.line2 ? `<div class="addr-line">${sanitizeHtml(addr3.line2).toUpperCase()}</div>` : ''}
-                <div class="addr-line">${sanitizeHtml(addr3.line3).toUpperCase()}</div>
+                ${addr3.line3 ? `<div class="addr-line">${sanitizeHtml(addr3.line3).toUpperCase()}</div>` : ''}
                 <div class="addr-line pin-line">PIN: ${sanitizeHtml(order.address.pincode)}${postOfficeName ? ` (${sanitizeHtml(postOfficeName).toUpperCase()})` : ''}</div>
                 <div class="to-phone">PH: ${sanitizeHtml(formatPhoneNumber(order.userPhone))}</div>
               </div>
@@ -881,6 +882,7 @@ Thank you for choosing Vaddadi Pickles!`;
             </div>
           </div>
           
+          ${isBikeParcel ? `
           <div class="row" style="border-bottom: none;">
             <div class="details-grid">
               <div class="detail-item">
@@ -909,6 +911,7 @@ Thank you for choosing Vaddadi Pickles!`;
                 : `<div class="payment-box payment-prepaid">PREPAID</div>`}
             </div>
           </div>
+          ` : ''}
           
           <div class="footer-warning">
             ⚠️ HANDLE WITH CARE ⚠️
@@ -2170,7 +2173,7 @@ Thank you for choosing Vaddadi Pickles!`;
                               <div className="text-sm font-semibold text-gray-800 space-y-0.5">
                                 <p>{addr3.line1}</p>
                                 {addr3.line2 && <p>{addr3.line2}</p>}
-                                <p>{addr3.line3}</p>
+                                {addr3.line3 && <p>{addr3.line3}</p>}
                                 <p className="font-bold text-gray-900">PIN: {order.address.pincode}</p>
                               </div>
                             );
@@ -2436,7 +2439,7 @@ Thank you for choosing Vaddadi Pickles!`;
                                     <p>
                                       ${sanitizeHtml(invAddr3.line1)}<br>
                                       ${invAddr3.line2 ? `${sanitizeHtml(invAddr3.line2)}<br>` : ''}
-                                      ${sanitizeHtml(invAddr3.line3)}<br>
+                                      ${invAddr3.line3 ? `${sanitizeHtml(invAddr3.line3)}<br>` : ''}
                                       PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}
                                     </p>
                                   </div>

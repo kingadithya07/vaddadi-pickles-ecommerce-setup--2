@@ -28,7 +28,19 @@ export function getAddress3Lines(address: {
   pincode?: string;
   postOffice?: string;
 } | undefined | null): AddressLines {
-  const rawStreet = cleanStreetAddress(address?.street);
+  const pincode = address?.pincode?.trim();
+  const removePincode = (str: string | undefined | null) => {
+    if (!str) return '';
+    let res = str;
+    if (pincode && pincode.length === 6) {
+      const pinRegex = new RegExp(`(?:,\\s*|-\\s*|PIN:?\\s*)?\\b${pincode}\\b(?:,\\s*|-\\s*)?`, 'gi');
+      res = res.replace(pinRegex, ' ').replace(/\s+,/g, ',').replace(/,\s*,/g, ', ').replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+    }
+    res = res.replace(/(?:,\s*|-\s*|PIN:?\s*)\b\d{6}\b/gi, '').replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+    return res;
+  };
+
+  const rawStreet = removePincode(cleanStreetAddress(address?.street));
   let line1 = '';
   let line2 = '';
 
@@ -68,14 +80,16 @@ export function getAddress3Lines(address: {
     line1 = rawStreet;
   }
 
-  const cityState = [address?.city?.trim(), address?.state?.trim()].filter(Boolean).join(', ');
-  const pin = address?.pincode ? ` - ${address.pincode.trim()}` : '';
-  let line3 = `${cityState}${pin}`.trim();
+  const cleanCity = removePincode(address?.city?.trim());
+  const cleanState = removePincode(address?.state?.trim());
+  const cityState = [cleanCity, cleanState].filter(Boolean).join(', ');
+  let line3 = cityState;
 
-  // If street only had 1 line and no line2, put city & state on line2 and pincode on line3 for clean 3 lines
+  // If street only had 1 line and no line2, put city & state on line2 and keep line3 empty
+  // (Pincode is already rendered separately below state in labels)
   if (!line2 && line1) {
     line2 = cityState;
-    line3 = address?.pincode ? `PIN: ${address.pincode.trim()}` : '';
+    line3 = '';
   }
 
   const cleanLine = (l: string) => (l || '')

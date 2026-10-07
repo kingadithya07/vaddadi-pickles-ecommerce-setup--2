@@ -87,11 +87,14 @@ export function Checkout() {
   const [isCustomBranch, setIsCustomBranch] = useState(false);
   const [customBranchName, setCustomBranchName] = useState('');
 
+  const lastLookedUpPinRef = useRef<string>(user?.address?.pincode || '');
+
   const handleEditSavedAddress = (addr: UserAddress) => {
     const hasCities = statesAndCities[addr.state];
     const isManual = !hasCities || !hasCities.includes(addr.city);
     const parts = addr.street.split(',');
 
+    lastLookedUpPinRef.current = addr.pincode;
     setEditingSavedAddress(addr);
     setSelectedAddressId(addr.id);
     setDeliveryName(addr.name);
@@ -126,54 +129,51 @@ export function Checkout() {
   // Handle pincode change for auto-fill
   useEffect(() => {
     const fetchLocation = async () => {
-      if (newAddress.pincode.length === 6) {
-        const info = await lookupPincode(newAddress.pincode);
+      const pin = newAddress.pincode.trim();
+      if (pin.length === 6) {
+        if (pin === lastLookedUpPinRef.current && newAddress.state && newAddress.city) {
+          return;
+        }
+
+        const info = await lookupPincode(pin);
         if (info) {
-          const isEditingSaved = Boolean(editingSavedAddress && editingSavedAddress.pincode === newAddress.pincode);
+          lastLookedUpPinRef.current = pin;
 
-          setNewAddress(prev => {
-            // If customer or admin selected the city already, don't change it again if they edit the same address
-            const keepCity = Boolean((isEditingSaved && editingSavedAddress?.city) || (prev.city && prev.city.trim() !== ''));
-            const keepState = Boolean((isEditingSaved && editingSavedAddress?.state) || (prev.state && prev.state.trim() !== ''));
+          // Match state name against available keys in statesAndCities (case-insensitive & handle '&' vs 'and')
+          const stateMatch = Object.keys(statesAndCities).find(s =>
+            s.toLowerCase() === info.state.trim().toLowerCase() ||
+            s.toLowerCase().replace(/&/g, 'and') === info.state.trim().toLowerCase().replace(/&/g, 'and')
+          ) || info.state.trim();
 
-            const finalCity = keepCity ? (prev.city || editingSavedAddress?.city || info.city) : info.city;
-            const finalState = keepState ? (prev.state || editingSavedAddress?.state || info.state) : info.state;
+          // Match city name in that state's list
+          const citiesInState = statesAndCities[stateMatch] || [];
+          const cityMatch = citiesInState.find(c =>
+            c.toLowerCase() === info.city.trim().toLowerCase()
+          ) || info.city.trim();
 
-            return {
-              ...prev,
-              state: finalState,
-              city: finalCity,
-              country: info.country || prev.country || 'India'
-            };
-          });
+          const isManual = !citiesInState.some(c => c.toLowerCase() === cityMatch.toLowerCase());
+          setIsManualCity(isManual);
 
-          // Check if city is manual or in predefined list
-          const currentCity = newAddress.city || (isEditingSaved ? editingSavedAddress?.city : '');
-          if (currentCity) {
-            const currentState = newAddress.state || (isEditingSaved ? editingSavedAddress?.state : '') || info.state;
-            const hasCities = statesAndCities[currentState];
-            const isManual = Boolean(!hasCities || !hasCities.includes(currentCity));
-            setIsManualCity(isManual);
-          } else {
-            setIsManualCity(false);
-          }
-
-          setPincodeBranches(info.branches);
-          const branchNames = (info.branches || []).map(b => b.name);
-          const current = selectedBranch || newAddress.postOffice || (isEditingSaved ? editingSavedAddress?.postOffice : '');
-          const chosenBranch = (current && branchNames.includes(current))
-            ? current
-            : (info.branches && info.branches.length === 1 ? info.branches[0].name : '');
+          setPincodeBranches(info.branches || []);
+          const chosenBranch = info.branches && info.branches.length === 1 ? info.branches[0].name : '';
           setSelectedBranch(chosenBranch);
-          setNewAddress(prev => ({ ...prev, postOffice: chosenBranch }));
+
+          setNewAddress(prev => ({
+            ...prev,
+            state: stateMatch,
+            city: cityMatch,
+            country: info.country || 'India',
+            postOffice: chosenBranch
+          }));
         }
       } else {
+        lastLookedUpPinRef.current = '';
         setPincodeBranches([]);
         setSelectedBranch('');
       }
     };
     fetchLocation();
-  }, [newAddress.pincode, editingSavedAddress]);
+  }, [newAddress.pincode]);
 
   // Pre-load branches for selected saved address
   useEffect(() => {

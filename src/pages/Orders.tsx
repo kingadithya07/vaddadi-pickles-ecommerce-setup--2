@@ -130,7 +130,7 @@ export function Orders() {
             <p>
               ${sanitizeHtml(addr3.line1)}<br>
               ${addr3.line2 ? `${sanitizeHtml(addr3.line2)}<br>` : ''}
-              ${sanitizeHtml(addr3.line3)}<br>
+              ${addr3.line3 ? `${sanitizeHtml(addr3.line3)}<br>` : ''}
               PIN: ${sanitizeHtml(order.address.pincode)}${order.address.postOffice ? ` (${sanitizeHtml(order.address.postOffice).toUpperCase()})` : ''}
             </p>
           </div>
@@ -395,7 +395,7 @@ export function Orders() {
                           <div className="text-gray-700 font-medium leading-relaxed">
                             <p>{addr3.line1}</p>
                             {addr3.line2 && <p>{addr3.line2}</p>}
-                            <p>{addr3.line3}</p>
+                            {addr3.line3 && <p>{addr3.line3}</p>}
                             <p className="font-semibold text-gray-900">PIN: {order.address.pincode}</p>
                           </div>
                         );
