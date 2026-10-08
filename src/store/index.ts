@@ -131,6 +131,7 @@ interface StoreState {
   
   abandonedCarts: AbandonedCart[];
   fetchAbandonedCarts: () => Promise<void>;
+  clearAbandonedCart: (profileId: string) => Promise<boolean>;
 }
 
 export const useStore = create<StoreState>()(
@@ -1044,21 +1045,33 @@ export const useStore = create<StoreState>()(
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, name, phone, cart, updated_at')
+            .select('id, name, phone, role, addresses, cart, updated_at')
             .not('cart', 'is', null);
 
           if (!error && data) {
-            // Filter out empty carts and parse them
+            const currentUserId = get().user?.id;
+            // Filter out empty carts and exclude admin accounts / current admin's own cart
             const abandoned = data
-              .filter(p => Array.isArray(p.cart) && p.cart.length > 0)
+              .filter(p => {
+                if (p.role === 'admin' || p.id === currentUserId) return false;
+                return Array.isArray(p.cart) && p.cart.length > 0;
+              })
               .map(p => {
                 const cleanCart = (Array.isArray(p.cart) ? p.cart : []).filter(
                   (item: any) => item && typeof item === 'object'
                 );
+
+                // Use address name/phone as fallback if top-level profile is empty
+                const firstAddr = Array.isArray(p.addresses) && p.addresses.length > 0 ? p.addresses[0] : null;
+                const rawName = p.name?.trim() || firstAddr?.name?.trim();
+                const name = rawName || 'Demo / Guest User';
+                const rawPhone = p.phone?.trim() || firstAddr?.phone?.trim();
+                const phone = rawPhone || 'No phone';
+
                 return {
                   id: p.id,
-                  name: p.name || 'Unknown',
-                  phone: p.phone || 'No phone',
+                  name,
+                  phone,
                   cart: cleanCart,
                   updatedAt: p.updated_at || new Date().toISOString(),
                 };
@@ -1069,6 +1082,31 @@ export const useStore = create<StoreState>()(
           }
         } catch (err) {
           console.error('Error fetching abandoned carts:', err);
+        }
+      },
+
+      clearAbandonedCart: async (profileId: string) => {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ cart: [] })
+            .eq('id', profileId);
+
+          if (error) {
+            console.error('Error clearing abandoned cart:', error);
+            toast.error('Failed to clear abandoned cart');
+            return false;
+          }
+
+          set({
+            abandonedCarts: get().abandonedCarts.filter(c => c.id !== profileId)
+          });
+          toast.success('Abandoned cart removed');
+          return true;
+        } catch (err) {
+          console.error('Error clearing abandoned cart:', err);
+          toast.error('Failed to clear abandoned cart');
+          return false;
         }
       },
 

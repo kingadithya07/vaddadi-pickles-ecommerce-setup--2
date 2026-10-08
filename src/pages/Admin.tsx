@@ -84,6 +84,7 @@ export function Admin() {
   const updateFeedbackStatus = useStore((state) => state.updateFeedbackStatus);
   const abandonedCarts = useStore((state) => state.abandonedCarts);
   const fetchAbandonedCarts = useStore((state) => state.fetchAbandonedCarts);
+  const clearAbandonedCart = useStore((state) => state.clearAbandonedCart);
   const user = useStore((state) => state.user);
   const navigate = useNavigate();
   const [draftSettings, setDraftSettings] = useState(settings);
@@ -1325,12 +1326,21 @@ Thank you for choosing Vaddadi Pickles!`;
                     };
 
                     const itemNames = items.map(i => getAbandonedItemName(i)).filter(Boolean).join(', ');
+                    const hasPhone = Boolean(String(cartInfo?.phone || '').replace(/\D/g, ''));
 
                     return (
                       <tr key={cartInfo.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 md:px-6 py-4">
-                          <div className="font-medium text-gray-900">{cartInfo.name || 'Unknown'}</div>
-                          <div className="text-sm text-gray-500">{cartInfo.phone || 'No phone'}</div>
+                          <div className="font-medium text-gray-900 flex items-center gap-2">
+                            {cartInfo.name}
+                            {!hasPhone && (
+                              <span className="text-[10px] bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded-full">
+                                Demo / No Phone
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">{cartInfo.phone}</div>
+                          <div className="text-[11px] text-gray-400 font-mono mt-0.5">ID: {cartInfo.id.slice(0, 8)}...</div>
                         </td>
                         <td className="px-4 md:px-6 py-4">
                           <div className="text-sm text-gray-600">
@@ -1347,12 +1357,29 @@ Thank you for choosing Vaddadi Pickles!`;
                           {cartInfo.updatedAt ? new Date(cartInfo.updatedAt).toLocaleString() : 'N/A'}
                         </td>
                         <td className="px-4 md:px-6 py-4">
-                          <button 
-                            onClick={handleRemind}
-                            className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-green-200 transition"
-                          >
-                            Send Reminder
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {hasPhone ? (
+                              <button 
+                                onClick={handleRemind}
+                                className="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-green-200 transition"
+                              >
+                                Send Reminder
+                              </button>
+                            ) : (
+                              <span className="text-xs text-gray-400 italic">No phone</span>
+                            )}
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Delete / clear this abandoned cart for ${cartInfo.name}?`)) {
+                                  clearAbandonedCart(cartInfo.id);
+                                }
+                              }}
+                              title="Delete this demo/abandoned cart"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
