@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { ArrowRight, Truck, Shield, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Truck, Shield, Award, Share2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ProductCard } from '../components/ProductCard';
+import { CategoryShareModal, CategoryData, CATEGORIES_DATA } from '../components/CategoryShareModal';
 import { useStore } from '../store';
 
 export function Home() {
@@ -10,6 +11,7 @@ export function Home() {
   const navigate = useNavigate();
   const products = useStore((state) => state.products);
   const combos = useStore((state) => state.combos);
+  const [sharingCategory, setSharingCategory] = useState<CategoryData | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -111,22 +113,39 @@ export function Home() {
             <p className="text-gray-600">Find exactly what you're craving</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-            {[
-              { name: 'Pickles', id: 'pickles', icon: '🥭', color: 'from-orange-400 to-orange-500' },
-              { name: 'Fryums', id: 'fryums', icon: '🥨', color: 'from-yellow-400 to-yellow-500' },
-              { name: 'Powders', id: 'powders', icon: '🌶️', color: 'from-red-400 to-red-500' },
-              { name: 'Combos', id: 'combo', icon: '🎁', color: 'from-purple-400 to-purple-500' }
-            ].map((cat) => (
-              <Link 
-                key={cat.id} 
-                to={`/products?category=${cat.id}`}
-                className="group relative flex flex-col items-center justify-center p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-1"
+            {CATEGORIES_DATA.map((cat) => (
+              <div
+                key={cat.id}
+                className="group relative flex flex-col items-center justify-center p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${cat.color} flex items-center justify-center text-4xl sm:text-5xl shadow-inner mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  {cat.icon}
-                </div>
-                <h3 className="font-bold text-gray-800 text-lg">{cat.name}</h3>
-              </Link>
+                {/* Share Category Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSharingCategory(cat);
+                  }}
+                  className="absolute top-3 right-3 p-2 bg-gray-50 hover:bg-green-50 text-gray-400 hover:text-green-600 rounded-full transition-colors z-10 shadow-sm border border-gray-100"
+                  title={`Share ${cat.name} Category`}
+                  aria-label={`Share ${cat.name} Category`}
+                >
+                  <Share2 size={16} />
+                </button>
+
+                <Link
+                  to={`/products?category=${cat.id}`}
+                  className="w-full flex flex-col items-center text-center"
+                >
+                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${cat.color} flex items-center justify-center text-4xl sm:text-5xl shadow-inner mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    {cat.icon}
+                  </div>
+                  <h3 className="font-bold text-gray-800 text-lg group-hover:text-green-600 transition-colors">
+                    {cat.name}
+                  </h3>
+                  <span className="text-xs text-gray-500 mt-1 line-clamp-1">{cat.tagline}</span>
+                </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -291,7 +310,14 @@ export function Home() {
         </div>
       </section>
 
-      {/* Forced update to clear cache on hosting provider */}
+      {/* Category Share Modal */}
+      {sharingCategory && (
+        <CategoryShareModal
+          category={sharingCategory}
+          isOpen={true}
+          onClose={() => setSharingCategory(null)}
+        />
+      )}
     </div>
   );
 }
