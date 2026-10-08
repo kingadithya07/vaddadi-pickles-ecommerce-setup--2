@@ -31,7 +31,6 @@ export function ProductDetailsModal({
     initialWeight || (product.variants && product.variants.length > 0 ? product.variants[0].weight : '')
   );
   const [noGarlic, setNoGarlic] = useState<boolean>(initialNoGarlic ?? false);
-  const [quantity, setQuantity] = useState<number>(1);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
 
   // Sync state when modal opens or initial props change
@@ -48,7 +47,6 @@ export function ProductDetailsModal({
       if (matchingCartItem) {
         setSelectedWeight(matchingCartItem.variant.weight);
         setNoGarlic(Boolean(matchingCartItem.noGarlic));
-        setQuantity(matchingCartItem.quantity);
       } else {
         if (initialWeight) {
           setSelectedWeight(initialWeight);
@@ -58,7 +56,6 @@ export function ProductDetailsModal({
         if (initialNoGarlic !== undefined) {
           setNoGarlic(initialNoGarlic);
         }
-        setQuantity(1);
       }
     }
   }, [isOpen, initialWeight, initialNoGarlic, product.id]);
@@ -83,24 +80,10 @@ export function ProductDetailsModal({
 
   const handleWeightSelect = (weight: string) => {
     setSelectedWeight(weight);
-    const existing = cart.find(
-      (item) =>
-        String(item.product.id) === String(product.id) &&
-        item.variant.weight === weight &&
-        Boolean(item.noGarlic) === Boolean(noGarlic)
-    );
-    setQuantity(existing ? existing.quantity : 1);
   };
 
   const handleGarlicToggle = (checked: boolean) => {
     setNoGarlic(checked);
-    const existing = cart.find(
-      (item) =>
-        String(item.product.id) === String(product.id) &&
-        item.variant.weight === currentWeight &&
-        Boolean(item.noGarlic) === Boolean(checked)
-    );
-    setQuantity(existing ? existing.quantity : 1);
   };
 
   const handleAddToCart = () => {
@@ -108,10 +91,8 @@ export function ProductDetailsModal({
       toast.error('Please select a weight');
       return;
     }
-    const qtyToAdd = quantity > 0 ? quantity : 1;
-    addToCart(product, selectedVariant, qtyToAdd, noGarlic);
+    addToCart(product, selectedVariant, 1, noGarlic);
     toast.success(`${product.name} (${selectedVariant.weight}) added to cart! 🥒`);
-    setQuantity(qtyToAdd);
     onClose();
   };
 
@@ -120,9 +101,8 @@ export function ProductDetailsModal({
       toast.error('Please select a weight');
       return;
     }
-    const qtyToAdd = quantity > 0 ? quantity : 1;
     if (!cartItem) {
-      addToCart(product, selectedVariant, qtyToAdd, noGarlic);
+      addToCart(product, selectedVariant, 1, noGarlic);
     }
     onClose();
     navigate('/cart');
@@ -137,13 +117,8 @@ export function ProductDetailsModal({
         return;
       }
       updateQuantity(product.id, selectedVariant.weight, cartItem.quantity + 1, noGarlic);
-      setQuantity(cartItem.quantity + 1);
     } else {
-      if (quantity >= maxStock) {
-        toast.error(`Maximum available stock (${maxStock}) reached`);
-        return;
-      }
-      setQuantity((q) => Math.max(1, q + 1));
+      addToCart(product, selectedVariant, 1, noGarlic);
     }
   };
 
@@ -153,22 +128,15 @@ export function ProductDetailsModal({
       if (cartItem.quantity <= 1) {
         removeFromCart(product.id, selectedVariant.weight, noGarlic);
         toast.success(`${product.name} (${selectedVariant.weight}) removed from cart 🛒`);
-        setQuantity(0);
       } else {
         updateQuantity(product.id, selectedVariant.weight, cartItem.quantity - 1, noGarlic);
-        setQuantity(cartItem.quantity - 1);
       }
     } else {
-      if (quantity <= 1) {
-        // Also ensure any matching cart items for this product are cleanly removed
-        const itemsToRemove = cart.filter((i) => String(i.product.id) === String(product.id));
-        if (itemsToRemove.length > 0) {
-          itemsToRemove.forEach((i) => removeFromCart(product.id, i.variant.weight, i.noGarlic));
-          toast.success(`${product.name} removed from cart 🛒`);
-        }
-        setQuantity(0);
-      } else {
-        setQuantity((q) => q - 1);
+      // If any lingering cart item exists for this product, remove it cleanly
+      const itemsToRemove = cart.filter((i) => String(i.product.id) === String(product.id));
+      if (itemsToRemove.length > 0) {
+        itemsToRemove.forEach((i) => removeFromCart(product.id, i.variant.weight, i.noGarlic));
+        toast.success(`${product.name} removed from cart 🛒`);
       }
     }
   };
@@ -179,7 +147,6 @@ export function ProductDetailsModal({
     const otherItems = cart.filter((i) => String(i.product.id) === String(product.id));
     otherItems.forEach((i) => removeFromCart(product.id, i.variant.weight, i.noGarlic));
     toast.success(`${product.name} (${selectedVariant.weight}) removed from cart 🛒`);
-    setQuantity(0);
   };
 
   return (
@@ -359,58 +326,47 @@ export function ProductDetailsModal({
                 </div>
 
                 {/* Quantity Controls */}
+                {/* Quantity Controls */}
                 {!isOutOfStock && (
-                  <div className="flex flex-col items-end gap-1">
-                    {cartItem && (
-                      <span className="text-[10px] sm:text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
-                        In Cart ({cartItem.quantity})
-                      </span>
+                  <div>
+                    {cartItem ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-[10px] sm:text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                          In Cart ({cartItem.quantity})
+                        </span>
+                        <div className="flex items-center border border-green-600 bg-green-50 rounded-xl overflow-hidden">
+                          <button
+                            onClick={handleDecrement}
+                            className={`px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center ${
+                              cartItem.quantity === 1
+                                ? 'text-red-500 hover:bg-red-50 hover:text-red-700'
+                                : 'text-green-700 hover:bg-green-100'
+                            }`}
+                            title={cartItem.quantity === 1 ? 'Remove from cart' : 'Decrease quantity'}
+                            aria-label="Decrease quantity"
+                          >
+                            {cartItem.quantity === 1 ? <Trash2 size={16} className="text-red-500" /> : <Minus size={16} />}
+                          </button>
+                          <span className="px-3 py-1.5 text-sm font-bold min-w-[32px] text-center text-green-800">
+                            {cartItem.quantity}
+                          </span>
+                          <button
+                            onClick={handleIncrement}
+                            disabled={Boolean(selectedVariant && cartItem.quantity >= selectedVariant.stock)}
+                            className="px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center text-green-700 hover:bg-green-100 disabled:opacity-40"
+                            title="Increase quantity"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        In Stock
+                      </div>
                     )}
-                    <div className={`flex items-center border rounded-xl overflow-hidden ${
-                      cartItem ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50'
-                    }`}>
-                      <button
-                        onClick={handleDecrement}
-                        disabled={!cartItem && quantity <= 0}
-                        className={`px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center ${
-                          (cartItem && cartItem.quantity === 1) || (!cartItem && quantity === 1)
-                            ? 'text-red-500 hover:bg-red-50 hover:text-red-700'
-                            : cartItem
-                            ? 'text-green-700 hover:bg-green-100'
-                            : 'text-gray-600 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent'
-                        }`}
-                        title={
-                          (cartItem && cartItem.quantity === 1) || (!cartItem && quantity === 1)
-                            ? 'Remove'
-                            : 'Decrease quantity'
-                        }
-                        aria-label="Decrease quantity"
-                      >
-                        {(cartItem && cartItem.quantity === 1) || (!cartItem && quantity === 1) ? (
-                          <Trash2 size={16} className="text-red-500" />
-                        ) : (
-                          <Minus size={16} />
-                        )}
-                      </button>
-                      <span className={`px-3 py-1.5 text-sm font-bold min-w-[32px] text-center ${
-                        cartItem ? 'text-green-800' : quantity > 0 ? 'text-gray-800' : 'text-gray-400'
-                      }`}>
-                        {cartItem ? cartItem.quantity : quantity}
-                      </span>
-                      <button
-                        onClick={handleIncrement}
-                        disabled={Boolean(selectedVariant && (cartItem ? cartItem.quantity >= selectedVariant.stock : quantity >= selectedVariant.stock))}
-                        className={`px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center ${
-                          cartItem
-                            ? 'text-green-700 hover:bg-green-100 disabled:opacity-40 disabled:hover:bg-transparent'
-                            : 'text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:hover:bg-transparent'
-                        }`}
-                        title="Increase quantity"
-                        aria-label="Increase quantity"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -455,7 +411,7 @@ export function ProductDetailsModal({
                   className="flex-1 py-3 px-4 bg-white border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   <ShoppingCart size={18} />
-                  Add to Cart {quantity > 1 ? `(${quantity})` : ''}
+                  Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}

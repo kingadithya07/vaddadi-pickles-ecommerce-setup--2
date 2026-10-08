@@ -1080,6 +1080,11 @@ export const useStore = create<StoreState>()(
 
             if (profile) {
               const role = profile.role || (user.app_metadata?.role as any) || 'customer';
+              // Preserve local cart across refreshes (prevent restoring deleted items from stale cloud cache)
+              const localCart = get().cart;
+              const hasLocalCart = Array.isArray(localCart);
+              const resolvedCart = hasLocalCart ? localCart : (Array.isArray(profile.cart) ? profile.cart : []);
+
               set({
                 user: {
                   id: user.id,
@@ -1096,9 +1101,14 @@ export const useStore = create<StoreState>()(
                     country: 'India'
                   }
                 },
-                cart: Array.isArray(profile.cart) ? profile.cart : (profile.cart || get().cart),
+                cart: resolvedCart,
                 isAdmin: role === 'admin',
               });
+
+              // Keep cloud in sync with the user's authoritative local cart
+              if (hasLocalCart) {
+                get().syncCartWithCloud();
+              }
               // Fetch feedbacks for all logged in users
               get().fetchFeedbacks();
 
@@ -1289,7 +1299,7 @@ export const useStore = create<StoreState>()(
                   role: newProfile.role || state.user.role,
                   addresses: newProfile.addresses,
                 } : null,
-                cart: Array.isArray(newProfile.cart) ? newProfile.cart : state.cart,
+                cart: state.cart,
                 isAdmin: (newProfile.role || state.user?.role) === 'admin',
               }));
             }
