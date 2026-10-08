@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vaddadipickles.com/sitemap.xml
+Sitemap: https://vaddadi-pickles.onrender.com/sitemap.xml

@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { ReviewModal } from './ReviewModal';
 import { ComboDetailsModal } from './ComboDetailsModal';
 import { ProductShareModal } from './ProductShareModal';
+import { ProductDetailsModal } from './ProductDetailsModal';
 import toast from 'react-hot-toast';
 
 interface ProductCardProps {
@@ -26,6 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
   );
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isComboModalOpen, setIsComboModalOpen] = useState(false);
+  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [noGarlic, setNoGarlic] = useState(false);
 
@@ -73,9 +75,13 @@ export function ProductCard({ product }: ProductCardProps) {
       >
         {/* Product Image */}
         <div 
-          className={`relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden ${isCombo ? 'cursor-pointer' : ''}`}
+          className="relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden cursor-pointer"
           onClick={() => {
-            if (isCombo) setIsComboModalOpen(true);
+            if (isCombo) {
+              setIsComboModalOpen(true);
+            } else {
+              setIsProductDetailsOpen(true);
+            }
           }}
         >
           {product.image.startsWith('http') || product.image.startsWith('/') ? (
@@ -170,7 +176,18 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Product Info */}
         <div className="p-2 sm:p-4">
-          <h3 className="text-sm sm:text-lg font-bold text-gray-800 mb-1 leading-tight">{product.name}</h3>
+          <h3 
+            onClick={() => {
+              if (isCombo) {
+                setIsComboModalOpen(true);
+              } else {
+                setIsProductDetailsOpen(true);
+              }
+            }}
+            className="text-sm sm:text-lg font-bold text-gray-800 mb-1 leading-tight hover:text-green-700 cursor-pointer transition-colors"
+          >
+            {product.name}
+          </h3>
 
           <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2 hidden sm:block">{product.description}</p>
 
@@ -302,11 +319,17 @@ export function ProductCard({ product }: ProductCardProps) {
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
       />
-      {isCombo && (
+      {isCombo ? (
         <ComboDetailsModal
           product={product}
           isOpen={isComboModalOpen}
           onClose={() => setIsComboModalOpen(false)}
+        />
+      ) : (
+        <ProductDetailsModal
+          product={product}
+          isOpen={isProductDetailsOpen}
+          onClose={() => setIsProductDetailsOpen(false)}
         />
       )}
       <ProductShareModal

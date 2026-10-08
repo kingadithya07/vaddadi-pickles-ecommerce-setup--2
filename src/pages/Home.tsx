@@ -1,12 +1,23 @@
+import { useEffect } from 'react';
 import { ArrowRight, Truck, Shield, Award } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ProductCard } from '../components/ProductCard';
 import { useStore } from '../store';
 
 export function Home() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const products = useStore((state) => state.products);
   const combos = useStore((state) => state.combos);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const productId = searchParams.get('productId') || searchParams.get('product');
+    if (productId) {
+      navigate(`/products${location.search}`, { replace: true });
+    }
+  }, [location.search, navigate]);
   
   const sortedProducts = [...products].sort((a, b) => {
     const aTotalStock = (a.variants || []).reduce((sum, v) => sum + v.stock, 0);
@@ -41,12 +52,12 @@ export function Home() {
         <meta name="description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order. Order online now!" />
         <meta property="og:title" content="Vaddadi Pickles - Authentic Homemade Pickles | Refer & Earn 10%" />
         <meta property="og:description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order. Order online now!" />
-        <meta property="og:image" content="https://vaddadipickles.com/og-image.jpg" />
-        <meta property="og:url" content="https://vaddadipickles.com/" />
+        <meta property="og:image" content="https://vaddadi-pickles.onrender.com/og-image.jpg" />
+        <meta property="og:url" content="https://vaddadi-pickles.onrender.com/" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Vaddadi Pickles - Authentic Homemade Pickles | Refer & Earn 10%" />
         <meta name="twitter:description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order!" />
-        <meta name="twitter:image" content="https://vaddadipickles.com/og-image.jpg" />
+        <meta name="twitter:image" content="https://vaddadi-pickles.onrender.com/og-image.jpg" />
       </Helmet>
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 to-green-800 text-white pt-6 pb-12 md:py-20">

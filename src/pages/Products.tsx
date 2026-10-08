@@ -1,42 +1,53 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Search } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
+import { ComboDetailsModal } from '../components/ComboDetailsModal';
+import { ProductDetailsModal } from '../components/ProductDetailsModal';
 import { useStore } from '../store';
+import { Product } from '../types';
 
 export function Products() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { productId: routeProductId } = useParams<{ productId?: string }>();
+
   const products = useStore((state) => state.products);
   const combos = useStore((state) => state.combos);
 
-  const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const initialSearch = queryParams.get('search') || '';
   const initialCategory = queryParams.get('category') || 'all';
 
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory.toLowerCase());
+  const [sharedModalItem, setSharedModalItem] = useState<Product | null>(null);
+  const [autoOpenedId, setAutoOpenedId] = useState<string | null>(null);
+
+  const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
+
+  const rawProductId = queryParams.get('productId') || queryParams.get('product') || routeProductId;
+  const urlProductId = rawProductId ? decodeURIComponent(rawProductId).trim() : null;
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const urlSearch = queryParams.get('search');
     const urlCategory = queryParams.get('category');
-    const urlProductId = queryParams.get('productId') || queryParams.get('product');
+    const currentProductId = queryParams.get('productId') || queryParams.get('product') || routeProductId;
 
     if (urlSearch !== null) {
       setSearch(urlSearch);
     }
     if (urlCategory !== null) {
       setCategory(urlCategory.toLowerCase());
-    } else if (!urlProductId) {
+    } else if (!currentProductId) {
       setCategory('all');
     }
-    if (!urlProductId) {
+    if (!currentProductId) {
       window.scrollTo(0, 0);
     }
-  }, [location.search]);
-
-  const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
+  }, [location.search, routeProductId]);
 
   const calculateComboWeight = (comboProducts: { variantWeight: string }[]) => {
     const totalGrams = comboProducts.reduce((sum, p) => {
@@ -66,41 +77,63 @@ export function Products() {
       stock: combo.stock
     }],
     inStock: combo.stock > 0,
-    rating: 5, // Default rating for combos
+    rating: 5,
     reviews: 0,
     bestSeller: false,
   })), [combos]);
 
-  const allItems = useMemo(() => [...products, ...comboProducts], [products, comboProducts]);
+  const allItems: Product[] = useMemo(() => [...products, ...comboProducts], [products, comboProducts]);
 
+  // Immediately open the shared product or combo when link is accessed
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const urlProductId = queryParams.get('productId') || queryParams.get('product');
-
     if (urlProductId && allItems.length > 0) {
-      const target = allItems.find(p => p.id === urlProductId);
+      const target = allItems.find(
+        (p) => p.id === urlProductId || p.id.toLowerCase() === urlProductId.toLowerCase()
+      );
+
       if (target) {
+        // Adjust category tab if needed so it is shown in the catalog
         if (target.category === 'Combo') {
           setCategory('combo');
         } else if (category !== 'all' && category !== target.category.toLowerCase()) {
           setCategory('all');
         }
-      }
 
-      const timer = setTimeout(() => {
-        const el = document.getElementById(`product-${urlProductId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          el.classList.add('ring-4', 'ring-green-500', 'ring-offset-2', 'transition-all', 'duration-500');
-          setTimeout(() => {
-            el.classList.remove('ring-4', 'ring-green-500', 'ring-offset-2');
-          }, 3500);
+        // Open details modal immediately
+        if (autoOpenedId !== target.id) {
+          setSharedModalItem(target);
+          setAutoOpenedId(target.id);
         }
-      }, 350);
 
-      return () => clearTimeout(timer);
+        // Scroll into view & pulse highlight in background
+        const timer = setTimeout(() => {
+          const el = document.getElementById(`product-${target.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-4', 'ring-green-500', 'ring-offset-2', 'transition-all', 'duration-500');
+            setTimeout(() => {
+              el.classList.remove('ring-4', 'ring-green-500', 'ring-offset-2');
+            }, 3500);
+          }
+        }, 300);
+
+        return () => clearTimeout(timer);
+      }
     }
-  }, [location.search, allItems]);
+  }, [urlProductId, allItems, autoOpenedId, category]);
+
+  const handleCloseSharedModal = () => {
+    setSharedModalItem(null);
+    if (routeProductId) {
+      navigate('/products', { replace: true });
+    } else {
+      const params = new URLSearchParams(location.search);
+      params.delete('productId');
+      params.delete('product');
+      const remaining = params.toString() ? `?${params.toString()}` : '';
+      navigate(`${location.pathname}${remaining}`, { replace: true });
+    }
+  };
 
   const filteredProducts = useMemo(() => allItems.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
@@ -116,24 +149,46 @@ export function Products() {
     return aIsOutOfStock ? 1 : -1;
   }), [allItems, search, category]);
 
+  // Page title and meta descriptions for SEO / Social
+  const pageTitle = sharedModalItem
+    ? `${sharedModalItem.name} - Vaddadi Pickles | Refer & Earn 10%`
+    : 'All Products - Vaddadi Pickles | Refer & Earn 10%';
+
+  const pageDescription = sharedModalItem
+    ? `${sharedModalItem.description || sharedModalItem.name}. Authentic homemade Andhra taste. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!`
+    : 'Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!';
+
+  const pageImage = sharedModalItem && sharedModalItem.image && (sharedModalItem.image.startsWith('http') || sharedModalItem.image.startsWith('/'))
+    ? (sharedModalItem.image.startsWith('http') ? sharedModalItem.image : `https://vaddadi-pickles.onrender.com${sharedModalItem.image}`)
+    : 'https://vaddadi-pickles.onrender.com/og-image.jpg';
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Helmet>
-        <title>All Products - Vaddadi Pickles</title>
-        <meta name="description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
-        <meta property="og:title" content="All Products - Vaddadi Pickles | Refer & Earn 10%" />
-        <meta property="og:description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
-        <meta property="og:image" content="https://vaddadipickles.com/og-image.jpg" />
-        <meta property="og:url" content="https://vaddadipickles.com/products" />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={pageImage} />
+        <meta property="og:url" content={`https://vaddadi-pickles.onrender.com/products${location.search}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="All Products - Vaddadi Pickles | Refer & Earn 10%" />
-        <meta name="twitter:description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
-        <meta name="twitter:image" content="https://vaddadipickles.com/og-image.jpg" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={pageImage} />
       </Helmet>
+
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Our Collection</h1>
         <p className="text-gray-600">Choose from our wide range of authentic homemade products</p>
       </div>
+
+      {/* Loading banner if opening shared product while data initializes */}
+      {urlProductId && !sharedModalItem && allItems.length === 0 && (
+        <div className="flex items-center justify-center gap-3 py-4 px-6 mb-6 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm font-medium animate-pulse shadow-sm">
+          <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+          Opening shared product details...
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -175,6 +230,21 @@ export function Products() {
           <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
         </div>
       )}
+
+      {/* Auto-Opened Shared Product or Combo Modal */}
+      {sharedModalItem && (sharedModalItem.category === 'Combo' ? (
+        <ComboDetailsModal
+          product={sharedModalItem}
+          isOpen={true}
+          onClose={handleCloseSharedModal}
+        />
+      ) : (
+        <ProductDetailsModal
+          product={sharedModalItem}
+          isOpen={true}
+          onClose={handleCloseSharedModal}
+        />
+      ))}
     </div>
   );
 }

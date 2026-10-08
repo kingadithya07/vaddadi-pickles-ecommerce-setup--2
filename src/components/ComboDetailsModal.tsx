@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { X, Share2 } from 'lucide-react';
+import { X, Share2, ShoppingCart, ArrowRight } from 'lucide-react';
 import { useStore } from '../store';
 import { Product } from '../types';
 import { ProductShareModal } from './ProductShareModal';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface ComboDetailsModalProps {
   product: Product;
@@ -11,8 +13,11 @@ interface ComboDetailsModalProps {
 }
 
 export function ComboDetailsModal({ product, isOpen, onClose }: ComboDetailsModalProps) {
+  const navigate = useNavigate();
   const combos = useStore((state) => state.combos);
   const allProducts = useStore((state) => state.products);
+  const addToCart = useStore((state) => state.addToCart);
+  const cart = useStore((state) => state.cart);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -20,10 +25,31 @@ export function ComboDetailsModal({ product, isOpen, onClose }: ComboDetailsModa
   const combo = combos.find((c) => c.id === product.id);
   if (!combo) return null;
 
+  const comboVariant = product.variants?.[0] || {
+    weight: 'Combo Pack',
+    price: combo.comboPrice,
+    mrp: combo.originalPrice,
+    stock: combo.stock
+  };
+
+  const isOutOfStock = combo.stock <= 0;
+  const inCart = cart.find((item) => item.product.id === product.id);
+
+  const handleAddToCart = () => {
+    addToCart(product, comboVariant, 1, false);
+    toast.success(`${combo.name} added to cart! 🥒`);
+  };
+
+  const handleBuyNow = () => {
+    addToCart(product, comboVariant, 1, false);
+    onClose();
+    navigate('/cart');
+  };
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative shadow-2xl">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4">
+        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col relative shadow-2xl animate-in fade-in zoom-in-95 duration-200">
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             <button
               onClick={() => setIsShareModalOpen(true)}
@@ -43,29 +69,32 @@ export function ComboDetailsModal({ product, isOpen, onClose }: ComboDetailsModa
           </div>
 
           <div className="p-6 border-b border-gray-100 bg-purple-50">
-            <h2 className="text-2xl font-bold text-gray-800 pr-20">{combo.name}</h2>
-            <p className="text-gray-600 mt-2">{combo.description}</p>
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-100/80 px-2.5 py-0.5 rounded-md">
+              Special Combo Pack
+            </span>
+            <h2 className="text-2xl font-bold text-gray-800 pr-20 mt-1">{combo.name}</h2>
+            <p className="text-gray-600 mt-2 text-sm leading-relaxed">{combo.description}</p>
           </div>
 
           <div className="p-6 overflow-y-auto custom-scrollbar">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Items in this Combo:</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">Items in this Combo:</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {combo.products.map((item, index) => {
                 const itemProduct = allProducts.find((p) => p.id === item.productId);
                 if (!itemProduct) return null;
 
                 return (
-                  <div key={`${item.productId}-${index}`} className="flex items-center gap-4 bg-gray-50 rounded-xl p-3 border border-gray-100">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg overflow-hidden shrink-0 shadow-sm flex items-center justify-center">
+                  <div key={`${item.productId}-${index}`} className="flex items-center gap-3.5 bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <div className="w-16 h-16 bg-white rounded-lg overflow-hidden shrink-0 shadow-sm flex items-center justify-center">
                       {itemProduct.image.startsWith('http') || itemProduct.image.startsWith('/') ? (
                         <img src={itemProduct.image} alt={itemProduct.name} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-3xl">{itemProduct.image}</span>
                       )}
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 text-sm sm:text-base leading-tight">{itemProduct.name}</h4>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">Weight: <span className="font-medium text-gray-700">{item.variantWeight}</span></p>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-gray-800 text-sm leading-tight truncate">{itemProduct.name}</h4>
+                      <p className="text-xs text-gray-500 mt-1">Weight: <span className="font-medium text-gray-700">{item.variantWeight}</span></p>
                     </div>
                   </div>
                 );
@@ -73,27 +102,54 @@ export function ComboDetailsModal({ product, isOpen, onClose }: ComboDetailsModa
             </div>
           </div>
 
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Combo Price</p>
+          <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="w-full sm:w-auto flex items-center justify-between sm:block">
+              <p className="text-xs text-gray-500">Combo Price</p>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-green-600">₹{combo.comboPrice}</span>
                 <span className="text-sm text-gray-400 line-through">₹{combo.originalPrice}</span>
+                {combo.originalPrice > combo.comboPrice && (
+                  <span className="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                    Save ₹{combo.originalPrice - combo.comboPrice}
+                  </span>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
+
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-1.5 text-sm shadow-sm"
+                className="p-2.5 sm:px-4 sm:py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl font-medium transition-colors flex items-center justify-center gap-1.5 text-sm"
+                title="Share Combo"
               >
-                <Share2 size={16} /> Share Combo
+                <Share2 size={16} />
+                <span className="hidden sm:inline">Share</span>
               </button>
-              <button
-                onClick={onClose}
-                className="px-5 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm"
-              >
-                Close
-              </button>
+
+              {isOutOfStock ? (
+                <button
+                  disabled
+                  className="flex-1 sm:flex-initial px-6 py-2.5 bg-gray-300 text-gray-500 rounded-xl font-bold text-sm cursor-not-allowed uppercase"
+                >
+                  Out of Stock
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAddToCart}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-xl font-bold transition-colors flex items-center justify-center gap-1.5 text-sm shadow-sm"
+                  >
+                    <ShoppingCart size={16} />
+                    {inCart ? `Add More (${inCart.quantity})` : 'Add to Cart'}
+                  </button>
+                  <button
+                    onClick={handleBuyNow}
+                    className="flex-1 sm:flex-initial px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-1.5 text-sm shadow-md"
+                  >
+                    Buy Now <ArrowRight size={16} />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

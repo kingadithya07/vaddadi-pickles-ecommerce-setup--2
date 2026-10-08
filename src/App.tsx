@@ -151,9 +151,16 @@ export function App() {
 
     if (refCode) {
       localStorage.setItem('affiliate_ref', refCode);
-      // Optional: clean up standard search params
-      if (window.location.search) {
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      // Clean only the 'ref' param, keeping productId and other params intact
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has('ref')) {
+          searchParams.delete('ref');
+          const remainingSearch = searchParams.toString() ? `?${searchParams.toString()}` : '';
+          window.history.replaceState({}, document.title, window.location.pathname + remainingSearch + window.location.hash);
+        }
+      } catch {
+        // Fallback
       }
     }
 
@@ -193,6 +200,14 @@ export function App() {
           />
           <Route
             path="/products"
+            element={
+              <Layout>
+                <Products />
+              </Layout>
+            }
+          />
+          <Route
+            path="/products/:productId"
             element={
               <Layout>
                 <Products />
