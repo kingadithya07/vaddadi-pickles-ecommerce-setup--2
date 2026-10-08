@@ -33,15 +33,18 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const isCombo = product.category === 'Combo';
 
-  const selectedVariant = product.variants?.find(v => v.weight === selectedWeight);
+  const variantInCart = cart.find(item => String(item.product.id) === String(product.id));
+  const activeWeight = selectedWeight || (variantInCart ? variantInCart.variant.weight : (product.variants?.[0]?.weight || ''));
+
+  const selectedVariant = product.variants?.find(v => v.weight === activeWeight);
   const isWishlisted = wishlist.includes(product.id);
 
-  // Check if this product with selected weight is in cart
+  // Check if this product with active weight is in cart
   const cartItem = cart.find(
-    item => item.product.id === product.id && item.variant.weight === selectedWeight && !!item.noGarlic === !!noGarlic
+    item => String(item.product.id) === String(product.id) && item.variant.weight === activeWeight && Boolean(item.noGarlic) === Boolean(noGarlic)
   );
   const totalInCart = cart
-    .filter(item => item.product.id === product.id)
+    .filter(item => String(item.product.id) === String(product.id))
     .reduce((sum, item) => sum + item.quantity, 0);
 
   const handleWeightSelect = (weight: string) => {
@@ -56,7 +59,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleDecrement = () => {
     if (cartItem && selectedVariant) {
-      if (cartItem.quantity === 1) {
+      if (cartItem.quantity <= 1) {
         removeFromCart(product.id, selectedVariant.weight, noGarlic);
       } else {
         addToCart(product, selectedVariant, -1, noGarlic);
@@ -209,7 +212,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     className={`relative flex-shrink-0 min-w-[50px] sm:flex-1 py-1 sm:py-2 px-1 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg border transition-all ${
                       isVariantOutOfStock
                         ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through opacity-70'
-                        : selectedWeight === variant.weight
+                        : activeWeight === variant.weight
                         ? 'border-green-600 bg-green-600 text-white'
                         : variantInCart
                           ? 'border-green-200 bg-green-50 text-green-700'
@@ -267,7 +270,7 @@ export function ProductCard({ product }: ProductCardProps) {
              >
                Out of Stock
              </button>
-          ) : selectedWeight && selectedVariant ? (
+          ) : activeWeight && selectedVariant ? (
             <div>
               {cartItem ? (
                 /* Show only +/- controls when item is in cart */
@@ -275,6 +278,8 @@ export function ProductCard({ product }: ProductCardProps) {
                   <button
                     onClick={handleDecrement}
                     className="flex-1 h-full text-white hover:bg-green-700 transition-colors flex items-center justify-center py-2"
+                    title={cartItem.quantity <= 1 ? "Remove from cart" : "Decrease quantity"}
+                    aria-label="Decrease quantity"
                   >
                     <Minus size={16} strokeWidth={3} />
                   </button>
@@ -286,6 +291,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     disabled={cartItem.quantity >= selectedVariant.stock}
                     className={`flex-1 h-full text-white transition-colors flex items-center justify-center py-2 ${cartItem.quantity >= selectedVariant.stock ? 'bg-green-500 opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
                     title={cartItem.quantity >= selectedVariant.stock ? 'Max stock reached' : ''}
+                    aria-label="Increase quantity"
                   >
                     <Plus size={16} strokeWidth={3} />
                   </button>
@@ -330,6 +336,8 @@ export function ProductCard({ product }: ProductCardProps) {
           product={product}
           isOpen={isProductDetailsOpen}
           onClose={() => setIsProductDetailsOpen(false)}
+          initialWeight={activeWeight}
+          initialNoGarlic={noGarlic}
         />
       )}
       <ProductShareModal

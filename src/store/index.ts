@@ -157,27 +157,37 @@ export const useStore = create<StoreState>()(
       addToCart: (product, variant, quantity = 1, noGarlic = false) => {
         const cart = get().cart;
         const existing = cart.find(
-          (item) => item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
+          (item) =>
+            String(item.product.id) === String(product.id) &&
+            item.variant.weight === variant.weight &&
+            Boolean(item.noGarlic) === Boolean(noGarlic)
         );
         if (existing) {
           const newQuantity = existing.quantity + quantity;
           if (newQuantity <= 0) {
             set({
               cart: cart.filter(
-                (item) => !(item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic)
+                (item) =>
+                  !(
+                    String(item.product.id) === String(product.id) &&
+                    item.variant.weight === variant.weight &&
+                    Boolean(item.noGarlic) === Boolean(noGarlic)
+                  )
               ),
             });
           } else {
             set({
               cart: cart.map((item) =>
-                item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
+                String(item.product.id) === String(product.id) &&
+                item.variant.weight === variant.weight &&
+                Boolean(item.noGarlic) === Boolean(noGarlic)
                   ? { ...item, quantity: newQuantity }
                   : item
               ),
             });
           }
         } else if (quantity > 0) {
-          set({ cart: [...cart, { product, variant, quantity, noGarlic }] });
+          set({ cart: [...cart, { product, variant, quantity, noGarlic: Boolean(noGarlic) }] });
         }
         get().syncCartWithCloud();
       },
@@ -185,7 +195,12 @@ export const useStore = create<StoreState>()(
       removeFromCart: (productId, weight, noGarlic = false) => {
         set({
           cart: get().cart.filter(
-            (item) => !(item.product.id === productId && item.variant.weight === weight && !!item.noGarlic === !!noGarlic)
+            (item) =>
+              !(
+                String(item.product.id) === String(productId) &&
+                item.variant.weight === weight &&
+                Boolean(item.noGarlic) === Boolean(noGarlic)
+              )
           ),
         });
         
@@ -204,7 +219,9 @@ export const useStore = create<StoreState>()(
         } else {
           set({
             cart: get().cart.map((item) =>
-              item.product.id === productId && item.variant.weight === weight && !!item.noGarlic === !!noGarlic
+              String(item.product.id) === String(productId) &&
+              item.variant.weight === weight &&
+              Boolean(item.noGarlic) === Boolean(noGarlic)
                 ? { ...item, quantity }
                 : item
             ),
@@ -1079,7 +1096,7 @@ export const useStore = create<StoreState>()(
                     country: 'India'
                   }
                 },
-                cart: profile.cart || get().cart,
+                cart: Array.isArray(profile.cart) ? profile.cart : (profile.cart || get().cart),
                 isAdmin: role === 'admin',
               });
               // Fetch feedbacks for all logged in users
@@ -1221,10 +1238,17 @@ export const useStore = create<StoreState>()(
         const user = get().user;
         if (!user) return;
 
-        await supabase.from('profiles').update({
-          cart: get().cart,
-          updated_at: new Date().toISOString(),
-        }).eq('id', user.id);
+        try {
+          const { error } = await supabase.from('profiles').update({
+            cart: get().cart,
+            updated_at: new Date().toISOString(),
+          }).eq('id', user.id);
+          if (error) {
+            console.error('Error syncing cart with cloud:', error);
+          }
+        } catch (err) {
+          console.error('Failed to sync cart with cloud:', err);
+        }
       },
 
       syncProfileWithCloud: async () => {
@@ -1265,7 +1289,7 @@ export const useStore = create<StoreState>()(
                   role: newProfile.role || state.user.role,
                   addresses: newProfile.addresses,
                 } : null,
-                cart: newProfile.cart || state.cart,
+                cart: Array.isArray(newProfile.cart) ? newProfile.cart : state.cart,
                 isAdmin: (newProfile.role || state.user?.role) === 'admin',
               }));
             }

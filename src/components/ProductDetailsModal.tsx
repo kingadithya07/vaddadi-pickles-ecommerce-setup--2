@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Star, ShoppingCart, Share2, Check, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Star, ShoppingCart, Share2, Check, ArrowRight, Plus, Minus, Trash2 } from 'lucide-react';
 import { Product, ProductVariant } from '../types';
 import { useStore } from '../store';
 import { ProductShareModal } from './ProductShareModal';
@@ -10,19 +10,49 @@ interface ProductDetailsModalProps {
   product: Product;
   isOpen: boolean;
   onClose: () => void;
+  initialWeight?: string;
+  initialNoGarlic?: boolean;
 }
 
-export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetailsModalProps) {
+export function ProductDetailsModal({ 
+  product, 
+  isOpen, 
+  onClose,
+  initialWeight,
+  initialNoGarlic
+}: ProductDetailsModalProps) {
   const navigate = useNavigate();
   const addToCart = useStore((state) => state.addToCart);
+  const updateQuantity = useStore((state) => state.updateQuantity);
+  const removeFromCart = useStore((state) => state.removeFromCart);
   const cart = useStore((state) => state.cart);
 
   const [selectedWeight, setSelectedWeight] = useState<string>(
-    product.variants && product.variants.length > 0 ? product.variants[0].weight : ''
+    initialWeight || (product.variants && product.variants.length > 0 ? product.variants[0].weight : '')
   );
-  const [noGarlic, setNoGarlic] = useState<boolean>(false);
+  const [noGarlic, setNoGarlic] = useState<boolean>(initialNoGarlic ?? false);
   const [quantity, setQuantity] = useState<number>(1);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+
+  // Sync state when modal opens or initial props change
+  useEffect(() => {
+    if (isOpen) {
+      if (initialWeight) {
+        setSelectedWeight(initialWeight);
+      } else if (product.variants && product.variants.length > 0) {
+        // Prefer variant that is already in cart, else fallback to first variant
+        const itemInCart = cart.find((i) => String(i.product.id) === String(product.id));
+        setSelectedWeight(itemInCart ? itemInCart.variant.weight : product.variants[0].weight);
+        if (itemInCart) {
+          setNoGarlic(Boolean(itemInCart.noGarlic));
+        }
+      }
+      if (initialNoGarlic !== undefined) {
+        setNoGarlic(initialNoGarlic);
+      }
+      setQuantity(1);
+    }
+  }, [isOpen, initialWeight, initialNoGarlic, product.id]);
 
   if (!isOpen) return null;
 
@@ -30,8 +60,13 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
     (v) => v.weight === selectedWeight
   ) || (product.variants && product.variants.length > 0 ? product.variants[0] : undefined);
 
+  const currentWeight = selectedVariant?.weight || selectedWeight;
+
   const cartItem = cart.find(
-    (item) => item.product.id === product.id && item.variant.weight === selectedWeight && !!item.noGarlic === !!noGarlic
+    (item) =>
+      String(item.product.id) === String(product.id) &&
+      item.variant.weight === currentWeight &&
+      Boolean(item.noGarlic) === Boolean(noGarlic)
   );
 
   const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
@@ -44,6 +79,8 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
     }
     addToCart(product, selectedVariant, quantity, noGarlic);
     toast.success(`${product.name} (${selectedVariant.weight}) added to cart! 🥒`);
+    setQuantity(1);
+    onClose();
   };
 
   const handleBuyNow = () => {
@@ -51,9 +88,51 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
       toast.error('Please select a weight');
       return;
     }
-    addToCart(product, selectedVariant, quantity, noGarlic);
+    if (!cartItem) {
+      addToCart(product, selectedVariant, quantity, noGarlic);
+    }
     onClose();
     navigate('/cart');
+  };
+
+  const handleIncrement = () => {
+    if (!selectedVariant) return;
+    const maxStock = selectedVariant.stock;
+    if (cartItem) {
+      if (cartItem.quantity >= maxStock) {
+        toast.error(`Maximum available stock (${maxStock}) reached`);
+        return;
+      }
+      updateQuantity(product.id, selectedVariant.weight, cartItem.quantity + 1, noGarlic);
+    } else {
+      if (quantity >= maxStock) {
+        toast.error(`Maximum available stock (${maxStock}) reached`);
+        return;
+      }
+      setQuantity((q) => q + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (!selectedVariant) return;
+    if (cartItem) {
+      if (cartItem.quantity <= 1) {
+        removeFromCart(product.id, selectedVariant.weight, noGarlic);
+        toast.success(`${product.name} (${selectedVariant.weight}) removed from cart 🛒`);
+        setQuantity(1);
+      } else {
+        updateQuantity(product.id, selectedVariant.weight, cartItem.quantity - 1, noGarlic);
+      }
+    } else {
+      setQuantity((q) => Math.max(1, q - 1));
+    }
+  };
+
+  const handleRemoveFromCart = () => {
+    if (!selectedVariant || !cartItem) return;
+    removeFromCart(product.id, selectedVariant.weight, noGarlic);
+    toast.success(`${product.name} (${selectedVariant.weight}) removed from cart 🛒`);
+    setQuantity(1);
   };
 
   return (
@@ -148,17 +227,25 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
                   {(product.variants || []).map((variant) => {
                     const isSelected = selectedWeight === variant.weight;
                     const isVariantOut = variant.stock <= 0;
+                    const variantInCart = cart.find(
+                      (item) =>
+                        String(item.product.id) === String(product.id) &&
+                        item.variant.weight === variant.weight &&
+                        Boolean(item.noGarlic) === Boolean(noGarlic)
+                    );
 
                     return (
                       <button
                         key={variant.weight}
                         onClick={() => !isVariantOut && setSelectedWeight(variant.weight)}
                         disabled={isVariantOut}
-                        className={`py-2 px-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border flex items-center gap-1.5 ${
+                        className={`relative py-2 px-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border flex items-center gap-1.5 ${
                           isVariantOut
                             ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
                             : isSelected
                             ? 'border-green-600 bg-green-600 text-white shadow-sm ring-2 ring-green-600/20'
+                            : variantInCart
+                            ? 'border-green-300 bg-green-50 text-green-700'
                             : 'border-gray-200 hover:border-green-400 bg-white text-gray-700'
                         }`}
                       >
@@ -167,6 +254,13 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
                         <span className={`text-[11px] ml-0.5 ${isSelected ? 'text-green-100' : 'text-gray-500'}`}>
                           - ₹{variant.price}
                         </span>
+                        {variantInCart && !isVariantOut && (
+                          <span className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            isSelected ? 'bg-white text-green-700' : 'bg-green-600 text-white'
+                          }`}>
+                            {variantInCart.quantity}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -219,22 +313,52 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
 
                 {/* Quantity Controls */}
                 {!isOutOfStock && (
-                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 font-bold text-base transition-colors"
-                    >
-                      -
-                    </button>
-                    <span className="px-3 py-1.5 text-sm font-bold text-gray-800 min-w-[28px] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 font-bold text-base transition-colors"
-                    >
-                      +
-                    </button>
+                  <div className="flex flex-col items-end gap-1">
+                    {cartItem && (
+                      <span className="text-[10px] sm:text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                        In Cart ({cartItem.quantity})
+                      </span>
+                    )}
+                    <div className={`flex items-center border rounded-xl overflow-hidden ${
+                      cartItem ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50'
+                    }`}>
+                      <button
+                        onClick={handleDecrement}
+                        className={`px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center ${
+                          cartItem && cartItem.quantity === 1
+                            ? 'text-red-500 hover:bg-red-50 hover:text-red-700'
+                            : cartItem
+                            ? 'text-green-700 hover:bg-green-100'
+                            : 'text-gray-600 hover:bg-gray-200'
+                        }`}
+                        title={cartItem && cartItem.quantity === 1 ? 'Remove from cart' : 'Decrease quantity'}
+                        aria-label="Decrease quantity"
+                      >
+                        {cartItem && cartItem.quantity === 1 ? (
+                          <Trash2 size={16} className="text-red-500" />
+                        ) : (
+                          <Minus size={16} />
+                        )}
+                      </button>
+                      <span className={`px-3 py-1.5 text-sm font-bold min-w-[32px] text-center ${
+                        cartItem ? 'text-green-800' : 'text-gray-800'
+                      }`}>
+                        {cartItem ? cartItem.quantity : quantity}
+                      </span>
+                      <button
+                        onClick={handleIncrement}
+                        disabled={Boolean(selectedVariant && (cartItem ? cartItem.quantity >= selectedVariant.stock : quantity >= selectedVariant.stock))}
+                        className={`px-3 py-1.5 font-bold text-base transition-colors flex items-center justify-center ${
+                          cartItem
+                            ? 'text-green-700 hover:bg-green-100 disabled:opacity-40 disabled:hover:bg-transparent'
+                            : 'text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:hover:bg-transparent'
+                        }`}
+                        title="Increase quantity"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -250,6 +374,28 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
               >
                 Out of Stock
               </button>
+            ) : cartItem ? (
+              <>
+                <button
+                  onClick={handleRemoveFromCart}
+                  className="py-3 px-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                  title="Remove from Cart"
+                >
+                  <Trash2 size={16} />
+                  <span>Remove</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/cart');
+                  }}
+                  className="flex-1 py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-md"
+                >
+                  <ShoppingCart size={18} />
+                  <span>View in Cart ({cartItem.quantity})</span>
+                  <ArrowRight size={16} />
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -257,7 +403,7 @@ export function ProductDetailsModal({ product, isOpen, onClose }: ProductDetails
                   className="flex-1 py-3 px-4 bg-white border-2 border-green-600 text-green-700 hover:bg-green-50 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   <ShoppingCart size={18} />
-                  {cartItem ? `Add More (${cartItem.quantity} in cart)` : 'Add to Cart'}
+                  Add to Cart
                 </button>
                 <button
                   onClick={handleBuyNow}
