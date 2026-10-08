@@ -38,7 +38,15 @@ export function Home() {
     <div>
       <Helmet>
         <title>Vaddadi Pickles - Authentic Homemade Pickles</title>
-        <meta name="description" content="Discover authentic, homemade pickles made with traditional recipes passed down through generations. Shop Vaddadi Pickles online now!" />
+        <meta name="description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order. Order online now!" />
+        <meta property="og:title" content="Vaddadi Pickles - Authentic Homemade Pickles | Refer & Earn 10%" />
+        <meta property="og:description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order. Order online now!" />
+        <meta property="og:image" content="https://vaddadipickles.com/og-image.jpg" />
+        <meta property="og:url" content="https://vaddadipickles.com/" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Vaddadi Pickles - Authentic Homemade Pickles | Refer & Earn 10%" />
+        <meta name="twitter:description" content="Discover authentic homemade Andhra pickles! 🌟 Refer & Earn: Share with friends and earn a 10% lifetime commission on every order!" />
+        <meta name="twitter:image" content="https://vaddadipickles.com/og-image.jpg" />
       </Helmet>
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-600 to-green-800 text-white pt-6 pb-12 md:py-20">

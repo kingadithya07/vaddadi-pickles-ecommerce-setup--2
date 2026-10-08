@@ -21,15 +21,19 @@ export function Products() {
     const queryParams = new URLSearchParams(location.search);
     const urlSearch = queryParams.get('search');
     const urlCategory = queryParams.get('category');
+    const urlProductId = queryParams.get('productId') || queryParams.get('product');
+
     if (urlSearch !== null) {
       setSearch(urlSearch);
     }
     if (urlCategory !== null) {
       setCategory(urlCategory.toLowerCase());
-    } else {
+    } else if (!urlProductId) {
       setCategory('all');
     }
-    window.scrollTo(0, 0);
+    if (!urlProductId) {
+      window.scrollTo(0, 0);
+    }
   }, [location.search]);
 
   const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
@@ -69,6 +73,35 @@ export function Products() {
 
   const allItems = useMemo(() => [...products, ...comboProducts], [products, comboProducts]);
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const urlProductId = queryParams.get('productId') || queryParams.get('product');
+
+    if (urlProductId && allItems.length > 0) {
+      const target = allItems.find(p => p.id === urlProductId);
+      if (target) {
+        if (target.category === 'Combo') {
+          setCategory('combo');
+        } else if (category !== 'all' && category !== target.category.toLowerCase()) {
+          setCategory('all');
+        }
+      }
+
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`product-${urlProductId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-4', 'ring-green-500', 'ring-offset-2', 'transition-all', 'duration-500');
+          setTimeout(() => {
+            el.classList.remove('ring-4', 'ring-green-500', 'ring-offset-2');
+          }, 3500);
+        }
+      }, 350);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.search, allItems]);
+
   const filteredProducts = useMemo(() => allItems.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = category === 'all' || product.category.toLowerCase() === category.toLowerCase();
@@ -87,7 +120,15 @@ export function Products() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Helmet>
         <title>All Products - Vaddadi Pickles</title>
-        <meta name="description" content="Browse our complete collection of authentic homemade pickles, powders, and fryums. Order online for delivery." />
+        <meta name="description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
+        <meta property="og:title" content="All Products - Vaddadi Pickles | Refer & Earn 10%" />
+        <meta property="og:description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
+        <meta property="og:image" content="https://vaddadipickles.com/og-image.jpg" />
+        <meta property="og:url" content="https://vaddadipickles.com/products" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="All Products - Vaddadi Pickles | Refer & Earn 10%" />
+        <meta name="twitter:description" content="Browse authentic homemade pickles, powders & fryums. 🌟 Refer & Earn: Share with friends and earn 10% lifetime commission on every order!" />
+        <meta name="twitter:image" content="https://vaddadipickles.com/og-image.jpg" />
       </Helmet>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Our Collection</h1>

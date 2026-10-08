@@ -1,10 +1,11 @@
-import { ShoppingCart, Star, Plus, Minus, Heart } from 'lucide-react';
+import { ShoppingCart, Star, Plus, Minus, Heart, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { useStore } from '../store';
 import { ReviewModal } from './ReviewModal';
 import { ComboDetailsModal } from './ComboDetailsModal';
+import { ProductShareModal } from './ProductShareModal';
 import toast from 'react-hot-toast';
 
 interface ProductCardProps {
@@ -25,6 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
   );
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isComboModalOpen, setIsComboModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [noGarlic, setNoGarlic] = useState(false);
 
   const isCombo = product.category === 'Combo';
@@ -65,7 +67,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden transition-all duration-300 transform ${isOutOfStock ? 'opacity-80' : 'hover:shadow-xl hover:-translate-y-1'}`}>
+      <div 
+        id={`product-${product.id}`}
+        className={`bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden transition-all duration-300 transform ${isOutOfStock ? 'opacity-80' : 'hover:shadow-xl hover:-translate-y-1'}`}
+      >
         {/* Product Image */}
         <div 
           className={`relative h-36 sm:h-48 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group overflow-hidden ${isCombo ? 'cursor-pointer' : ''}`}
@@ -117,8 +122,23 @@ export function ProductCard({ product }: ProductCardProps) {
               toggleWishlist(product.id);
             }}
             className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full z-10 shadow-sm hover:bg-white transition-colors"
+            title="Add to Wishlist"
+            aria-label="Wishlist"
           >
             <Heart size={16} className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500"} />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsShareModalOpen(true);
+            }}
+            className="absolute top-10 sm:top-12 right-2 bg-white/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full z-10 shadow-sm hover:bg-white hover:text-green-600 transition-colors text-gray-500"
+            title={isCombo ? "Share Combo" : "Share Product"}
+            aria-label="Share"
+          >
+            <Share2 size={16} />
           </button>
 
           {/* Rating overlay on image */}
@@ -289,6 +309,11 @@ export function ProductCard({ product }: ProductCardProps) {
           onClose={() => setIsComboModalOpen(false)}
         />
       )}
+      <ProductShareModal
+        product={product}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
     </>
   );
 }

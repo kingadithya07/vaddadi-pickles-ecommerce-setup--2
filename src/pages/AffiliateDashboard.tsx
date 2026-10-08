@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
 import { Navigate } from 'react-router-dom';
-import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save } from 'lucide-react';
+import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save, MessageCircle } from 'lucide-react';
 import { Affiliate, AffiliateSale } from '../types';
 import { SITE_URL } from '../utils/constants';
 import toast from 'react-hot-toast';
@@ -341,7 +341,7 @@ export function AffiliateDashboard() {
                 </div>
                 <button
                   onClick={copyToClipboard}
-                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   {copySuccess ? (
                     <><CheckCircle2 className="w-5 h-5" /> Copied!</>
@@ -349,6 +349,14 @@ export function AffiliateDashboard() {
                     <><Copy className="w-5 h-5" /> Copy Link</>
                   )}
                 </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`🥒 *Vaddadi Pickles - Authentic Homemade Pickles*\n\nLooking for delicious homemade Andhra pickles, powders & fryums? Order fresh, 100% natural pickles handcrafted with traditional recipes!\n\n🛒 *Shop Online*: ${SITE_URL}/?ref=${affiliate.referralCode}\n\n🌟 *Refer & Earn 10% Commission*: You can also earn a 10% lifetime commission on every order by joining our affiliate program!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 flex items-center justify-center gap-2 bg-[#25D366] text-white px-5 py-3 rounded-lg hover:bg-[#128C7E] transition-colors font-medium shadow-sm"
+                >
+                  <MessageCircle className="w-5 h-5" /> Share on WhatsApp
+                </a>
               </div>
             </div>
 
