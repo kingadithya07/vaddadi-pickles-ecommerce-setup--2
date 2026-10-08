@@ -4,7 +4,7 @@ export function useCartTotals() {
     const cart = useStore((state) => state.cart);
     const appliedCoupon = useStore((state) => state.appliedCoupon);
 
-    const subtotal = cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1), 0);
 
     let discount = 0;
     if (appliedCoupon) {

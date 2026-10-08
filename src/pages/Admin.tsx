@@ -35,6 +35,26 @@ const statusOptions: { value: Order['status']; label: string }[] = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
+const getAbandonedItemPrice = (item: any): number => {
+  if (item?.variant?.price != null && !isNaN(Number(item.variant.price))) return Number(item.variant.price);
+  if (item?.price != null && !isNaN(Number(item.price))) return Number(item.price);
+  if (item?.product?.price != null && !isNaN(Number(item.product.price))) return Number(item.product.price);
+  return 0;
+};
+
+const getAbandonedItemQty = (item: any): number => {
+  const q = Number(item?.quantity);
+  return isNaN(q) || q <= 0 ? 1 : q;
+};
+
+const getAbandonedItemName = (item: any): string => {
+  return item?.product?.name || item?.name || item?.title || 'Pickle Item';
+};
+
+const getAbandonedItemWeight = (item: any): string => {
+  return item?.variant?.weight || item?.weight || '';
+};
+
 export function Admin() {
   const orders = useStore((state) => state.orders);
   const coupons = useStore((state) => state.coupons);
@@ -1251,10 +1271,22 @@ Thank you for choosing Vaddadi Pickles!`;
         {activeTab === 'abandoned' && (
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                <CartIcon className="text-orange-500" />
-                Abandoned Carts
-              </h2>
+              <div>
+                <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <CartIcon className="text-orange-500" />
+                  Abandoned Carts
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Customers who added items to their cart but haven't placed an order yet.</p>
+              </div>
+              <button
+                onClick={() => {
+                  fetchAbandonedCarts();
+                  toast.success('Abandoned carts refreshed');
+                }}
+                className="text-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg transition font-medium shadow-sm"
+              >
+                Refresh
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -1269,31 +1301,50 @@ Thank you for choosing Vaddadi Pickles!`;
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {abandonedCarts.map((cartInfo) => {
-                    const cartTotal = cartInfo.cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+                    const items = (Array.isArray(cartInfo?.cart) ? cartInfo.cart : []).filter(Boolean);
+                    const cartTotal = items.reduce((sum, item) => sum + getAbandonedItemPrice(item) * getAbandonedItemQty(item), 0);
+                    
                     const handleRemind = () => {
-                      const msg = `Hi ${cartInfo.name}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at ${window.location.origin}/cart to get them delivered to you.\n\nItems:\n${cartInfo.cart.map(item => `- ${item.product.name} (${item.variant.weight}) x${item.quantity}`).join('\n')}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
-                      window.open(`https://wa.me/${cartInfo.phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                      const phoneDigits = String(cartInfo?.phone || '').replace(/\D/g, '');
+                      const formattedPhone = phoneDigits.length === 10 ? `91${phoneDigits}` : phoneDigits;
+                      if (!formattedPhone) {
+                        toast.error('No phone number found for this customer');
+                        return;
+                      }
+
+                      const itemsList = items.map(item => {
+                        const name = getAbandonedItemName(item);
+                        const weight = getAbandonedItemWeight(item);
+                        const qty = getAbandonedItemQty(item);
+                        return `- ${name}${weight ? ` (${weight})` : ''} x${qty}`;
+                      }).join('\n');
+
+                      const customerName = cartInfo?.name || 'Customer';
+                      const msg = `Hi ${customerName}, you left some delicious pickles in your cart! 🥒\n\nComplete your order now at ${window.location.origin}/cart to get them delivered to you.\n\nItems:\n${itemsList || '- Selected pickles'}\n\nTotal: ₹${cartTotal}\n\n🌟 *Refer & Earn*: Did you know you can earn money by referring our products? Check your Affiliate Dashboard in your profile to share your link and get a 10% lifelong commission!`;
+                      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                     };
+
+                    const itemNames = items.map(i => getAbandonedItemName(i)).filter(Boolean).join(', ');
 
                     return (
                       <tr key={cartInfo.id} className="hover:bg-gray-50 transition">
                         <td className="px-4 md:px-6 py-4">
-                          <div className="font-medium text-gray-900">{cartInfo.name}</div>
-                          <div className="text-sm text-gray-500">{cartInfo.phone}</div>
+                          <div className="font-medium text-gray-900">{cartInfo.name || 'Unknown'}</div>
+                          <div className="text-sm text-gray-500">{cartInfo.phone || 'No phone'}</div>
                         </td>
                         <td className="px-4 md:px-6 py-4">
                           <div className="text-sm text-gray-600">
-                            {cartInfo.cart.length} item(s)
+                            {items.length} item(s)
                           </div>
-                          <div className="text-xs text-gray-500 max-w-[200px] truncate">
-                            {cartInfo.cart.map(i => i.product.name).join(', ')}
+                          <div className="text-xs text-gray-500 max-w-[200px] truncate" title={itemNames}>
+                            {itemNames || 'Items'}
                           </div>
                         </td>
                         <td className="px-4 md:px-6 py-4">
                           <span className="font-bold text-gray-900">₹{cartTotal}</span>
                         </td>
                         <td className="px-4 md:px-6 py-4 text-sm text-gray-600">
-                          {new Date(cartInfo.updatedAt).toLocaleString()}
+                          {cartInfo.updatedAt ? new Date(cartInfo.updatedAt).toLocaleString() : 'N/A'}
                         </td>
                         <td className="px-4 md:px-6 py-4">
                           <button 

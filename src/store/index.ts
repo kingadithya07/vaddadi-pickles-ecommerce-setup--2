@@ -204,7 +204,7 @@ export const useStore = create<StoreState>()(
           ),
         });
         
-        const newCartTotal = get().cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+        const newCartTotal = get().cart.reduce((sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1), 0);
         const appliedCoupon = get().appliedCoupon;
         if (appliedCoupon && newCartTotal < appliedCoupon.minOrder) {
           set({ appliedCoupon: null });
@@ -227,7 +227,7 @@ export const useStore = create<StoreState>()(
             ),
           });
           
-          const newCartTotal = get().cart.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
+          const newCartTotal = get().cart.reduce((sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1), 0);
           const appliedCoupon = get().appliedCoupon;
           if (appliedCoupon && newCartTotal < appliedCoupon.minOrder) {
             set({ appliedCoupon: null });
@@ -458,7 +458,7 @@ export const useStore = create<StoreState>()(
           return { success: false, message: 'Invalid coupon code' };
         }
         const cartTotal = get().cart.reduce(
-          (sum, item) => sum + item.variant.price * item.quantity,
+          (sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1),
           0
         );
         if (cartTotal < coupon.minOrder) {
@@ -1051,13 +1051,19 @@ export const useStore = create<StoreState>()(
             // Filter out empty carts and parse them
             const abandoned = data
               .filter(p => Array.isArray(p.cart) && p.cart.length > 0)
-              .map(p => ({
-                id: p.id,
-                name: p.name || 'Unknown',
-                phone: p.phone || 'No phone',
-                cart: p.cart,
-                updatedAt: p.updated_at,
-              }))
+              .map(p => {
+                const cleanCart = (Array.isArray(p.cart) ? p.cart : []).filter(
+                  (item: any) => item && typeof item === 'object'
+                );
+                return {
+                  id: p.id,
+                  name: p.name || 'Unknown',
+                  phone: p.phone || 'No phone',
+                  cart: cleanCart,
+                  updatedAt: p.updated_at || new Date().toISOString(),
+                };
+              })
+              .filter(p => p.cart.length > 0)
               .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
             set({ abandonedCarts: abandoned });
           }
