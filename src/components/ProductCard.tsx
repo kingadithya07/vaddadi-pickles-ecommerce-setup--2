@@ -35,13 +35,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const variantInCart = cart.find(item => String(item.product.id) === String(product.id));
   const activeWeight = selectedWeight || (variantInCart ? variantInCart.variant.weight : (product.variants?.[0]?.weight || ''));
+  const effectiveNoGarlic = variantInCart ? Boolean(variantInCart.noGarlic) : noGarlic;
 
   const selectedVariant = product.variants?.find(v => v.weight === activeWeight);
   const isWishlisted = wishlist.includes(product.id);
 
   // Check if this product with active weight is in cart
   const cartItem = cart.find(
-    item => String(item.product.id) === String(product.id) && item.variant.weight === activeWeight && Boolean(item.noGarlic) === Boolean(noGarlic)
+    item => String(item.product.id) === String(product.id) && item.variant.weight === activeWeight && Boolean(item.noGarlic) === Boolean(effectiveNoGarlic)
   );
   const totalInCart = cart
     .filter(item => String(item.product.id) === String(product.id))
@@ -53,16 +54,16 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleIncrement = () => {
     if (selectedVariant) {
-      addToCart(product, selectedVariant, 1, noGarlic);
+      addToCart(product, selectedVariant, 1, effectiveNoGarlic);
     }
   };
 
   const handleDecrement = () => {
     if (cartItem && selectedVariant) {
       if (cartItem.quantity <= 1) {
-        removeFromCart(product.id, selectedVariant.weight, noGarlic);
+        removeFromCart(product.id, selectedVariant.weight, effectiveNoGarlic);
       } else {
-        addToCart(product, selectedVariant, -1, noGarlic);
+        addToCart(product, selectedVariant, -1, effectiveNoGarlic);
       }
     }
   };
@@ -200,7 +201,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
               {(product.variants || []).map((variant) => {
                 const variantInCart = cart.find(
-                  item => item.product.id === product.id && item.variant.weight === variant.weight && !!item.noGarlic === !!noGarlic
+                  item => String(item.product.id) === String(product.id) && item.variant.weight === variant.weight && Boolean(item.noGarlic) === Boolean(effectiveNoGarlic)
                 );
                 const isVariantOutOfStock = variant.stock <= 0;
 
@@ -337,7 +338,7 @@ export function ProductCard({ product }: ProductCardProps) {
           isOpen={isProductDetailsOpen}
           onClose={() => setIsProductDetailsOpen(false)}
           initialWeight={activeWeight}
-          initialNoGarlic={noGarlic}
+          initialNoGarlic={effectiveNoGarlic}
         />
       )}
       <ProductShareModal
