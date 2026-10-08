@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Copy, CheckCircle2, MessageCircle, Share2, Sparkles } from 'lucide-react';
 import { SITE_URL } from '../utils/constants';
 import toast from 'react-hot-toast';

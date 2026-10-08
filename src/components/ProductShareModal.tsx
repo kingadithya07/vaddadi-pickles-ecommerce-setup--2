@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Copy, CheckCircle2, MessageCircle, Share2 } from 'lucide-react';
 import { Product } from '../types';
 import { SITE_URL } from '../utils/constants';
