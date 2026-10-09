@@ -1309,10 +1309,10 @@ export const useStore = create<StoreState>()(
         const user = get().user;
         if (!user) return;
 
+        // Never send 'role' from client profile updates to prevent privilege escalation
         await supabase.from('profiles').update({
           name: user.name,
           phone: user.phone,
-          role: user.role,
           addresses: user.addresses,
           updated_at: new Date().toISOString(),
         }).eq('id', user.id);
