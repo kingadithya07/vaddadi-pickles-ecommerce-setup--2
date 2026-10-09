@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquarePlus, X, Send, CheckCircle2 } from 'lucide-react';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 
 export function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);

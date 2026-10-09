@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Save, LogOut, Plus, Edit2, Trash2, Check, Briefcase, Home, Copy, Network, ExternalLink, MessageCircle } from 'lucide-react';
-import { useStore } from '../store';
-import { UserAddress } from '../types';
-import { statesAndCities } from '../data/locations';
-import { lookupPincode } from '../utils/pincode';
-import { supabase } from '../lib/supabase';
+import { useStore } from '@/store';
+import { UserAddress } from '@/types';
+import { statesAndCities } from '@/data/locations';
+import { lookupPincode, formatPhoneNumber, SITE_URL } from '@/utils';
+import { supabase } from '@/lib';
 import { Link as RouterLink } from 'react-router-dom';
-import { formatPhoneNumber } from '../utils/phone';
-import { SITE_URL } from '../utils/constants';
 import toast from 'react-hot-toast';
 
 export function Profile() {

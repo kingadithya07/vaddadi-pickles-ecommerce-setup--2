@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useStore } from '../store';
-import { User } from '../types';
-import { supabase } from '../lib/supabase';
-import { formatPhoneNumber } from '../utils/phone';
+import { useStore } from '@/store';
+import { User } from '@/types';
+import { supabase } from '@/lib';
+import { formatPhoneNumber } from '@/utils';
 
 export function Login() {
   const [isSignUp, setIsSignUp] = useState(false);

@@ -11,16 +11,12 @@ import {
   Plus, Trash2, ShoppingBag, Image, Settings, Edit, Eye, ShoppingCart, Repeat, ShoppingCart as CartIcon,
   Truck, TrendingUp, Network
 } from 'lucide-react';
-import { useStore } from '../store';
-import { Order, Coupon, Product, ProductVariant, ComboProduct } from '../types';
-import { TRACKING_CARRIERS } from '../utils/tracking';
-import { AdminAffiliates } from '../components/AdminAffiliates';
-import { supabase } from '../lib/supabase';
+import { useStore } from '@/store';
+import { Order, Coupon, Product, ProductVariant, ComboProduct } from '@/types';
+import { TRACKING_CARRIERS, sanitizeHtml, lookupPincode, formatPhoneNumber, getAddress3Lines, formatStreetAddress } from '@/utils';
+import { AdminAffiliates } from '@/components';
+import { supabase } from '@/lib';
 import toast from 'react-hot-toast';
-import { sanitizeHtml } from '../utils/sanitize';
-import { lookupPincode } from '../utils/pincode';
-import { formatPhoneNumber } from '../utils/phone';
-import { getAddress3Lines, formatStreetAddress } from '../utils/address';
 
 
 

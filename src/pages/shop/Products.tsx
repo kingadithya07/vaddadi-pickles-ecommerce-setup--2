@@ -2,12 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Search, Share2 } from 'lucide-react';
-import { ProductCard } from '../components/ProductCard';
-import { ComboDetailsModal } from '../components/ComboDetailsModal';
-import { ProductDetailsModal } from '../components/ProductDetailsModal';
-import { CategoryShareModal, CategoryData, CATEGORIES_DATA } from '../components/CategoryShareModal';
-import { useStore } from '../store';
-import { Product } from '../types';
+import { ProductCard, ComboDetailsModal, ProductDetailsModal, CategoryShareModal, CategoryData, CATEGORIES_DATA } from '@/components';
+import { useStore } from '@/store';
+import { Product } from '@/types';
 
 export function Products() {
   const navigate = useNavigate();

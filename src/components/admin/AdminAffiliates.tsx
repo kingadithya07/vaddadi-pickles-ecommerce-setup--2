@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { CheckCircle, Clock, IndianRupee, Network, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 

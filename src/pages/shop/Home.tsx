@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Truck, Shield, Award, Share2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ProductCard } from '../components/ProductCard';
-import { CategoryShareModal, CategoryData, CATEGORIES_DATA } from '../components/CategoryShareModal';
-import { useStore } from '../store';
+import { ProductCard, CategoryShareModal, CategoryData, CATEGORIES_DATA } from '@/components';
+import { useStore } from '@/store';
 
 export function Home() {
   const location = useLocation();

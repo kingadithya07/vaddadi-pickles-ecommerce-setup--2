@@ -1,6 +1,6 @@
 
-import { useStore } from '../store';
-import { ProductCard } from '../components/ProductCard';
+import { useStore } from '@/store';
+import { ProductCard } from '@/components';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag } from 'lucide-react';
 

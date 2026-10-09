@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Star, ShoppingCart, Share2, Check, ArrowRight, Plus, Minus, Trash2 } from 'lucide-react';
-import { Product, ProductVariant } from '../types';
-import { useStore } from '../store';
+import { Product, ProductVariant } from '@/types';
+import { useStore } from '@/store';
 import { ProductShareModal } from './ProductShareModal';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';

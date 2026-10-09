@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Star, MessageSquare, Send, CheckCircle2, ShoppingCart } from 'lucide-react';
-import { useStore } from '../store';
-import { Product } from '../types';
+import { useStore } from '@/store';
+import { Product } from '@/types';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 

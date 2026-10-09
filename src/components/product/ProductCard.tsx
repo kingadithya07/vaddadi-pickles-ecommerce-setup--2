@@ -1,12 +1,12 @@
 import { ShoppingCart, Star, Plus, Minus, Heart, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Product } from '../types';
-import { useStore } from '../store';
-import { ReviewModal } from './ReviewModal';
-import { ComboDetailsModal } from './ComboDetailsModal';
-import { ProductShareModal } from './ProductShareModal';
-import { ProductDetailsModal } from './ProductDetailsModal';
+import { Product } from '@/types';
+import { useStore } from '@/store';
+import { ReviewModal } from '@/components/modals/ReviewModal';
+import { ComboDetailsModal } from '@/components/modals/ComboDetailsModal';
+import { ProductShareModal } from '@/components/modals/ProductShareModal';
+import { ProductDetailsModal } from '@/components/modals/ProductDetailsModal';
 import toast from 'react-hot-toast';
 
 interface ProductCardProps {

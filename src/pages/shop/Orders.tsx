@@ -4,12 +4,9 @@ import {
   Package, Truck, CheckCircle, Clock, XCircle,
   MessageCircle, Printer, ChevronDown, ChevronUp
 } from 'lucide-react';
-import { useStore } from '../store';
-import { Order } from '../types';
-import { getTrackingUrl } from '../utils/tracking';
-import { sanitizeHtml } from '../utils/sanitize';
-import { formatPhoneNumber } from '../utils/phone';
-import { getAddress3Lines } from '../utils/address';
+import { useStore } from '@/store';
+import { Order } from '@/types';
+import { getTrackingUrl, sanitizeHtml, formatPhoneNumber, getAddress3Lines } from '@/utils';
 
 const statusConfig: Record<Order['status'], { label: string; color: string; icon: any }> = {
   pending: { label: 'Pending', color: 'bg-gray-100 text-gray-600', icon: Clock },

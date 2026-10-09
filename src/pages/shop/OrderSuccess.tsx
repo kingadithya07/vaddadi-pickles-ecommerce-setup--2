@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { CheckCircle, MessageCircle, Package, ArrowRight } from 'lucide-react';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 
 export function OrderSuccess() {
   const location = useLocation();

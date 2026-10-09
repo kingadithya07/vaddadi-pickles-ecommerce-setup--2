@@ -2,16 +2,16 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useStore } from '../store';
-import { Order, Address, UserAddress } from '../types';
-import { statesAndCities } from '../data/locations';
+import { useStore } from '@/store';
+import { Order, Address, UserAddress } from '@/types';
+import { statesAndCities } from '@/data/locations';
 
-import { useCartTotals } from '../hooks/useCartTotals';
-import { lookupPincode, PostOfficeBranch } from '../utils/pincode';
-import { sendTelegramNotification } from '../lib/telegram';
-import { formatPhoneNumber } from '../utils/phone';
+import { useCartTotals } from '@/hooks';
+import { lookupPincode, PostOfficeBranch } from '@/utils';
+import { sendTelegramNotification } from '@/lib';
+import { formatPhoneNumber } from '@/utils';
 import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib';
 
 export function Checkout() {
   const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress, updateUserAddress } = useStore();

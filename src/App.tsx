@@ -1,40 +1,47 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
-import { Home } from './pages/Home';
+import {
+  Header,
+  Footer,
+  ErrorBoundary,
+  ProtectedRoute,
+  WhatsAppButton,
+  PWAInstallPrompt,
+  WelcomePopup,
+  AffiliatePromoToast,
+} from './components';
+import { Home } from './pages/shop/Home';
 import { useStore } from './store';
 import { supabase } from './lib/supabase';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
-import { ProtectedRoute } from './components/ProtectedRoute';
-
 
 // Lazy load pages for better performance
-const Products = React.lazy(() => import('./pages/Products').then(module => ({ default: module.Products })));
-const Cart = React.lazy(() => import('./pages/Cart').then(module => ({ default: module.Cart })));
-const Login = React.lazy(() => import('./pages/Login').then(module => ({ default: module.Login })));
-const Checkout = React.lazy(() => import('./pages/Checkout').then(module => ({ default: module.Checkout })));
-const OrderSuccess = React.lazy(() => import('./pages/OrderSuccess').then(module => ({ default: module.OrderSuccess })));
-const Orders = React.lazy(() => import('./pages/Orders').then(module => ({ default: module.Orders })));
-const Profile = React.lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
-const Admin = React.lazy(() => import('./pages/Admin').then(module => ({ default: module.Admin })));
-const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
-const RefundPolicy = React.lazy(() => import('./pages/RefundPolicy').then(module => ({ default: module.RefundPolicy })));
-const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions').then(module => ({ default: module.TermsAndConditions })));
-const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
-const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(module => ({ default: module.ResetPassword })));
-const AuthSuccess = React.lazy(() => import('./pages/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
-const AffiliateDashboard = React.lazy(() => import('./pages/AffiliateDashboard').then(module => ({ default: module.AffiliateDashboard })));
-const AboutUs = React.lazy(() => import('./pages/AboutUs').then(module => ({ default: module.AboutUs })));
-const FAQ = React.lazy(() => import('./pages/FAQ').then(module => ({ default: module.FAQ })));
-const Wishlist = React.lazy(() => import('./pages/Wishlist').then(module => ({ default: module.Wishlist })));
+// Shop
+const Products = React.lazy(() => import('./pages/shop/Products').then(module => ({ default: module.Products })));
+const Cart = React.lazy(() => import('./pages/shop/Cart').then(module => ({ default: module.Cart })));
+const Checkout = React.lazy(() => import('./pages/shop/Checkout').then(module => ({ default: module.Checkout })));
+const OrderSuccess = React.lazy(() => import('./pages/shop/OrderSuccess').then(module => ({ default: module.OrderSuccess })));
+const Orders = React.lazy(() => import('./pages/shop/Orders').then(module => ({ default: module.Orders })));
+const Profile = React.lazy(() => import('./pages/shop/Profile').then(module => ({ default: module.Profile })));
+const Wishlist = React.lazy(() => import('./pages/shop/Wishlist').then(module => ({ default: module.Wishlist })));
 
-import { WhatsAppButton } from './components/WhatsAppButton';
-import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { WelcomePopup } from './components/WelcomePopup';
-import { AffiliatePromoToast } from './components/AffiliatePromoToast';
+// Auth
+const Login = React.lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
+const ForgotPassword = React.lazy(() => import('./pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
+const ResetPassword = React.lazy(() => import('./pages/auth/ResetPassword').then(module => ({ default: module.ResetPassword })));
+const AuthSuccess = React.lazy(() => import('./pages/auth/AuthSuccess').then(module => ({ default: module.AuthSuccess })));
+
+// Admin
+const Admin = React.lazy(() => import('./pages/admin/Admin').then(module => ({ default: module.Admin })));
+const AffiliateDashboard = React.lazy(() => import('./pages/admin/AffiliateDashboard').then(module => ({ default: module.AffiliateDashboard })));
+
+// Legal & Information
+const AboutUs = React.lazy(() => import('./pages/legal/AboutUs').then(module => ({ default: module.AboutUs })));
+const FAQ = React.lazy(() => import('./pages/legal/FAQ').then(module => ({ default: module.FAQ })));
+const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy').then(module => ({ default: module.PrivacyPolicy })));
+const RefundPolicy = React.lazy(() => import('./pages/legal/RefundPolicy').then(module => ({ default: module.RefundPolicy })));
+const TermsAndConditions = React.lazy(() => import('./pages/legal/TermsAndConditions').then(module => ({ default: module.TermsAndConditions })));
 
 function ScrollToTop() {
   const { pathname } = useLocation();

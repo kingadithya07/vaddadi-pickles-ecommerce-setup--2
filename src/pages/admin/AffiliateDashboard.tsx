@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useStore } from '../store';
-import { supabase } from '../lib/supabase';
+import { useStore } from '@/store';
+import { supabase } from '@/lib';
 import { Navigate } from 'react-router-dom';
 import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save, MessageCircle } from 'lucide-react';
-import { Affiliate, AffiliateSale } from '../types';
-import { SITE_URL } from '../utils/constants';
+import { Affiliate, AffiliateSale } from '@/types';
+import { SITE_URL } from '@/utils';
 import toast from 'react-hot-toast';
 
 export function AffiliateDashboard() {

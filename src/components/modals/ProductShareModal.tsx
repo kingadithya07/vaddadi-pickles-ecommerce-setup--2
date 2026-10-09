@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Copy, CheckCircle2, MessageCircle, Share2 } from 'lucide-react';
-import { Product } from '../types';
-import { SITE_URL } from '../utils/constants';
+import { Product } from '@/types';
+import { SITE_URL } from '@/utils/constants';
 import toast from 'react-hot-toast';
 
 interface ProductShareModalProps {

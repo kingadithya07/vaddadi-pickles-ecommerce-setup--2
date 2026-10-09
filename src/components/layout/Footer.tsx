@@ -1,7 +1,7 @@
 import { Phone, Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { useStore } from '../store';
+import { useStore } from '@/store';
 import toast from 'react-hot-toast';
 
 export function Footer() {

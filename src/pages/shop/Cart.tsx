@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, Tag, ShoppingBag } from 'lucide-react';
-import { useStore } from '../store';
-
-import { useCartTotals } from '../hooks/useCartTotals';
+import { useStore } from '@/store';
+import { useCartTotals } from '@/hooks';
 
 export function Cart() {
   const { cart, user, coupons, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();

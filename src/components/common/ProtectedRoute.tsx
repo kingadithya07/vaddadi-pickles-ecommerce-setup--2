@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { useStore } from '../store';
+import { supabase } from '@/lib/supabase';
+import { useStore } from '@/store';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [isVerifying, setIsVerifying] = useState(true);
