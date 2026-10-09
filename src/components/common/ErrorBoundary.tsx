@@ -42,11 +42,17 @@ export class ErrorBoundary extends Component<Props, State> {
                         <button
                             onClick={() => {
                                 localStorage.clear();
+                                if ('caches' in window) {
+                                    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {});
+                                }
+                                if ('serviceWorker' in navigator) {
+                                    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+                                }
                                 window.location.reload();
                             }}
                             className="w-full mt-2 bg-gray-200 text-gray-800 py-2 rounded hover:bg-gray-300 transition"
                         >
-                            Clear Data & Reload
+                            Clear App Cache & Reload
                         </button>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { clearAppCacheAndReload } from '@/utils';
 
 const faqs = [
   {
@@ -26,6 +27,11 @@ const faqs = [
   {
     question: "Can I place a bulk order for a wedding or event?",
     answer: "Absolutely! We specialize in bulk orders and 'Pelli Saare' (wedding gifts). Please contact our customer support team directly for special pricing and customization options."
+  },
+  {
+    question: "App or website not updating properly or seeing an error? How to clear cache",
+    answer: "If any feature isn't working as expected or if you don't see our latest updates, your browser or installed app (PWA) may be holding onto older cached files.\n\n📱 For Installed Android App (PWA):\n1. Go to your phone's Settings > Apps > Vaddadi Pickles (or Chrome).\n2. Tap 'Storage & Cache' > select 'Clear Cache'.\n3. Re-open the app.\n\n🍎 For iPhone / iOS (Safari):\n1. Open iPhone Settings > Safari > Advanced > Website Data.\n2. Search 'vaddadi' and swipe left to Delete.\n3. Close and re-open the app from your home screen.\n\n💻 For Desktop / Chrome Browsers:\nPress Ctrl + Shift + R (Windows) or Cmd + Shift + R (Mac) for a hard refresh.",
+    hasResetButton: true
   }
 ];
 
@@ -69,7 +75,21 @@ export function FAQ() {
             
             {openIndex === index && (
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{faq.answer}</p>
+                {faq.hasResetButton && (
+                  <div className="mt-4 pt-3 border-t border-gray-200">
+                    <button
+                      onClick={clearAppCacheAndReload}
+                      className="inline-flex items-center gap-2 bg-green-600 text-white font-medium px-4 py-2.5 rounded-lg hover:bg-green-700 active:scale-95 transition shadow-sm"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Clear App Cache & Reload Now</span>
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      This will unregister any stale Service Worker, wipe offline asset storage, and reload with the freshest version.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

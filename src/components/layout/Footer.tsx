@@ -1,7 +1,8 @@
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useStore } from '@/store';
+import { clearAppCacheAndReload } from '@/utils';
 import toast from 'react-hot-toast';
 
 export function Footer() {
@@ -41,6 +42,16 @@ export function Footer() {
               <li><Link to="/privacy-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Privacy Policy</Link></li>
               <li><Link to="/refund-policy" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Refund Policy</Link></li>
               <li><Link to="/terms-and-conditions" onClick={() => window.scrollTo(0, 0)} className="hover:text-green-500 transition">Terms & Conditions</Link></li>
+              <li className="pt-2 border-t border-gray-800">
+                <button
+                  onClick={clearAppCacheAndReload}
+                  className="hover:text-yellow-400 text-gray-400 text-xs flex items-center gap-1.5 transition py-1 text-left"
+                  title="Clear offline storage and reload latest update"
+                >
+                  <RefreshCw size={12} className="text-yellow-500" />
+                  <span>Clear App Cache / Refresh</span>
+                </button>
+              </li>
             </ul>
           </div>
 

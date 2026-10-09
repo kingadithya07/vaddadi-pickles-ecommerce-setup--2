@@ -98,3 +98,28 @@ export function initAutoUpdateWatcher() {
     checkForAppUpdates();
   }, 2 * 60 * 1000);
 }
+
+/**
+ * Manual cache purge and reload helper.
+ * Unregisters active service workers, clears CacheStorage, and reloads fresh.
+ */
+export async function clearAppCacheAndReload() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.unregister();
+      }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+    localStorage.removeItem('app_build_version');
+    sessionStorage.clear();
+  } catch (e) {
+    console.error('Error clearing cache:', e);
+  } finally {
+    window.location.reload();
+  }
+}
