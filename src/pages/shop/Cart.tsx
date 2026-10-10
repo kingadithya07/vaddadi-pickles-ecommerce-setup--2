@@ -1,10 +1,23 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, Tag, ShoppingBag, Sparkles, Gift } from 'lucide-react';
+import { 
+  Trash2, 
+  Plus, 
+  Minus, 
+  Tag, 
+  ShoppingBag, 
+  Sparkles, 
+  Gift, 
+  ArrowRight, 
+  CheckCircle2, 
+  ChevronRight, 
+  ShieldCheck, 
+  Truck
+} from 'lucide-react';
 import { useStore } from '@/store';
 import { useCartTotals } from '@/hooks';
-import { getFestiveTierStatus } from '@/data/festiveOffer';
-import { FestiveWelcomeModal } from '@/components';
+import { getFestiveTierStatus, FESTIVE_OFFER_NAME, FESTIVE_TIERS_CONFIG } from '@/data/festiveOffer';
+import { FestiveWelcomeModal, CouponSelectionModal } from '@/components';
 
 export function Cart() {
   const { cart, user, coupons, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
@@ -12,15 +25,19 @@ export function Cart() {
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showFestiveModal, setShowFestiveModal] = useState(false);
+  const [showCouponModal, setShowCouponModal] = useState(false);
   const navigate = useNavigate();
 
   const festiveStatus = useMemo(() => getFestiveTierStatus(subtotal), [subtotal]);
 
-  const handleApplyCoupon = () => {
-    const result = applyCoupon(couponCode);
+  const activeCoupons = useMemo(() => coupons.filter((c) => c.active), [coupons]);
+  const eligibleCoupons = useMemo(() => activeCoupons.filter((c) => subtotal >= c.minOrder), [activeCoupons, subtotal]);
+
+  const handleApplyCoupon = (codeToApply = couponCode) => {
+    const result = applyCoupon(codeToApply);
     setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
     if (result.success) setCouponCode('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return result;
   };
 
   const handleCheckout = () => {
@@ -33,255 +50,489 @@ export function Cart() {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <ShoppingBag className="mx-auto text-gray-300 mb-4" size={80} />
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Your cart is empty</h2>
-        <p className="text-gray-600 mb-6">Looks like you haven't added any pickles yet!</p>
-        <Link
-          to="/products"
-          className="inline-block bg-green-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-700 transition"
-        >
-          Start Shopping
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="w-24 h-24 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4 shadow-sm border border-amber-200">
+          <ShoppingBag size={48} className="text-amber-600" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-2">Your cart is empty</h2>
+        <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-md">
+          Looks like you haven't added any authentic Andhra pickles or powders yet! Explore our products and combos to claim festive free gifts.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link
+            to="/products"
+            className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-full font-bold transition shadow-lg active:scale-95"
+          >
+            <span>Start Shopping</span>
+            <ArrowRight size={18} />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowFestiveModal(true)}
+            className="inline-flex items-center justify-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-6 py-3.5 rounded-full font-bold transition text-sm"
+          >
+            <span>🪔 View Festive Offers</span>
+          </button>
+        </div>
+
+        {showFestiveModal && (
+          <FestiveWelcomeModal
+            isOpen={showFestiveModal}
+            onClose={() => setShowFestiveModal(false)}
+          />
+        )}
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
-
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
-          {cart.map((item) => (
-            <div key={`${item.product.id}-${item.variant.weight}${item.noGarlic ? '-nogarlic' : ''}`} className="bg-white rounded-xl shadow-md p-3 sm:p-4 flex gap-3 sm:gap-4 w-full overflow-hidden">
-              <div className="w-16 h-16 sm:w-24 sm:h-24 flex-shrink-0 bg-green-50 rounded-lg flex items-center justify-center text-3xl sm:text-4xl overflow-hidden">
-                {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
-                  <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  item.product.image
-                )}
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-between">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base break-words line-clamp-2">{item.product.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                      {item.variant.weight}
-                      {item.noGarlic && <span className="ml-1 sm:ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px] inline-block mt-1 sm:mt-0">No Garlic</span>}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-semibold text-gray-800 text-sm sm:text-base">₹{item.variant.price * item.quantity}</p>
-                    <p className="text-xs text-gray-400 line-through">₹{item.variant.mrp * item.quantity}</p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center mt-2 sm:mt-3">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity - 1, item.noGarlic)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
-                    >
-                      <Minus size={14} className="sm:w-4 sm:h-4 text-gray-600" />
-                    </button>
-                    <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity + 1, item.noGarlic)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
-                    >
-                      <Plus size={14} className="sm:w-4 sm:h-4 text-gray-600" />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.product.id, item.variant.weight, item.noGarlic)}
-                    className="text-red-500 hover:text-red-700 transition p-1.5 bg-red-50 rounded-lg hover:bg-red-100"
-                    aria-label="Remove item"
-                  >
-                    <Trash2 size={16} className="sm:w-5 sm:h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 pb-28 md:pb-12">
+      {/* Page Title */}
+      <div className="flex items-center justify-between mb-5 sm:mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Shopping Cart</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            {cart.reduce((sum, item) => sum + item.quantity, 0)} items in your cart
+          </p>
         </div>
+        <Link
+          to="/products"
+          className="text-xs sm:text-sm font-bold text-green-700 hover:text-green-800 underline flex items-center gap-1"
+        >
+          <span>Continue Shopping</span>
+          <ArrowRight size={14} />
+        </Link>
+      </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 h-fit w-full overflow-hidden">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
+      {/* Prominent Festive Offer Progress Banner (Mobile & Desktop) */}
+      <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-900 via-orange-950 to-amber-900 text-white p-4 sm:p-5 shadow-xl border-2 border-yellow-500/80 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-600/15 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Coupon Code */}
-          <div className="mb-4">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                onClick={handleApplyCoupon}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-              >
-                Apply
-              </button>
-            </div>
-            {couponMessage && (
-              <p className={`text-sm mt-2 ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                {couponMessage.text}
-              </p>
-            )}
-            {appliedCoupon && (
-              <div className="flex items-center justify-between mt-2 p-2 bg-green-50 rounded-lg">
-                <span className="text-green-700 text-sm font-medium">{appliedCoupon.code} applied</span>
-                <button onClick={removeCoupon} className="text-red-500 text-sm hover:underline">Remove</button>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 border-t pt-4">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>₹{subtotal}</span>
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Discount</span>
-                <span>-₹{discount.toFixed(0)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-gray-600">
-              <span>Shipping</span>
-              <span>{shipping === 0 ? <span className="text-green-600 font-medium">FREE</span> : `₹${shipping}`}</span>
-            </div>
-            {subtotal < 1000 && (
-              <p className="text-xs text-green-600">Add ₹{1000 - subtotal} more for FREE shipping!</p>
-            )}
-            <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
-              <span>Total</span>
-              <span>₹{total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          {/* Dussehra / Durga Pooja Festive Tier Status in Cart */}
-          <div className="mt-4 p-3.5 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                <span>🪔</span> Dussehra/Durga Pooja And Diwali/Deepavali Offer
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowFestiveModal(true)}
-                className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline"
-              >
-                Details
-              </button>
-            </div>
-
-            {festiveStatus.isUnlocked ? (
+        <div className="relative z-10 space-y-3.5">
+          {/* Header Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xl sm:text-2xl">🪔</span>
               <div>
-                <p className="text-xs text-green-800 font-bold flex items-center gap-1">
-                  <span>🎉</span> Unlocked: <strong>{festiveStatus.eligibleCount} FREE {festiveStatus.eligibleCount > 1 ? 'Gifts' : 'Gift'}!</strong>
-                </p>
-                <p className="text-[11px] text-gray-600 mt-0.5">
-                  You can pick your free gift{festiveStatus.eligibleCount > 1 ? 's' : ''} (100g/50g) at checkout for ₹0.
-                </p>
-                {festiveStatus.nextTierConfig && (
-                  <div className="mt-2 pt-2 border-t border-amber-200">
-                    <div className="flex justify-between text-[11px] text-amber-900 font-medium mb-1">
-                      <span>Add ₹{festiveStatus.amountNeededForNext.toFixed(0)} more for {festiveStatus.nextTierConfig.badge}</span>
-                      <span>{festiveStatus.progressPercent}%</span>
-                    </div>
-                    <div className="w-full bg-amber-200/60 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-amber-500 to-orange-500 h-1.5 rounded-full transition-all"
-                        style={{ width: `${festiveStatus.progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <p className="text-xs text-amber-900 font-medium">
-                  Add <strong className="text-red-700">₹{festiveStatus.amountNeededForNext.toFixed(0)}</strong> more to get <strong className="text-amber-950">1 FREE Gift (100g/50g)</strong>!
-                </p>
-                <div className="w-full bg-amber-200/60 rounded-full h-1.5 overflow-hidden mt-1.5">
-                  <div
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${festiveStatus.progressPercent}%` }}
-                  />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-yellow-300">
+                    {FESTIVE_OFFER_NAME} Offer
+                  </span>
+                  {festiveStatus.isUnlocked && (
+                    <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                      {festiveStatus.eligibleCount} FREE {festiveStatus.eligibleCount > 1 ? 'GIFTS' : 'GIFT'} UNLOCKED!
+                    </span>
+                  )}
                 </div>
+                <p className="text-[11px] sm:text-xs text-amber-100/90 font-medium">
+                  Valid on all normal products & combos. Choose your free treats at checkout for <strong className="text-yellow-300">₹0</strong>!
+                </p>
               </div>
-            )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowFestiveModal(true)}
+              className="shrink-0 px-3.5 py-1.5 rounded-xl bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-300 border border-yellow-400/50 text-xs font-bold transition flex items-center justify-center gap-1.5 self-start sm:self-auto"
+            >
+              <Gift size={14} />
+              <span>View Free Gift Items</span>
+            </button>
           </div>
 
-          <button
-            onClick={handleCheckout}
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition mt-6"
-          >
-            Proceed to Checkout
-          </button>
+          {/* Tier Milestones Progress Bar */}
+          <div className="space-y-2 pt-1">
+            <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] sm:text-xs font-bold">
+              {FESTIVE_TIERS_CONFIG.map((tier) => {
+                const isPassed = subtotal >= tier.minAmount;
+                const isCurrent = festiveStatus.currentTierConfig?.tierNumber === tier.tierNumber;
 
-          {coupons.length > 0 && !appliedCoupon && (
-            <div className="mt-6 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Available Coupons:</h3>
-              {coupons.map(c => {
-                const amountNeeded = c.minOrder - subtotal;
-                const isEligible = amountNeeded <= 0;
-                const discountText = c.type === 'fixed' ? `₹${c.discount}` : `${c.discount}%`;
-                
                 return (
-                  <div 
-                    key={c.code} 
-                    onClick={() => {
-                      if (isEligible) {
-                        const result = applyCoupon(c.code);
-                        setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
-                        if (result.success) setCouponCode('');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    }}
-                    className={`p-3 rounded-lg border flex flex-col gap-1 transition ${
-                      isEligible 
-                        ? 'bg-green-50 border-green-200 cursor-pointer hover:bg-green-100 hover:shadow-sm' 
-                        : 'bg-gray-50 border-gray-100 opacity-80'
+                  <div
+                    key={tier.tierNumber}
+                    className={`p-1.5 rounded-lg border transition ${
+                      isCurrent
+                        ? 'bg-yellow-400 text-amber-950 border-yellow-300 shadow-sm'
+                        : isPassed
+                        ? 'bg-amber-800/70 text-yellow-200 border-yellow-500/40'
+                        : 'bg-black/30 text-amber-200/60 border-white/10'
                     }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <span className={`font-bold px-2 py-1 rounded text-xs border ${
-                        isEligible ? 'text-green-700 bg-white border-green-200' : 'text-gray-600 bg-gray-100 border-gray-200'
-                      }`}>
-                        {c.code}
-                      </span>
-                      <span className="text-sm font-medium text-gray-700">Save {discountText}</span>
+                    <div className="truncate">₹{tier.minAmount}+</div>
+                    <div className="text-[9px] sm:text-[10px] font-extrabold truncate">
+                      {tier.badge}
                     </div>
-                    {!isEligible ? (
-                      <p className="text-xs text-orange-600 mt-1">
-                        Add ₹{amountNeeded.toFixed(2)} more to unlock
-                      </p>
-                    ) : (
-                      <p className="text-xs text-green-700 mt-1 font-medium flex items-center gap-1">
-                        ✨ Click to apply this coupon!
-                      </p>
-                    )}
                   </div>
                 );
               })}
             </div>
-          )}
+
+            {/* Live Progress Indicator */}
+            {festiveStatus.isUnlocked ? (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-amber-100 font-medium gap-1 pt-0.5">
+                <span className="text-yellow-300 font-bold flex items-center gap-1">
+                  <span>🎉</span> Congratulations! You qualify for {festiveStatus.eligibleCount} complimentary gift{festiveStatus.eligibleCount > 1 ? 's' : ''}!
+                </span>
+                {festiveStatus.nextTierConfig && (
+                  <span className="text-amber-200/90 text-[11px]">
+                    Add ₹{festiveStatus.amountNeededForNext.toFixed(0)} more for {festiveStatus.nextTierConfig.badge}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between text-xs text-amber-200 font-medium pt-0.5">
+                <span>
+                  Add <strong className="text-yellow-300 font-black">₹{festiveStatus.amountNeededForNext.toFixed(0)}</strong> more to get <strong className="text-yellow-300">1 FREE Gift</strong>!
+                </span>
+                <span className="text-[11px] text-amber-300/80">{festiveStatus.progressPercent}% to Tier 1</span>
+              </div>
+            )}
+
+            {/* Gradient progress bar line */}
+            <div className="w-full bg-black/40 rounded-full h-2 overflow-hidden border border-yellow-500/20">
+              <div
+                className="bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 h-2 rounded-full transition-all duration-500 shadow-sm"
+                style={{ width: `${Math.min(100, Math.max(5, (subtotal / 5000) * 100))}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        {/* Cart Items List */}
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+          {cart.map((item) => {
+            const itemKey = `${item.product.id}-${item.variant.weight}${item.noGarlic ? '-nogarlic' : ''}`;
+            const itemTotalPrice = item.variant.price * item.quantity;
+            const itemTotalMrp = item.variant.mrp * item.quantity;
+            const hasDiscount = item.variant.mrp > item.variant.price;
+
+            return (
+              <div
+                key={itemKey}
+                className="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-3 sm:p-4 transition hover:shadow-md hover:border-gray-300 flex gap-3 sm:gap-4 items-center"
+              >
+                {/* Product Thumbnail */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-amber-50/50 border border-amber-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                  {item.product.image.startsWith('http') || item.product.image.startsWith('/') ? (
+                    <img
+                      src={item.product.image}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl">{item.product.image}</span>
+                  )}
+                </div>
+
+                {/* Details & Controls */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5">
+                  <div>
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2">
+                        {item.product.name}
+                      </h3>
+                      <button
+                        onClick={() => removeFromCart(item.product.id, item.variant.weight, item.noGarlic)}
+                        className="text-gray-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition -mr-1"
+                        aria-label="Remove item"
+                        title="Remove item"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    {/* Weight & Customization Badges */}
+                    <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                      <span className="text-[11px] font-bold bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md">
+                        {item.variant.weight}
+                      </span>
+                      {item.noGarlic && (
+                        <span className="text-[11px] font-bold bg-green-100 text-green-800 px-2 py-0.5 rounded-md">
+                          No Garlic
+                        </span>
+                      )}
+                      <span className="text-[11px] text-gray-400">
+                        (₹{item.variant.price} / unit)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quantity Stepper & Price Row */}
+                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                    {/* Stepper with touch-friendly 36px buttons */}
+                    <div className="flex items-center bg-gray-100/90 rounded-xl p-0.5 border border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity - 1, item.noGarlic)}
+                        className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-700 hover:bg-gray-50 active:scale-95 transition"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={13} />
+                      </button>
+                      <span className="w-8 sm:w-7 text-center font-bold text-xs sm:text-sm text-gray-900">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.product.id, item.variant.weight, item.quantity + 1, item.noGarlic)}
+                        className="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-700 hover:bg-gray-50 active:scale-95 transition"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={13} />
+                      </button>
+                    </div>
+
+                    {/* Total item price */}
+                    <div className="text-right">
+                      <span className="font-extrabold text-gray-900 text-base sm:text-lg">
+                        ₹{itemTotalPrice}
+                      </span>
+                      {hasDiscount && (
+                        <span className="block text-[11px] text-gray-400 line-through">
+                          ₹{itemTotalMrp}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Order Summary & Coupon Column */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/90 p-4 sm:p-6 sticky top-24">
+            <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+              <span>Order Summary</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Checkout</span>
+            </h2>
+
+            {/* Coupon Code Column with "View All" */}
+            <div className="mb-5 bg-gradient-to-r from-gray-50 to-amber-50/30 p-3.5 rounded-xl border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs sm:text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                  <Tag size={15} className="text-green-600" />
+                  <span>Have a Coupon Code?</span>
+                </label>
+                {activeCoupons.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponModal(true)}
+                    className="text-xs font-black text-green-700 hover:text-green-800 underline flex items-center gap-0.5 transition"
+                  >
+                    <span>View All ({activeCoupons.length})</span>
+                    <ChevronRight size={13} />
+                  </button>
+                )}
+              </div>
+
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-green-900 text-xs sm:text-sm">
+                          {appliedCoupon.code}
+                        </span>
+                        <span className="text-[10px] bg-green-200 text-green-900 font-black px-1.5 py-0.5 rounded">
+                          Applied
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-green-700 font-medium">
+                        Saving {appliedCoupon.type === 'fixed' ? `₹${appliedCoupon.discount}` : `${appliedCoupon.discount}%`} on this order!
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Enter coupon code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        className="w-full uppercase font-mono px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white transition"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyCoupon()}
+                      className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition shadow-sm active:scale-95"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  {activeCoupons.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCouponModal(true)}
+                      className="w-full text-left text-[11px] text-green-700 hover:text-green-800 bg-white p-2 rounded-lg border border-dashed border-green-300 flex items-center justify-between font-semibold transition hover:bg-green-50/50"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles size={12} className="text-amber-500" />
+                        <span>{eligibleCoupons.length} coupon{eligibleCoupons.length !== 1 ? 's' : ''} eligible right now</span>
+                      </span>
+                      <span className="underline font-bold flex items-center">
+                        Select Coupon <ChevronRight size={12} />
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {couponMessage && (
+                <p className={`text-xs mt-2 font-medium ${couponMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {couponMessage.text}
+                </p>
+              )}
+            </div>
+
+            {/* Financial Breakdown */}
+            <div className="space-y-2.5 border-t border-gray-100 pt-3 text-xs sm:text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>Items Subtotal</span>
+                <span className="font-semibold text-gray-900">₹{subtotal.toFixed(2)}</span>
+              </div>
+
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Tag size={13} />
+                    <span>Coupon Discount</span>
+                  </span>
+                  <span className="font-bold">-₹{discount.toFixed(2)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between text-gray-600">
+                <span className="flex items-center gap-1">
+                  <Truck size={14} className="text-gray-400" />
+                  <span>Delivery Charges</span>
+                </span>
+                <span>
+                  {shipping === 0 ? (
+                    <span className="text-green-700 font-bold bg-green-100 px-2 py-0.5 rounded-full text-xs">
+                      FREE
+                    </span>
+                  ) : (
+                    <span className="font-semibold text-gray-900">₹{shipping}</span>
+                  )}
+                </span>
+              </div>
+
+              {subtotal < 1000 && (
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
+                  <p className="font-semibold flex items-center gap-1">
+                    <span>🚚</span> Add ₹{(1000 - subtotal).toFixed(0)} more for FREE All-India Shipping!
+                  </p>
+                </div>
+              )}
+
+              {/* Festive Free Gifts Included Notice */}
+              {festiveStatus.isUnlocked && (
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <span>🎁</span>
+                    <span>{festiveStatus.eligibleCount} Festive Free Gift{festiveStatus.eligibleCount > 1 ? 's' : ''} Included</span>
+                  </div>
+                  <span className="font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full text-[10px]">
+                    ₹0 FREE
+                  </span>
+                </div>
+              )}
+
+              {/* Total Row */}
+              <div className="flex justify-between items-baseline text-gray-900 border-t border-gray-200 pt-3">
+                <div>
+                  <span className="text-base sm:text-lg font-black">Total Amount</span>
+                  <span className="block text-[10px] text-gray-400">Inclusive of all taxes</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl sm:text-2xl font-black text-gray-900">
+                    ₹{total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Checkout Button */}
+            <button
+              onClick={handleCheckout}
+              className="hidden md:flex w-full mt-6 py-3.5 px-6 rounded-xl bg-green-600 hover:bg-green-700 text-white font-extrabold text-base items-center justify-center gap-2 shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <span>Proceed to Checkout</span>
+              <ArrowRight size={18} />
+            </button>
+
+            {/* Guarantee trust note */}
+            <div className="mt-4 pt-3 border-t border-gray-100 text-center text-[11px] text-gray-500 flex items-center justify-center gap-1.5">
+              <ShieldCheck size={14} className="text-green-600" />
+              <span>100% Authentic Homemade Andhra Pickles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Floating Bottom Checkout Bar (Optimized for Small Screens) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-4px_25px_rgba(0,0,0,0.12)] flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider block font-medium">
+            Total Payable
+          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-black text-gray-900">
+              ₹{total.toFixed(2)}
+            </span>
+            {discount > 0 && (
+              <span className="text-[10px] text-green-700 font-bold bg-green-50 px-1.5 py-0.5 rounded">
+                Saved ₹{discount.toFixed(0)}
+              </span>
+            )}
+          </div>
+          {festiveStatus.isUnlocked && (
+            <span className="text-[10px] text-amber-700 font-bold block">
+              🎁 +{festiveStatus.eligibleCount} Free Gift{festiveStatus.eligibleCount > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={handleCheckout}
+          className="flex-1 max-w-[210px] py-3 px-4 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black text-sm shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
+        >
+          <span>Proceed to Checkout</span>
+          <ArrowRight size={16} />
+        </button>
+      </div>
+
+      {/* Coupon Selection Modal (Mobile & Desktop) */}
+      <CouponSelectionModal
+        isOpen={showCouponModal}
+        onClose={() => setShowCouponModal(false)}
+        subtotal={subtotal}
+        appliedCoupon={appliedCoupon}
+        coupons={coupons}
+        onApplyCoupon={handleApplyCoupon}
+        onRemoveCoupon={removeCoupon}
+      />
+
+      {/* Festive Welcome Modal */}
       {showFestiveModal && (
         <FestiveWelcomeModal
           isOpen={showFestiveModal}

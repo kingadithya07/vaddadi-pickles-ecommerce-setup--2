@@ -8,6 +8,7 @@ export * from './modals/ComboDetailsModal';
 export * from './modals/ProductDetailsModal';
 export * from './modals/ProductShareModal';
 export * from './modals/ReviewModal';
+export * from './modals/CouponSelectionModal';
 
 // Product
 export * from './product/ProductCard';
