@@ -68,7 +68,7 @@ interface StoreState {
   updateOrderAddress: (orderId: string, address: Address) => Promise<void>;
 
   // Coupon actions
-  applyCoupon: (code: string) => { success: boolean; message: string };
+  applyCoupon: (code: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   removeCoupon: () => void;
   addCoupon: (coupon: Coupon) => void;
   toggleCoupon: (code: string) => void;
@@ -448,28 +448,74 @@ export const useStore = create<StoreState>()(
         }).eq('id', orderId);
       },
 
-      applyCoupon: (code) => {
+      applyCoupon: async (code) => {
         const trimmedCode = code.trim().toUpperCase();
         if (!trimmedCode) return { success: false, message: 'Please enter a coupon code' };
 
+        // 1. Check standard database coupons
         const coupon = get().coupons.find(
           (c) => c.code.trim().toUpperCase() === trimmedCode && c.active
         );
-        if (!coupon) {
-          return { success: false, message: 'Invalid coupon code' };
+        if (coupon) {
+          const cartTotal = get().cart.reduce(
+            (sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1),
+            0
+          );
+          if (cartTotal < coupon.minOrder) {
+            return {
+              success: false,
+              message: `Minimum order amount is ₹${coupon.minOrder}`,
+            };
+          }
+          set({ appliedCoupon: coupon });
+          return { success: true, message: 'Coupon applied successfully!' };
         }
-        const cartTotal = get().cart.reduce(
-          (sum, item) => sum + (item?.variant?.price ?? 0) * (item?.quantity ?? 1),
-          0
+
+        // 2. Check if this is an affiliate member referral code (or user entered active affiliate code)
+        const storedRef = localStorage.getItem('affiliate_ref')?.trim().toUpperCase();
+        let isAffiliate = Boolean(
+          (storedRef && trimmedCode === storedRef) || 
+          trimmedCode.startsWith('VP-')
         );
-        if (cartTotal < coupon.minOrder) {
+
+        if (!isAffiliate) {
+          try {
+            const { data } = await supabase
+              .from('affiliates')
+              .select('referral_code, status')
+              .eq('referral_code', trimmedCode)
+              .maybeSingle();
+            if (data && data.status === 'active') {
+              isAffiliate = true;
+            }
+          } catch {
+            // fallback
+          }
+        }
+
+        if (isAffiliate) {
+          // Link this referral code so the affiliate member receives credit upon order placement!
+          localStorage.setItem('affiliate_ref', trimmedCode);
+
+          const festiveReferralCoupon: Coupon = {
+            code: trimmedCode,
+            discount: 5, // 5% festive discount
+            type: 'percentage',
+            minOrder: 0,
+            active: true,
+            isReferralPartner: true,
+            description: 'Festive Partner Referral Coupon (Active till end of festival season)',
+            expiresText: 'Valid till festival end (Dussehra & Diwali)',
+          };
+
+          set({ appliedCoupon: festiveReferralCoupon });
           return {
-            success: false,
-            message: `Minimum order amount is ₹${coupon.minOrder}`,
+            success: true,
+            message: `🪔 Festive Referral Partner Code ${trimmedCode} applied! Free gift perks & 5% discount unlocked till festival season ends!`,
           };
         }
-        set({ appliedCoupon: coupon });
-        return { success: true, message: 'Coupon applied successfully!' };
+
+        return { success: false, message: 'Invalid coupon code' };
       },
 
       removeCoupon: () => {

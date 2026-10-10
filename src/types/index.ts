@@ -129,6 +129,9 @@ export interface Coupon {
   type: 'percentage' | 'fixed';
   minOrder: number;
   active: boolean;
+  isReferralPartner?: boolean;
+  description?: string;
+  expiresText?: string;
 }
 
 export interface Invoice {

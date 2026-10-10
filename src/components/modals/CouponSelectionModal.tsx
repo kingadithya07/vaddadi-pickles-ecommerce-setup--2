@@ -9,8 +9,9 @@ interface CouponSelectionModalProps {
   subtotal: number;
   appliedCoupon: Coupon | null;
   coupons: Coupon[];
-  onApplyCoupon: (code: string) => { success: boolean; message: string };
+  onApplyCoupon: (code: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   onRemoveCoupon: () => void;
+  referralCode?: string;
 }
 
 export function CouponSelectionModal({
@@ -21,40 +22,53 @@ export function CouponSelectionModal({
   coupons,
   onApplyCoupon,
   onRemoveCoupon,
+  referralCode,
 }: CouponSelectionModalProps) {
   const [inputCode, setInputCode] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   if (!isOpen) return null;
 
+  const storedRef = referralCode || (typeof window !== 'undefined' ? localStorage.getItem('affiliate_ref') : null);
   const activeCoupons = coupons.filter((c) => c.active);
 
-  const handleManualApply = (e: React.FormEvent) => {
+  const handleManualApply = async (e: React.FormEvent) => {
     e.preventDefault();
     setInputError(null);
     const codeToApply = inputCode.trim().toUpperCase();
     if (!codeToApply) {
-      setInputError('Please enter a coupon code');
+      setInputError('Please enter a coupon code or referral code');
       return;
     }
 
-    const result = onApplyCoupon(codeToApply);
-    if (result.success) {
-      toast.success(result.message);
-      setInputCode('');
-      onClose();
-    } else {
-      setInputError(result.message);
+    try {
+      setIsApplying(true);
+      const result = await onApplyCoupon(codeToApply);
+      if (result.success) {
+        toast.success(result.message);
+        setInputCode('');
+        onClose();
+      } else {
+        setInputError(result.message);
+      }
+    } finally {
+      setIsApplying(false);
     }
   };
 
-  const handleSelectCoupon = (code: string) => {
-    const result = onApplyCoupon(code);
-    if (result.success) {
-      toast.success(result.message);
-      onClose();
-    } else {
-      toast.error(result.message);
+  const handleSelectCoupon = async (code: string) => {
+    try {
+      setIsApplying(true);
+      const result = await onApplyCoupon(code);
+      if (result.success) {
+        toast.success(result.message);
+        onClose();
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -62,6 +76,8 @@ export function CouponSelectionModal({
     onRemoveCoupon();
     toast.success('Coupon removed');
   };
+
+  const isStoredRefApplied = appliedCoupon && storedRef && appliedCoupon.code.toUpperCase() === storedRef.toUpperCase();
 
   return (
     <div
@@ -83,7 +99,7 @@ export function CouponSelectionModal({
             </div>
             <div>
               <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
-                Coupons & Offers
+                Coupons & Festive Offers
               </h3>
               <p className="text-xs text-gray-500">
                 Cart Subtotal: <strong className="text-gray-800">₹{subtotal.toFixed(0)}</strong>
@@ -108,7 +124,7 @@ export function CouponSelectionModal({
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Enter custom coupon code"
+                  placeholder="Enter coupon or affiliate referral code"
                   value={inputCode}
                   onChange={(e) => {
                     setInputCode(e.target.value.toUpperCase());
@@ -119,9 +135,10 @@ export function CouponSelectionModal({
               </div>
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition shadow-sm active:scale-95"
+                disabled={isApplying}
+                className="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition shadow-sm active:scale-95 disabled:opacity-50"
               >
-                Apply
+                {isApplying ? 'Applying...' : 'Apply'}
               </button>
             </div>
             {inputError && (
@@ -146,9 +163,15 @@ export function CouponSelectionModal({
                     <span className="text-[10px] bg-green-200 text-green-900 font-black px-2 py-0.5 rounded-full uppercase">
                       Applied
                     </span>
+                    {appliedCoupon.isReferralPartner && (
+                      <span className="text-[10px] bg-amber-200 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
+                        🪔 Partner Offer
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-green-700 font-medium">
-                    Saving {appliedCoupon.type === 'fixed' ? `₹${appliedCoupon.discount}` : `${appliedCoupon.discount}%`} on this order!
+                    Saving {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}%` : `₹${appliedCoupon.discount}`} on this order!
+                    {appliedCoupon.isReferralPartner && ' + Festive free gift perks unlocked!'}
                   </p>
                 </div>
               </div>
@@ -162,7 +185,58 @@ export function CouponSelectionModal({
             </div>
           )}
 
-          {/* Available Coupons List */}
+          {/* Featured Festive Referral Partner Coupon (if came through referral link or code saved) */}
+          {storedRef && (
+            <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-yellow-400 shadow-md relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg">🪔</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-950">
+                    Festive Referral Partner Coupon
+                  </span>
+                </div>
+                <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
+                  Festival Season Exclusive
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-black text-sm px-2.5 py-1 rounded-lg bg-yellow-200/90 text-amber-950 border border-yellow-400">
+                      {storedRef.toUpperCase()}
+                    </span>
+                    <span className="text-xs font-black text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
+                      5% OFF + Free Gifts
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900 font-medium">
+                    Claimed via affiliate referral link. Valid till the end of festival season (Dussehra/Durga Pooja & Diwali/Deepavali)!
+                  </p>
+                </div>
+
+                <div className="shrink-0 sm:self-center">
+                  {isStoredRefApplied ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-green-100 text-green-800 text-xs font-bold border border-green-300">
+                      <Check size={14} /> Applied
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isApplying}
+                      onClick={() => handleSelectCoupon(storedRef.toUpperCase())}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
+                    >
+                      <span>Claim Free Offer</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Standard Available Coupons List */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs sm:text-sm font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -172,7 +246,7 @@ export function CouponSelectionModal({
               <span className="text-[11px] text-gray-500">Tap to apply</span>
             </div>
 
-            {activeCoupons.length === 0 ? (
+            {activeCoupons.length === 0 && !storedRef ? (
               <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                 <ShoppingBag className="mx-auto text-gray-300 mb-2" size={36} />
                 <p className="text-xs sm:text-sm text-gray-600 font-medium">No coupons active right now.</p>
@@ -186,7 +260,6 @@ export function CouponSelectionModal({
                   const amountNeeded = coupon.minOrder - subtotal;
                   const discountDisplay = coupon.type === 'fixed' ? `₹${coupon.discount}` : `${coupon.discount}%`;
                   
-                  // Calculated approximate discount value for preview
                   const estimatedSaving = coupon.type === 'fixed'
                     ? coupon.discount
                     : Math.round((subtotal * coupon.discount) / 100);
@@ -255,6 +328,7 @@ export function CouponSelectionModal({
                         ) : isEligible ? (
                           <button
                             type="button"
+                            disabled={isApplying}
                             onClick={() => handleSelectCoupon(coupon.code)}
                             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-black shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5"
                           >
@@ -277,7 +351,7 @@ export function CouponSelectionModal({
 
         {/* Modal Footer */}
         <div className="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-500">
-          Only one coupon code can be applied per order. Free festive gifts are applied automatically!
+          Affiliate referral codes and festive coupons are active till the end of the festival season (Dussehra & Diwali)!
         </div>
       </div>
     </div>

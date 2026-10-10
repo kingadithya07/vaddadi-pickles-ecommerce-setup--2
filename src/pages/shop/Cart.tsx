@@ -33,8 +33,15 @@ export function Cart() {
   const activeCoupons = useMemo(() => coupons.filter((c) => c.active), [coupons]);
   const eligibleCoupons = useMemo(() => activeCoupons.filter((c) => subtotal >= c.minOrder), [activeCoupons, subtotal]);
 
-  const handleApplyCoupon = (codeToApply = couponCode) => {
-    const result = applyCoupon(codeToApply);
+  const [storedRefCode] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const urlRef = new URLSearchParams(window.location.search).get('ref');
+    if (urlRef) localStorage.setItem('affiliate_ref', urlRef);
+    return urlRef || localStorage.getItem('affiliate_ref');
+  });
+
+  const handleApplyCoupon = async (codeToApply = couponCode) => {
+    const result = await applyCoupon(codeToApply);
     setCouponMessage({ type: result.success ? 'success' : 'error', text: result.message });
     if (result.success) setCouponCode('');
     return result;
@@ -331,6 +338,36 @@ export function Cart() {
                 )}
               </div>
 
+              {/* If customer came through referral link, show instant festive offer claim banner */}
+              {storedRefCode && !appliedCoupon && (
+                <div className="mb-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-yellow-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🪔</span>
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-black text-amber-950">
+                          Partner Code: <span className="font-mono bg-yellow-200 text-amber-950 px-1.5 py-0.5 rounded font-black">{storedRefCode.toUpperCase()}</span>
+                        </span>
+                        <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full uppercase">
+                          Festive Special
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 mt-0.5">
+                        Claim extra 5% discount & free gifts till end of festival season!
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyCoupon(storedRefCode)}
+                    className="shrink-0 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition shadow-sm self-start sm:self-auto flex items-center gap-1 active:scale-95"
+                  >
+                    <span>Claim Free Offer</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              )}
+
               {appliedCoupon ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
                   <div className="flex items-center gap-2">
@@ -530,6 +567,7 @@ export function Cart() {
         coupons={coupons}
         onApplyCoupon={handleApplyCoupon}
         onRemoveCoupon={removeCoupon}
+        referralCode={storedRefCode || undefined}
       />
 
       {/* Festive Welcome Modal */}
