@@ -60,6 +60,8 @@ export interface CartItem {
   variant: ProductVariant;
   quantity: number;
   noGarlic?: boolean;
+  isFreeGift?: boolean;
+  freeGiftOffer?: string;
 }
 
 export interface User {
@@ -108,6 +110,7 @@ export interface Order {
   shippingExpense?: number;
   createdAt: string;
   updatedAt: string;
+  freeGifts?: CartItem[];
 }
 
 export interface Review {

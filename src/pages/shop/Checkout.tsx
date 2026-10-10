@@ -12,6 +12,8 @@ import { sendTelegramNotification } from '@/lib';
 import { formatPhoneNumber } from '@/utils';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib';
+import { FestiveGiftSelector, SelectedFreeGift } from '@/components';
+import { getFestiveTierStatus } from '@/data/festiveOffer';
 
 export function Checkout() {
   const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress, updateUserAddress } = useStore();
@@ -26,6 +28,7 @@ export function Checkout() {
   const [showUtrHelp, setShowUtrHelp] = useState(false);
   const [adminAdditionalAmount, setAdminAdditionalAmount] = useState<number>(0);
   const [adminAdditionalWeight, setAdminAdditionalWeight] = useState<number>(0);
+  const [selectedFreeGifts, setSelectedFreeGifts] = useState<SelectedFreeGift[]>([]);
 
   const cartWeightGrams = useMemo(() => {
     return cart.reduce((totalGrams, item) => {
@@ -41,6 +44,15 @@ export function Checkout() {
       return totalGrams + (w * item.quantity);
     }, 0);
   }, [cart]);
+
+  const giftsWeightGrams = useMemo(() => {
+    return selectedFreeGifts.reduce((acc, g) => {
+      const w = g.weight.toLowerCase();
+      if (w.includes('100g')) return acc + 100;
+      if (w.includes('50g')) return acc + 50;
+      return acc + 100;
+    }, 0);
+  }, [selectedFreeGifts]);
 
   // Track timeouts to prevent state updates on unmounted components
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
@@ -344,13 +356,53 @@ export function Checkout() {
       }
     }
 
+    // Check if customer qualifies for free gifts but hasn't picked any
+    const tierStatus = getFestiveTierStatus(subtotal);
+    if (tierStatus.eligibleCount > 0 && selectedFreeGifts.length === 0) {
+      const chooseGiftsNow = window.confirm(
+        `🪔 Dussehra/Durga Pooja And Diwali/Deepavali Offer: You are eligible to choose ${tierStatus.eligibleCount} FREE Festive Gift${tierStatus.eligibleCount > 1 ? 's' : ''}! Would you like to pick your free gift(s) before placing order? Click OK to pick your gifts now, or Cancel to proceed without them.`
+      );
+      if (chooseGiftsNow) {
+        const giftSection = document.getElementById('festive-gift-selector');
+        if (giftSection) giftSection.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+
+    const freeGiftCartItems = selectedFreeGifts.map((gift) => ({
+      product: {
+        id: gift.id,
+        name: `${gift.name} (Festive Gift)`,
+        description: `Dussehra/Durga Pooja And Diwali/Deepavali Free Festive Gift (${gift.weight})`,
+        image: gift.image,
+        category: gift.category,
+        variants: [{ weight: gift.weight, price: 0, mrp: 0, stock: 999 }],
+        inStock: true,
+        rating: 5,
+        reviews: 0,
+      },
+      variant: {
+        weight: gift.weight,
+        price: 0,
+        mrp: 0,
+        stock: 999,
+      },
+      quantity: 1,
+      noGarlic: gift.noGarlic,
+      isFreeGift: true,
+      freeGiftOffer: 'Dussehra/Durga Pooja And Diwali/Deepavali',
+    }));
+
+    const finalOrderItems = [...cart, ...freeGiftCartItems];
+
     const order: Order = {
       id: orderId,
       userId: user.id,
       userName: finalName,
       userEmail: user.email,
       userPhone: finalPhone,
-      items: cart,
+      items: finalOrderItems,
+      freeGifts: freeGiftCartItems,
       total: subtotal,
       discount,
       finalAmount: finalOrderTotal,
@@ -726,6 +778,16 @@ export function Checkout() {
             )}
           </div>
 
+          {/* Dussehra & Durga Pooja Free Gift Selector */}
+          <div id="festive-gift-selector">
+            <FestiveGiftSelector
+              subtotal={subtotal}
+              selectedGifts={selectedFreeGifts}
+              onChange={setSelectedFreeGifts}
+              mode="checkout"
+            />
+          </div>
+
           {/* Payment Method */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Method</h2>
@@ -1082,6 +1144,39 @@ export function Checkout() {
                   <p className="font-medium">₹{item.variant.price * item.quantity}</p>
                 </div>
               ))}
+
+              {/* Selected Dussehra Free Gifts */}
+              {selectedFreeGifts.length > 0 && (
+                <div className="border-t border-dashed border-amber-300 pt-3 pb-1 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-amber-900">
+                    <span className="flex items-center gap-1">
+                      <span>🎁</span> Dussehra/Durga Pooja And Diwali/Deepavali Gifts
+                    </span>
+                    <span className="text-[11px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-black">
+                      {selectedFreeGifts.length} Included
+                    </span>
+                  </div>
+                  {selectedFreeGifts.map((gift) => (
+                    <div
+                      key={gift.id}
+                      className="flex items-center gap-2.5 bg-amber-50/70 p-2 rounded-xl border border-amber-200"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0 border border-amber-200">
+                        <img src={gift.image} alt={gift.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-xs truncate">{gift.name}</p>
+                        <p className="text-[10px] text-gray-500">
+                          {gift.weight} {gift.noGarlic && '• No Garlic'}
+                        </p>
+                      </div>
+                      <span className="text-xs font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                        FREE (₹0)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="border-t pt-4 space-y-2">
@@ -1160,10 +1255,10 @@ export function Checkout() {
                 <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-900">
                   <span>Calculated Package Weight:</span>
                   <span className="font-bold">
-                    ~{((cartWeightGrams + (Number(adminAdditionalWeight) || 0)) / 1000).toFixed(2)} KG
+                    ~{((cartWeightGrams + giftsWeightGrams + (Number(adminAdditionalWeight) || 0)) / 1000).toFixed(2)} KG
                     {Number(adminAdditionalWeight) > 0 && (
                       <span className="text-[11px] font-normal text-amber-700 ml-1">
-                        (Base: {(cartWeightGrams / 1000).toFixed(2)} KG + {adminAdditionalWeight}g)
+                        (Base: {((cartWeightGrams + giftsWeightGrams) / 1000).toFixed(2)} KG + {adminAdditionalWeight}g)
                       </span>
                     )}
                   </span>

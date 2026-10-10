@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Truck, Shield, Award, Share2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ProductCard, CategoryShareModal, CategoryData, CATEGORIES_DATA } from '@/components';
+import { ProductCard, CategoryShareModal, CategoryData, CATEGORIES_DATA, DussehraBanner } from '@/components';
 import { useStore } from '@/store';
 
 export function Home() {
@@ -103,6 +103,9 @@ export function Home() {
           </div>
         </div>
       </section>
+
+      {/* Dussehra & Durga Pooja Festive Welcome Banner */}
+      <DussehraBanner />
 
       {/* Shop by Category */}
       <section className="py-16">

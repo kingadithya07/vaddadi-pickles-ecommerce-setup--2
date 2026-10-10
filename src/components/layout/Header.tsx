@@ -1,10 +1,12 @@
-import { ShoppingCart, User, LogOut, Search, Heart } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Search, Heart, Sparkles, Gift } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '@/store';
+import { FestiveWelcomeModal } from '@/components/common/FestiveWelcomeModal';
 
 export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showFestiveModal, setShowFestiveModal] = useState(false);
   const cart = useStore((state) => state.cart);
   const user = useStore((state) => state.user);
   const isAdmin = useStore((state) => state.isAdmin);
@@ -21,6 +23,21 @@ export function Header() {
 
   return (
     <div className="sticky top-0 z-50 w-full flex flex-col shadow-lg">
+      {/* Festive Dussehra/Durga Pooja And Diwali/Deepavali Announcement Ribbon */}
+      <div className="bg-gradient-to-r from-amber-700 via-orange-600 to-red-700 text-white text-xs md:text-sm font-semibold py-1.5 px-4 text-center border-b border-yellow-400/40 shadow-sm flex items-center justify-center gap-2">
+        <span className="text-sm">🪔</span>
+        <span>
+          <strong className="text-yellow-300">Dussehra/Durga Pooja And Diwali/Deepavali Offer:</strong> Get up to 3 FREE Gifts (100g/50g) on orders above ₹1000, ₹2500 & ₹5000!
+        </span>
+        <button
+          onClick={() => setShowFestiveModal(true)}
+          className="ml-1 px-2.5 py-0.5 bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black rounded-full text-[10px] md:text-xs transition-transform transform active:scale-95 shadow-sm inline-flex items-center gap-1"
+        >
+          <Gift size={11} />
+          <span>View Offer</span>
+        </button>
+      </div>
+
       <div className="bg-yellow-500 text-black text-xs md:text-sm font-semibold py-1.5 px-4 text-center">
         <p className="hidden md:block">
           🎉 Free Delivery all over India on orders above ₹1000! | 🏍️ Visakhapatnam: Uber/Rapido Parcel | 🚚 Rest of India: Courier Partner
@@ -226,6 +243,14 @@ export function Header() {
 
       </div>
       </header>
+
+      {/* Festive Offer Modal triggered by Header button */}
+      {showFestiveModal && (
+        <FestiveWelcomeModal
+          isOpen={showFestiveModal}
+          onClose={() => setShowFestiveModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -20,6 +20,9 @@ export * from './common/PWAInstallPrompt';
 export * from './common/WelcomePopup';
 export * from './common/AffiliatePromoToast';
 export * from './common/FeedbackWidget';
+export * from './common/DussehraBanner';
+export * from './common/FestiveWelcomeModal';
+export * from './common/FestiveGiftSelector';
 
 // Admin
 export * from './admin/AdminAffiliates';

@@ -57,15 +57,18 @@ export function Orders() {
     const itemsHtml = order.items.map(item => `
       <tr class="item-row">
         <td>
-          <div class="item-name">${sanitizeHtml(item.product.name)}</div>
+          <div class="item-name">
+            ${sanitizeHtml(item.product.name)}
+            ${item.isFreeGift ? '<span style="margin-left: 8px; background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 9999px; font-size: 10px; font-weight: 700;">🎁 FREE Festive Gift</span>' : ''}
+          </div>
           <div class="item-weight">
             ${sanitizeHtml(item.variant.weight)}
             ${item.noGarlic ? '<span style="margin-left: 8px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 9999px; font-size: 10px;">No Garlic</span>' : ''}
           </div>
         </td>
         <td style="text-align: center;">${item.quantity}</td>
-        <td style="text-align: right;">₹${item.variant.price}</td>
-        <td style="text-align: right; font-weight: 600;">₹${item.variant.price * item.quantity}</td>
+        <td style="text-align: right;">${item.isFreeGift ? 'FREE' : `₹${item.variant.price}`}</td>
+        <td style="text-align: right; font-weight: 600;">${item.isFreeGift ? 'FREE' : `₹${item.variant.price * item.quantity}`}</td>
       </tr>
     `).join('');
 
@@ -313,9 +316,20 @@ export function Orders() {
                             <p className="text-xs text-gray-500">
                               {item.variant.weight} × {item.quantity}
                               {item.noGarlic && <span className="ml-2 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px]">No Garlic</span>}
+                              {item.isFreeGift && (
+                                <span className="ml-2 bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full text-[10px]">
+                                  🎁 Free Gift
+                                </span>
+                              )}
                             </p>
                           </div>
-                          <p className="font-semibold text-gray-800 text-sm flex-shrink-0">₹{item.variant.price * item.quantity}</p>
+                          <p className="font-semibold text-gray-800 text-sm flex-shrink-0">
+                            {item.isFreeGift ? (
+                              <span className="text-green-700 font-bold">FREE</span>
+                            ) : (
+                              `₹${item.variant.price * item.quantity}`
+                            )}
+                          </p>
                         </div>
                       ))}
                     </div>

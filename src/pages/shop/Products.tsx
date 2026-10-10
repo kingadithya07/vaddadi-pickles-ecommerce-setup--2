@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Search, Share2 } from 'lucide-react';
-import { ProductCard, ComboDetailsModal, ProductDetailsModal, CategoryShareModal, CategoryData, CATEGORIES_DATA } from '@/components';
+import { Search, Share2, Gift } from 'lucide-react';
+import { ProductCard, ComboDetailsModal, ProductDetailsModal, CategoryShareModal, CategoryData, CATEGORIES_DATA, FestiveWelcomeModal } from '@/components';
 import { useStore } from '@/store';
 import { Product } from '@/types';
 
@@ -23,6 +23,7 @@ export function Products() {
   const [sharedModalItem, setSharedModalItem] = useState<Product | null>(null);
   const [autoOpenedId, setAutoOpenedId] = useState<string | null>(null);
   const [sharingCategory, setSharingCategory] = useState<CategoryData | null>(null);
+  const [showFestiveModal, setShowFestiveModal] = useState(false);
 
   const categories = ['all', 'pickles', 'fryums', 'powders', 'combo'];
 
@@ -198,6 +199,35 @@ export function Products() {
         </div>
       )}
 
+      {/* Dussehra Festive Offer Banner */}
+      <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-300 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-center sm:text-left">
+          <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm text-lg">
+            🪔
+          </div>
+          <div>
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="font-extrabold text-amber-950 text-sm sm:text-base">
+                Dussehra/Durga Pooja And Diwali/Deepavali Offer
+              </span>
+              <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
+                Free Gifts
+              </span>
+            </div>
+            <p className="text-xs text-amber-900 mt-0.5">
+              Order above ₹1000 (1 free item), ₹2500 (2 free items) or ₹5000 (3 free items). Applies to individual products & combos!
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowFestiveModal(true)}
+          className="shrink-0 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition shadow-sm flex items-center gap-1.5"
+        >
+          <Gift size={14} /> View Free Gift Items
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
@@ -271,6 +301,14 @@ export function Products() {
           category={sharingCategory}
           isOpen={true}
           onClose={() => setSharingCategory(null)}
+        />
+      )}
+
+      {/* Festive Offer Details Modal */}
+      {showFestiveModal && (
+        <FestiveWelcomeModal
+          isOpen={showFestiveModal}
+          onClose={() => setShowFestiveModal(false)}
         />
       )}
     </div>

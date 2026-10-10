@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, Tag, ShoppingBag } from 'lucide-react';
+import { Trash2, Plus, Minus, Tag, ShoppingBag, Sparkles, Gift } from 'lucide-react';
 import { useStore } from '@/store';
 import { useCartTotals } from '@/hooks';
+import { getFestiveTierStatus } from '@/data/festiveOffer';
+import { FestiveWelcomeModal } from '@/components';
 
 export function Cart() {
   const { cart, user, coupons, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
   const { subtotal, discount, total, shipping } = useCartTotals();
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showFestiveModal, setShowFestiveModal] = useState(false);
   const navigate = useNavigate();
+
+  const festiveStatus = useMemo(() => getFestiveTierStatus(subtotal), [subtotal]);
 
   const handleApplyCoupon = () => {
     const result = applyCoupon(couponCode);
@@ -167,6 +172,59 @@ export function Cart() {
             </div>
           </div>
 
+          {/* Dussehra / Durga Pooja Festive Tier Status in Cart */}
+          <div className="mt-4 p-3.5 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                <span>🪔</span> Dussehra/Durga Pooja And Diwali/Deepavali Offer
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowFestiveModal(true)}
+                className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline"
+              >
+                Details
+              </button>
+            </div>
+
+            {festiveStatus.isUnlocked ? (
+              <div>
+                <p className="text-xs text-green-800 font-bold flex items-center gap-1">
+                  <span>🎉</span> Unlocked: <strong>{festiveStatus.eligibleCount} FREE {festiveStatus.eligibleCount > 1 ? 'Gifts' : 'Gift'}!</strong>
+                </p>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  You can pick your free gift{festiveStatus.eligibleCount > 1 ? 's' : ''} (100g/50g) at checkout for ₹0.
+                </p>
+                {festiveStatus.nextTierConfig && (
+                  <div className="mt-2 pt-2 border-t border-amber-200">
+                    <div className="flex justify-between text-[11px] text-amber-900 font-medium mb-1">
+                      <span>Add ₹{festiveStatus.amountNeededForNext.toFixed(0)} more for {festiveStatus.nextTierConfig.badge}</span>
+                      <span>{festiveStatus.progressPercent}%</span>
+                    </div>
+                    <div className="w-full bg-amber-200/60 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 h-1.5 rounded-full transition-all"
+                        style={{ width: `${festiveStatus.progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-amber-900 font-medium">
+                  Add <strong className="text-red-700">₹{festiveStatus.amountNeededForNext.toFixed(0)}</strong> more to get <strong className="text-amber-950">1 FREE Gift (100g/50g)</strong>!
+                </p>
+                <div className="w-full bg-amber-200/60 rounded-full h-1.5 overflow-hidden mt-1.5">
+                  <div
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${festiveStatus.progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleCheckout}
             className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition mt-6"
@@ -223,6 +281,13 @@ export function Cart() {
           )}
         </div>
       </div>
+
+      {showFestiveModal && (
+        <FestiveWelcomeModal
+          isOpen={showFestiveModal}
+          onClose={() => setShowFestiveModal(false)}
+        />
+      )}
     </div>
   );
 }

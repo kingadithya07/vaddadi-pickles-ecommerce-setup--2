@@ -51,6 +51,21 @@ export function OrderSuccess() {
                 Awaiting Approval
               </span>
             </div>
+
+            {order.items.filter(i => i.isFreeGift).length > 0 && (
+              <div className="bg-amber-100/70 border border-amber-300 rounded-lg p-3 mb-4">
+                <p className="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1">
+                  <span>🎁</span> Dussehra/Durga Pooja And Diwali/Deepavali Free Gifts Included:
+                </p>
+                <div className="space-y-1">
+                  {order.items.filter(i => i.isFreeGift).map((g, idx) => (
+                    <p key={idx} className="text-xs text-amber-950 font-medium">
+                      • {g.product.name} ({g.variant.weight}{g.noGarlic ? ' - No Garlic' : ''}) - <span className="text-green-700 font-bold">FREE (₹0)</span>
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="border-t pt-4 mt-4">
               <p className="text-sm text-gray-500">
                 ⏳ Your order will be processed once the admin verifies your payment. 

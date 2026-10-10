@@ -8,7 +8,7 @@ import {
   ProtectedRoute,
   WhatsAppButton,
   PWAInstallPrompt,
-  WelcomePopup,
+  FestiveWelcomeModal,
   AffiliatePromoToast,
 } from './components';
 import { Home } from './pages/shop/Home';
@@ -62,7 +62,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
       <WhatsAppButton />
       <PWAInstallPrompt />
-      <WelcomePopup />
+      <FestiveWelcomeModal />
       <AffiliatePromoToast />
     </div>
   );
