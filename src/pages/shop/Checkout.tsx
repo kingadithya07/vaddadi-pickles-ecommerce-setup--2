@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '@/store';
 import { Order, Address, UserAddress } from '@/types';
@@ -16,9 +16,37 @@ import { FestiveGiftSelector, SelectedFreeGift } from '@/components';
 import { getFestiveTierStatus } from '@/data/festiveOffer';
 
 export function Checkout() {
-  const { cart, user, isAdmin, appliedCoupon, createOrder, clearCart, settings, addUserAddress, updateUserAddress } = useStore();
+  const {
+    cart,
+    user,
+    isAdmin,
+    appliedCoupon,
+    appliedReferralCode,
+    applyCoupon,
+    removeCoupon,
+    removeReferralCode,
+    createOrder,
+    clearCart,
+    settings,
+    addUserAddress,
+    updateUserAddress,
+  } = useStore();
   const navigate = useNavigate();
-  const { subtotal, discount, total, shipping, displayAmount, displayAmountWhole } = useCartTotals();
+  const {
+    subtotal,
+    discount,
+    couponDiscount,
+    referralDiscount,
+    isRefDiscountActive,
+    total,
+    shipping,
+    displayAmount,
+    displayAmountWhole,
+  } = useCartTotals();
+
+  const [checkoutCouponCode, setCheckoutCouponCode] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponMsg, setCouponMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [transactionId, setTransactionId] = useState('');
@@ -70,7 +98,12 @@ export function Checkout() {
   const defaultAddress = userAddresses.find(addr => addr.isDefault) || userAddresses[0];
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddress?.id || 'new');
   const [useNewAddress, setUseNewAddress] = useState(!defaultAddress);
+  const [isChangingAddress, setIsChangingAddress] = useState(false);
   const [editingSavedAddress, setEditingSavedAddress] = useState<UserAddress | null>(null);
+
+  const currentSelectedSavedAddress = useMemo(() => {
+    return userAddresses.find(addr => addr.id === selectedAddressId) || defaultAddress;
+  }, [userAddresses, selectedAddressId, defaultAddress]);
   const [newAddress, setNewAddress] = useState<Address & { street2?: string }>(user?.address ? {
     ...user.address,
     street: user.address.street.split(',')[0]?.trim() || '',
@@ -339,7 +372,7 @@ export function Checkout() {
     }
 
     let validatedAffiliateCode = undefined;
-    const rawAffiliateCode = localStorage.getItem('affiliate_ref');
+    const rawAffiliateCode = appliedReferralCode || localStorage.getItem('affiliate_ref');
     if (rawAffiliateCode) {
       try {
         const { data, error } = await supabase
@@ -350,10 +383,12 @@ export function Checkout() {
         if (!error && data && data.status === 'active' && data.user_id !== user.id) {
           validatedAffiliateCode = rawAffiliateCode;
         } else {
-          localStorage.removeItem('affiliate_ref');
+          if (!appliedReferralCode) localStorage.removeItem('affiliate_ref');
+          validatedAffiliateCode = rawAffiliateCode;
         }
       } catch (err) {
         console.error('Affiliate validation error', err);
+        validatedAffiliateCode = rawAffiliateCode;
       }
     }
 
@@ -518,9 +553,12 @@ export function Checkout() {
                 </div>
               ))}
               {selectedFreeGifts.map((gift) => (
-                <div key={gift.id} className="flex items-center justify-between text-xs gap-2 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
-                  <span className="truncate text-amber-950 font-medium">🎁 {gift.name} ({gift.weight})</span>
-                  <span className="font-bold text-green-700 shrink-0">FREE (₹0)</span>
+                <div key={gift.id} className="flex items-center justify-between text-[11px] gap-2 bg-amber-50/90 p-1.5 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <img src={gift.image} alt={gift.name} className="w-6 h-6 rounded object-cover shrink-0 border border-amber-200" />
+                    <span className="truncate text-amber-950 font-medium">🎁 {gift.name} ({gift.weight})</span>
+                  </div>
+                  <span className="font-bold text-green-700 shrink-0 text-[10px] bg-green-100 px-1.5 py-0.5 rounded">FREE (₹0)</span>
                 </div>
               ))}
             </div>
@@ -530,10 +568,22 @@ export function Checkout() {
                 <span>Subtotal:</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              {discount > 0 && (
+              {couponDiscount > 0 && (
                 <div className="flex justify-between text-green-700 font-semibold">
-                  <span>Discount:</span>
-                  <span>-₹{discount.toFixed(2)}</span>
+                  <span className="flex items-center gap-1">
+                    <Tag size={12} />
+                    <span>Coupon ({appliedCoupon?.code}):</span>
+                  </span>
+                  <span>-₹{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              {referralDiscount > 0 && (
+                <div className="flex justify-between text-amber-800 font-semibold">
+                  <span className="flex items-center gap-1">
+                    <span>🤝</span>
+                    <span>Referral ({appliedReferralCode} - 0.5%):</span>
+                  </span>
+                  <span>-₹{referralDiscount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
@@ -562,127 +612,250 @@ export function Checkout() {
 
           {/* Delivery Address */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-              <MapPin size={20} className="text-green-600" /> Delivery Address
-            </h2>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MapPin size={20} className="text-green-600" /> Delivery Address
+              </h2>
 
-            {/* Saved Addresses Selection */}
-            {userAddresses.length > 0 && (
-              <div className="space-y-3 mb-4">
-                <p className="text-xs sm:text-sm text-gray-600 font-semibold">Select a saved address:</p>
-                {userAddresses.map((addr) => (
-                  <label
-                    key={addr.id}
-                    className={`flex items-start gap-3 p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer transition active:scale-[0.99] ${selectedAddressId === addr.id && !useNewAddress
-                      ? 'border-green-500 bg-green-50/60 shadow-xs'
-                      : 'border-gray-200 hover:border-green-300 bg-white'
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name="address"
-                      checked={selectedAddressId === addr.id && !useNewAddress}
-                      onChange={() => {
-                        setSelectedAddressId(addr.id);
-                        setUseNewAddress(false);
+              {/* Show "Change Address" button in header if an address is selected and not currently changing */}
+              {userAddresses.length > 0 && !useNewAddress && !isChangingAddress && (
+                <button
+                  type="button"
+                  onClick={() => setIsChangingAddress(true)}
+                  className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-green-700 bg-green-50 hover:bg-green-100 border border-green-300 transition active:scale-95"
+                >
+                  Change Address
+                </button>
+              )}
+            </div>
+
+            {/* STATE 1: ONLY SELECTED ADDRESS SHOWN (All others and new address form hidden) */}
+            {userAddresses.length > 0 && !useNewAddress && !isChangingAddress && currentSelectedSavedAddress && (
+              <div className="border-2 border-green-500 bg-gradient-to-r from-green-50/70 to-emerald-50/40 rounded-2xl p-4 sm:p-5 shadow-xs relative">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-gray-900 text-sm sm:text-base">
+                      {currentSelectedSavedAddress.label}
+                    </span>
+                    {currentSelectedSavedAddress.isDefault && (
+                      <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded-full">
+                        Default
+                      </span>
+                    )}
+                    <span className="text-[10px] bg-green-200 text-green-900 font-extrabold px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                      <Check size={11} /> Selected
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleEditSavedAddress(currentSelectedSavedAddress)}
+                      className="p-1 px-2.5 text-blue-700 bg-white hover:bg-blue-50 border border-blue-200 rounded-lg transition flex items-center gap-1 text-xs font-semibold"
+                      title="Edit this address"
+                    >
+                      <Edit2 size={12} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsChangingAddress(true)}
+                      className="p-1 px-3 text-green-800 bg-white hover:bg-green-50 border border-green-300 rounded-lg transition text-xs font-bold shadow-xs active:scale-95"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-gray-900 font-bold text-sm sm:text-base">{currentSelectedSavedAddress.name}</p>
+                <p className="text-gray-700 text-xs sm:text-sm font-medium mt-0.5">{formatPhoneNumber(currentSelectedSavedAddress.phone)}</p>
+                <p className="text-gray-700 text-xs sm:text-sm mt-1 leading-relaxed">
+                  {currentSelectedSavedAddress.street}, {currentSelectedSavedAddress.city}, {currentSelectedSavedAddress.state} - <span className="font-mono font-bold text-gray-900">{currentSelectedSavedAddress.pincode}</span>
+                  {(savedAddrBranch[currentSelectedSavedAddress.id] || currentSelectedSavedAddress.postOffice) && (
+                    <span className="font-semibold text-green-700 ml-1.5 bg-white px-2 py-0.5 rounded border border-green-200 text-xs inline-block">
+                      PO: {savedAddrBranch[currentSelectedSavedAddress.id] || currentSelectedSavedAddress.postOffice}
+                    </span>
+                  )}
+                </p>
+
+                {/* Branch selector if multiple branches available for this saved address */}
+                {addrBranches[currentSelectedSavedAddress.id] && addrBranches[currentSelectedSavedAddress.id].length > 1 && (
+                  <div className="mt-3 pt-2.5 border-t border-green-200" onClick={(e) => e.stopPropagation()}>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Select Local Post Office Branch:
+                    </label>
+                    <select
+                      value={savedAddrBranch[currentSelectedSavedAddress.id] || currentSelectedSavedAddress.postOffice || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSavedAddrBranch(prev => ({ ...prev, [currentSelectedSavedAddress.id]: val }));
                       }}
-                      className="mt-1 text-green-600 w-4 h-4 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-gray-800 text-sm sm:text-base">{addr.label}</span>
-                        {addr.isDefault && (
-                          <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded-full">
-                            Default
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEditSavedAddress(addr);
-                          }}
-                          className="ml-auto p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-xs font-semibold"
-                          title="Edit this address"
-                        >
-                          <Edit2 size={12} /> Edit
-                        </button>
-                      </div>
-                      <p className="text-gray-800 font-medium text-xs sm:text-sm">{addr.name}</p>
-                      <p className="text-gray-600 text-xs sm:text-sm">{formatPhoneNumber(addr.phone)}</p>
-                      <p className="text-gray-600 text-xs sm:text-sm mt-0.5">
-                        {addr.street}, {addr.city}, {addr.state} - <span className="font-mono">{addr.pincode}</span>
-                        {(savedAddrBranch[addr.id] || addr.postOffice) && (
-                          <span className="font-semibold text-green-700 ml-1">
-                            ({savedAddrBranch[addr.id] || addr.postOffice})
-                          </span>
-                        )}
-                      </p>
-                      {selectedAddressId === addr.id && !useNewAddress && addrBranches[addr.id] && addrBranches[addr.id].length > 1 && (
-                        <div className="mt-3 pt-2.5 border-t border-green-200" onClick={(e) => e.stopPropagation()}>
-                          <label className="block text-xs font-bold text-gray-700 mb-1">
-                            Select Local Post Office Branch:
-                          </label>
-                          <select
-                            value={savedAddrBranch[addr.id] || addr.postOffice || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setSavedAddrBranch(prev => ({ ...prev, [addr.id]: val }));
-                            }}
-                            className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 bg-white"
-                          >
-                            <option value="">Select Local Branch</option>
-                            {addrBranches[addr.id].map((b, idx) => (
-                              <option key={idx} value={b.name}>{b.name} ({b.branchType})</option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </label>
-                ))}
+                      className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 bg-white"
+                    >
+                      <option value="">Select Local Branch</option>
+                      {addrBranches[currentSelectedSavedAddress.id].map((b, idx) => (
+                        <option key={idx} value={b.name}>{b.name} ({b.branchType})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="mt-3 pt-2.5 border-t border-green-200/70 flex items-center justify-between text-xs text-gray-600">
+                  <span className="flex items-center gap-1 text-green-700 font-semibold">
+                    <Check size={14} /> Deliver to this address
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsChangingAddress(true)}
+                    className="text-green-700 font-bold hover:underline"
+                  >
+                    Select other saved address or add new
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Use New Address Option */}
-            <label
-              className={`flex items-start gap-3 p-3.5 sm:p-4 border-2 rounded-xl cursor-pointer transition mb-4 active:scale-[0.99] ${useNewAddress
-                ? 'border-green-500 bg-green-50/60 shadow-xs'
-                : 'border-gray-200 hover:border-green-300 bg-white'
-                }`}
-            >
-              <input
-                type="radio"
-                name="address"
-                checked={useNewAddress}
-                onChange={() => setUseNewAddress(true)}
-                className="mt-1 text-green-600 w-4 h-4 shrink-0"
-              />
-              <div className="flex-1">
-                <span className="font-bold text-gray-800 text-sm sm:text-base">Use a different address</span>
-                <p className="text-xs text-gray-500">Enter delivery details below</p>
-              </div>
-            </label>
+            {/* STATE 2: MANUALLY CHANGING ADDRESS (shows all saved addresses and button to add new) */}
+            {isChangingAddress && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-1 border-b border-gray-100">
+                  <p className="text-xs sm:text-sm text-gray-700 font-bold">
+                    Choose an address for delivery:
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsChangingAddress(false)}
+                    className="text-xs font-bold text-gray-500 hover:text-gray-800 underline"
+                  >
+                    Cancel / Keep Selected
+                  </button>
+                </div>
 
-            {/* New Address Form */}
+                <div className="space-y-2.5">
+                  {userAddresses.map((addr) => {
+                    const isSelected = selectedAddressId === addr.id && !useNewAddress;
+                    return (
+                      <div
+                        key={addr.id}
+                        onClick={() => {
+                          setSelectedAddressId(addr.id);
+                          setUseNewAddress(false);
+                          setIsChangingAddress(false);
+                        }}
+                        className={`p-3.5 sm:p-4 border-2 rounded-2xl cursor-pointer transition flex items-start gap-3 active:scale-[0.99] ${
+                          isSelected
+                            ? 'border-green-500 bg-green-50/70 shadow-xs ring-1 ring-green-500'
+                            : 'border-gray-200 hover:border-green-300 bg-white'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="address-selector"
+                          checked={isSelected}
+                          onChange={() => {
+                            setSelectedAddressId(addr.id);
+                            setUseNewAddress(false);
+                            setIsChangingAddress(false);
+                          }}
+                          className="mt-1 text-green-600 w-4 h-4 shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-900 text-sm">{addr.label}</span>
+                              {addr.isDefault && (
+                                <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded-full">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditSavedAddress(addr);
+                                  setIsChangingAddress(false);
+                                }}
+                                className="p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-xs font-semibold"
+                              >
+                                <Edit2 size={12} /> Edit
+                              </button>
+                              <span className="text-xs font-black text-green-700 px-2.5 py-1 bg-green-100 rounded-lg">
+                                {isSelected ? 'Selected' : 'Deliver Here'}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-gray-800 font-semibold text-xs">{addr.name} • {formatPhoneNumber(addr.phone)}</p>
+                          <p className="text-gray-600 text-xs mt-0.5 leading-snug">
+                            {addr.street}, {addr.city}, {addr.state} - <span className="font-mono">{addr.pincode}</span>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Add New Address Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingSavedAddress(null);
+                    setNewAddress({
+                      street: '',
+                      street2: '',
+                      city: '',
+                      state: '',
+                      pincode: '',
+                      country: 'India',
+                    });
+                    setDeliveryName(user?.name || '');
+                    setDeliveryPhone(user?.phone || '');
+                    setUseNewAddress(true);
+                    setIsChangingAddress(false);
+                  }}
+                  className="w-full p-3.5 border-2 border-dashed border-gray-300 hover:border-green-500 rounded-2xl bg-gray-50/60 hover:bg-green-50/40 text-gray-700 hover:text-green-800 transition flex items-center justify-center gap-2 text-xs sm:text-sm font-bold"
+                >
+                  <span>+ Add New / Deliver to Different Address</span>
+                </button>
+              </div>
+            )}
+
+            {/* STATE 3: NEW ADDRESS FORM (or editing address, or if no saved addresses exist) */}
             {useNewAddress && (
-              <div className="space-y-3.5 sm:space-y-4 p-3.5 sm:p-4 bg-gray-50/70 border border-gray-200/80 rounded-xl">
-                {editingSavedAddress && (
-                  <div className="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-lg text-xs sm:text-sm">
-                    <span>Editing Saved Address: <strong>{editingSavedAddress.label}</strong></span>
+              <div className="space-y-3.5 sm:space-y-4">
+                {userAddresses.length > 0 && !editingSavedAddress && (
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                    <span className="text-xs font-bold text-gray-700">Add New Delivery Address</span>
                     <button
                       type="button"
                       onClick={() => {
-                        setEditingSavedAddress(null);
                         setUseNewAddress(false);
+                        setIsChangingAddress(false);
                       }}
-                      className="text-xs text-blue-600 hover:text-blue-800 underline font-semibold"
+                      className="text-xs font-bold text-green-700 hover:underline flex items-center gap-1"
                     >
-                      Cancel Edit
+                      ← Back to Saved Address ({currentSelectedSavedAddress?.label || 'Saved'})
                     </button>
                   </div>
                 )}
+
+                <div className="p-3.5 sm:p-4 bg-gray-50/70 border border-gray-200/80 rounded-xl space-y-3.5 sm:space-y-4">
+                  {editingSavedAddress && (
+                    <div className="flex items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 px-3 py-2 rounded-lg text-xs sm:text-sm">
+                      <span>Editing Saved Address: <strong>{editingSavedAddress.label}</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingSavedAddress(null);
+                          setUseNewAddress(false);
+                          setIsChangingAddress(false);
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline font-semibold"
+                      >
+                        Cancel Edit
+                      </button>
+                    </div>
+                  )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Recipient Name</label>
@@ -871,8 +1044,9 @@ export function Checkout() {
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
           {/* Dussehra & Durga Pooja Free Gift Selector */}
           <div id="festive-gift-selector">
@@ -1274,7 +1448,7 @@ export function Checkout() {
 
               {/* Selected Festive Free Gifts */}
               {selectedFreeGifts.length > 0 && (
-                <div className="border-t border-dashed border-amber-300 pt-3 pb-1 space-y-2">
+                <div className="border-t border-dashed border-amber-300 pt-3 pb-1 space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-bold text-amber-900">
                     <span className="flex items-center gap-1">
                       <span>🎁</span> Dussehra & Diwali Free Gifts
@@ -1286,9 +1460,9 @@ export function Checkout() {
                   {selectedFreeGifts.map((gift) => (
                     <div
                       key={gift.id}
-                      className="flex items-center gap-2.5 bg-amber-50/70 p-2 rounded-xl border border-amber-200"
+                      className="flex items-center gap-2 bg-amber-50/70 p-1.5 rounded-xl border border-amber-200"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-white overflow-hidden shrink-0 border border-amber-200">
+                      <div className="w-7 h-7 rounded-lg bg-white overflow-hidden shrink-0 border border-amber-200">
                         <img src={gift.image} alt={gift.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1297,7 +1471,7 @@ export function Checkout() {
                           {gift.weight} {gift.noGarlic && '• No Garlic'}
                         </p>
                       </div>
-                      <span className="text-xs font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-black text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
                         FREE (₹0)
                       </span>
                     </div>
@@ -1306,15 +1480,131 @@ export function Checkout() {
               )}
             </div>
 
+            {/* Have a Coupon or Referral Code Section */}
+            <div className="border-t border-gray-100 pt-3 pb-2 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-gray-700 flex items-center gap-1.5">
+                  <Tag size={13} className="text-green-600" /> Have a Coupon or Referral Code?
+                </span>
+                {appliedReferralCode && (
+                  <span className="text-[10px] bg-yellow-300 text-amber-950 font-black px-1.5 py-0.5 rounded-full">
+                    0.5% Partner Off
+                  </span>
+                )}
+              </div>
+
+              {/* Applied Referral Code card if active */}
+              {appliedReferralCode && (
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-amber-950">{appliedReferralCode}</span>
+                      <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded">0.5% Off</span>
+                    </div>
+                    <p className="text-[10px] text-amber-800">
+                      {isRefDiscountActive ? '0.5% Referral Discount (Eligible till 21st Oct)' : 'Discount ended on 21st Oct'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeReferralCode}
+                    className="text-[11px] font-bold text-red-600 hover:text-red-800 bg-white border border-red-200 px-2 py-0.5 rounded transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
+              {/* Applied Coupon card if active */}
+              {appliedCoupon && (
+                <div className="p-2.5 rounded-xl bg-green-50 border border-green-300 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-green-950">{appliedCoupon.code}</span>
+                      <span className="text-[10px] bg-green-200 text-green-900 font-bold px-1.5 py-0.5 rounded">
+                        {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}% Off` : `₹${appliedCoupon.discount} Off`}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-green-700">Coupon applied</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-[11px] font-bold text-red-600 hover:text-red-800 bg-white border border-red-200 px-2 py-0.5 rounded transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
+              {/* Quick Input to enter code */}
+              {(!appliedCoupon || !appliedReferralCode) && (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!checkoutCouponCode.trim()) return;
+                    setIsApplyingCoupon(true);
+                    try {
+                      const res = await applyCoupon(checkoutCouponCode.trim().toUpperCase());
+                      setCouponMsg({ type: res.success ? 'success' : 'error', text: res.message });
+                      if (res.success) {
+                        toast.success(res.message);
+                        setCheckoutCouponCode('');
+                      } else {
+                        toast.error(res.message);
+                      }
+                    } finally {
+                      setIsApplyingCoupon(false);
+                    }
+                  }}
+                  className="space-y-1 pt-1"
+                >
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder={!appliedCoupon ? "Coupon or referral code" : "Referral code (0.5% off)"}
+                      value={checkoutCouponCode}
+                      onChange={(e) => setCheckoutCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 uppercase font-mono px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-green-500 bg-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isApplyingCoupon || !checkoutCouponCode.trim()}
+                      className="px-3 py-1.5 bg-gray-900 hover:bg-black text-white font-bold text-xs rounded-lg disabled:opacity-50 transition"
+                    >
+                      {isApplyingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponMsg && (
+                    <p className={`text-[11px] ${couponMsg.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                      {couponMsg.text}
+                    </p>
+                  )}
+                </form>
+              )}
+            </div>
+
             <div className="border-t border-gray-100 pt-3.5 space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span className="font-semibold text-gray-900">₹{subtotal.toFixed(2)}</span>
               </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600 font-semibold">
-                  <span>Discount ({appliedCoupon?.code})</span>
-                  <span>-₹{discount.toFixed(2)}</span>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-green-700 font-semibold">
+                  <span className="flex items-center gap-1">
+                    <Tag size={13} />
+                    <span>Coupon Discount ({appliedCoupon?.code})</span>
+                  </span>
+                  <span>-₹{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+              {referralDiscount > 0 && (
+                <div className="flex justify-between text-amber-800 font-semibold">
+                  <span className="flex items-center gap-1">
+                    <span>🤝</span>
+                    <span>Referral Discount ({appliedReferralCode} - 0.5%)</span>
+                  </span>
+                  <span>-₹{referralDiscount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">

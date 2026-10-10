@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, DisplayImage, StoreSettings, UserAddress, Address, Review, SiteFeedback, AbandonedCart, FeedbackMessage } from '../types';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { isReferralDiscountValid, REFERRAL_DISCOUNT_PERCENT, REFERRAL_DISCOUNT_EXPIRY_LABEL } from '../data/festiveOffer';
 
 // Sample Products with variants and stock
 const sampleProducts: Product[] = [];
@@ -38,6 +39,7 @@ interface StoreState {
   orders: Order[];
   coupons: Coupon[];
   appliedCoupon: Coupon | null;
+  appliedReferralCode: string | null;
   isAdmin: boolean;
   isLoading: boolean;
   reviews: Record<string, Review[]>; // Product ID to Reviews mapping
@@ -67,9 +69,11 @@ interface StoreState {
   updatePaymentStatus: (orderId: string, status: Order['paymentStatus']) => void;
   updateOrderAddress: (orderId: string, address: Address) => Promise<void>;
 
-  // Coupon actions
+  // Coupon & Referral actions
   applyCoupon: (code: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   removeCoupon: () => void;
+  applyReferralCode: (code: string) => Promise<{ success: boolean; message: string }>;
+  removeReferralCode: () => void;
   addCoupon: (coupon: Coupon) => void;
   toggleCoupon: (code: string) => void;
   deleteCoupon: (code: string) => void;
@@ -147,6 +151,7 @@ export const useStore = create<StoreState>()(
       orders: [],
       coupons: sampleCoupons,
       appliedCoupon: null,
+      appliedReferralCode: typeof window !== 'undefined' ? (localStorage.getItem('affiliate_ref') || null) : null,
       isAdmin: false,
       isLoading: false,
       reviews: {},
@@ -468,10 +473,10 @@ export const useStore = create<StoreState>()(
             };
           }
           set({ appliedCoupon: coupon });
-          return { success: true, message: 'Coupon applied successfully!' };
+          return { success: true, message: `Coupon ${coupon.code} applied successfully!` };
         }
 
-        // 2. Check if this is an affiliate member referral code (or user entered active affiliate code)
+        // 2. Check if this is an affiliate member referral code
         const storedRef = localStorage.getItem('affiliate_ref')?.trim().toUpperCase();
         let isAffiliate = Boolean(
           (storedRef && trimmedCode === storedRef) || 
@@ -494,32 +499,72 @@ export const useStore = create<StoreState>()(
         }
 
         if (isAffiliate) {
-          // Link this referral code so the affiliate member receives credit upon order placement!
           localStorage.setItem('affiliate_ref', trimmedCode);
+          set({ appliedReferralCode: trimmedCode });
 
-          const festiveReferralCoupon: Coupon = {
-            code: trimmedCode,
-            discount: 5, // 5% festive discount
-            type: 'percentage',
-            minOrder: 0,
-            active: true,
-            isReferralPartner: true,
-            description: 'Festive Partner Referral Coupon (Active till end of festival season)',
-            expiresText: 'Valid till festival end (Dussehra & Diwali)',
-          };
-
-          set({ appliedCoupon: festiveReferralCoupon });
-          return {
-            success: true,
-            message: `🪔 Festive Referral Partner Code ${trimmedCode} applied! Free gift perks & 5% discount unlocked till festival season ends!`,
-          };
+          if (isReferralDiscountValid()) {
+            return {
+              success: true,
+              message: `🤝 Partner Referral Code ${trimmedCode} applied! 0.5% referral discount unlocked (Eligible till 21st October). You can also apply a normal coupon!`,
+            };
+          } else {
+            return {
+              success: true,
+              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: 0.5% referral discount was eligible till 21st October only). You can still apply a normal coupon!`,
+            };
+          }
         }
 
-        return { success: false, message: 'Invalid coupon code' };
+        return { success: false, message: 'Invalid coupon or referral code' };
       },
 
       removeCoupon: () => {
         set({ appliedCoupon: null });
+      },
+
+      applyReferralCode: async (code: string) => {
+        const trimmedCode = code.trim().toUpperCase();
+        if (!trimmedCode) return { success: false, message: 'Please enter a referral code' };
+
+        let isAffiliate = trimmedCode.startsWith('VP-');
+        if (!isAffiliate) {
+          try {
+            const { data } = await supabase
+              .from('affiliates')
+              .select('referral_code, status')
+              .eq('referral_code', trimmedCode)
+              .maybeSingle();
+            if (data && data.status === 'active') {
+              isAffiliate = true;
+            }
+          } catch {
+            // fallback
+          }
+        }
+
+        if (isAffiliate) {
+          localStorage.setItem('affiliate_ref', trimmedCode);
+          set({ appliedReferralCode: trimmedCode });
+
+          if (isReferralDiscountValid()) {
+            return {
+              success: true,
+              message: `🤝 Partner Referral Code ${trimmedCode} applied! 0.5% referral discount unlocked (Eligible till 21st October). You can also apply a normal coupon!`,
+            };
+          } else {
+            return {
+              success: true,
+              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: 0.5% referral discount was eligible till 21st October only). You can still apply a normal coupon!`,
+            };
+          }
+        }
+
+        return { success: false, message: 'Invalid partner referral code' };
+      },
+
+      removeReferralCode: () => {
+        localStorage.removeItem('affiliate_ref');
+        set({ appliedReferralCode: null });
       },
 
       addCoupon: async (coupon) => {

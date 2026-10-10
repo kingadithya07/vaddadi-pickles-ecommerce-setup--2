@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Tag, Check, Sparkles, AlertCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Coupon } from '@/types';
 import toast from 'react-hot-toast';
+import { isReferralDiscountValid, REFERRAL_DISCOUNT_PERCENT, REFERRAL_DISCOUNT_EXPIRY_LABEL } from '@/data/festiveOffer';
 
 interface CouponSelectionModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface CouponSelectionModalProps {
   onApplyCoupon: (code: string) => Promise<{ success: boolean; message: string }> | { success: boolean; message: string };
   onRemoveCoupon: () => void;
   referralCode?: string;
+  appliedReferralCode?: string | null;
+  onRemoveReferralCode?: () => void;
 }
 
 export function CouponSelectionModal({
@@ -23,6 +26,8 @@ export function CouponSelectionModal({
   onApplyCoupon,
   onRemoveCoupon,
   referralCode,
+  appliedReferralCode,
+  onRemoveReferralCode,
 }: CouponSelectionModalProps) {
   const [inputCode, setInputCode] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
@@ -32,6 +37,7 @@ export function CouponSelectionModal({
 
   const storedRef = referralCode || (typeof window !== 'undefined' ? localStorage.getItem('affiliate_ref') : null);
   const activeCoupons = coupons.filter((c) => c.active);
+  const isReferralActive = isReferralDiscountValid();
 
   const handleManualApply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +83,14 @@ export function CouponSelectionModal({
     toast.success('Coupon removed');
   };
 
-  const isStoredRefApplied = appliedCoupon && storedRef && appliedCoupon.code.toUpperCase() === storedRef.toUpperCase();
+  const handleRemoveReferral = () => {
+    if (onRemoveReferralCode) {
+      onRemoveReferralCode();
+    } else {
+      localStorage.removeItem('affiliate_ref');
+    }
+    toast.success('Referral code removed');
+  };
 
   return (
     <div
@@ -148,37 +161,77 @@ export function CouponSelectionModal({
             )}
           </form>
 
-          {/* Applied Coupon Card (if any) */}
-          {appliedCoupon && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 shadow-sm flex items-center justify-between">
+          {/* Stacking Offer Banner */}
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/70 border border-blue-200 text-xs text-blue-950 flex items-start gap-2.5">
+            <span className="text-base shrink-0">✨</span>
+            <div className="flex-1">
+              <p className="font-bold text-blue-900">
+                Festive Double Offer: Referral + Coupon Stacking!
+              </p>
+              <p className="text-[11px] text-blue-800 mt-0.5">
+                Apply a partner referral code to enjoy a <strong className="text-blue-950">{REFERRAL_DISCOUNT_PERCENT}% discount</strong> (eligible till {REFERRAL_DISCOUNT_EXPIRY_LABEL} only) <strong className="text-blue-950">AND</strong> apply any normal coupon below as usual!
+              </p>
+            </div>
+          </div>
+
+          {/* Applied Partner Referral Code Card (if any) */}
+          {appliedReferralCode && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-400 shadow-xs flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs text-base">
+                  🤝
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-extrabold text-amber-950 text-sm sm:text-base">
+                      {appliedReferralCode}
+                    </span>
+                    <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
+                      {REFERRAL_DISCOUNT_PERCENT}% Partner Off
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900 font-medium">
+                    {isReferralActive
+                      ? `${REFERRAL_DISCOUNT_PERCENT}% Referral Discount applied (Eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL})`
+                      : `Referral linked (${REFERRAL_DISCOUNT_PERCENT}% discount eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL} only)`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveReferral}
+                className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition shrink-0"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {/* Applied Normal Coupon Card (if any) */}
+          {appliedCoupon && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-xs">
                   <Check size={16} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono font-extrabold text-green-900 text-sm sm:text-base">
                       {appliedCoupon.code}
                     </span>
                     <span className="text-[10px] bg-green-200 text-green-900 font-black px-2 py-0.5 rounded-full uppercase">
-                      Applied
+                      Coupon Applied
                     </span>
-                    {appliedCoupon.isReferralPartner && (
-                      <span className="text-[10px] bg-amber-200 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
-                        🪔 Partner Offer
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs text-green-700 font-medium">
                     Saving {appliedCoupon.type === 'percentage' ? `${appliedCoupon.discount}%` : `₹${appliedCoupon.discount}`} on this order!
-                    {appliedCoupon.isReferralPartner && ' + Festive free gift perks unlocked!'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleRemove}
-                className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition"
+                className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition shrink-0"
               >
                 Remove
               </button>
@@ -186,17 +239,17 @@ export function CouponSelectionModal({
           )}
 
           {/* Featured Festive Referral Partner Coupon (if came through referral link or code saved) */}
-          {storedRef && (
+          {storedRef && !appliedReferralCode && (
             <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-yellow-400 shadow-md relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg">🪔</span>
                   <span className="text-xs font-black uppercase tracking-wider text-amber-950">
-                    Festive Referral Partner Coupon
+                    Festive Referral Partner Code
                   </span>
                 </div>
                 <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full uppercase">
-                  Festival Season Exclusive
+                  {isReferralActive ? `${REFERRAL_DISCOUNT_PERCENT}% Off till ${REFERRAL_DISCOUNT_EXPIRY_LABEL}` : 'Partner Link'}
                 </span>
               </div>
 
@@ -207,30 +260,26 @@ export function CouponSelectionModal({
                       {storedRef.toUpperCase()}
                     </span>
                     <span className="text-xs font-black text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
-                      5% OFF + Free Gifts
+                      {REFERRAL_DISCOUNT_PERCENT}% OFF
                     </span>
                   </div>
                   <p className="text-xs text-amber-900 font-medium">
-                    Claimed via affiliate referral link. Valid till the end of festival season (Dussehra/Durga Pooja & Diwali/Deepavali)!
+                    {isReferralActive
+                      ? `Claim ${REFERRAL_DISCOUNT_PERCENT}% referral discount! You can also apply normal coupons as usual.`
+                      : `Affiliate referral code linked. (${REFERRAL_DISCOUNT_PERCENT}% discount eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL} only).`}
                   </p>
                 </div>
 
                 <div className="shrink-0 sm:self-center">
-                  {isStoredRefApplied ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-green-100 text-green-800 text-xs font-bold border border-green-300">
-                      <Check size={14} /> Applied
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={isApplying}
-                      onClick={() => handleSelectCoupon(storedRef.toUpperCase())}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
-                    >
-                      <span>Claim Free Offer</span>
-                      <ArrowRight size={14} />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={isApplying}
+                    onClick={() => handleSelectCoupon(storedRef.toUpperCase())}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
+                  >
+                    <span>Claim {REFERRAL_DISCOUNT_PERCENT}% Discount</span>
+                    <ArrowRight size={14} />
+                  </button>
                 </div>
               </div>
             </div>

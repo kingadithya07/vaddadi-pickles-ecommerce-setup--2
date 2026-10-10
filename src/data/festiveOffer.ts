@@ -326,3 +326,20 @@ export function getFestiveTierStatus(subtotal: number): FestiveTierStatus {
     isMaxTier: false,
   };
 }
+
+/**
+ * Referral Code Discount Policy:
+ * When shoppers apply an affiliate referral code:
+ * - They are eligible for a 0.5% discount on their order
+ * - They can also apply a normal coupon as usual in this festive season
+ * - The 0.5% referral discount is eligible until 21st October only
+ */
+export const REFERRAL_DISCOUNT_PERCENT = 0.5; // 0.5% discount
+export const REFERRAL_DISCOUNT_EXPIRY_LABEL = '21st October';
+
+export const isReferralDiscountValid = (now: Date = new Date()): boolean => {
+  const currentYear = now.getFullYear();
+  // Valid till 21st October 23:59:59 of current year
+  const expiry = new Date(`${currentYear}-10-21T23:59:59`);
+  return now.getTime() <= expiry.getTime();
+};

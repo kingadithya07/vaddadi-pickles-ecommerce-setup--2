@@ -20,8 +20,27 @@ import { getFestiveTierStatus, FESTIVE_OFFER_NAME, FESTIVE_TIERS_CONFIG } from '
 import { FestiveWelcomeModal, CouponSelectionModal } from '@/components';
 
 export function Cart() {
-  const { cart, user, coupons, appliedCoupon, updateQuantity, removeFromCart, applyCoupon, removeCoupon } = useStore();
-  const { subtotal, discount, total, shipping } = useCartTotals();
+  const {
+    cart,
+    user,
+    coupons,
+    appliedCoupon,
+    appliedReferralCode,
+    updateQuantity,
+    removeFromCart,
+    applyCoupon,
+    removeCoupon,
+    removeReferralCode,
+  } = useStore();
+  const {
+    subtotal,
+    discount,
+    couponDiscount,
+    referralDiscount,
+    isRefDiscountActive,
+    total,
+    shipping,
+  } = useCartTotals();
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showFestiveModal, setShowFestiveModal] = useState(false);
@@ -339,7 +358,7 @@ export function Cart() {
               </div>
 
               {/* If customer came through referral link, show instant festive offer claim banner */}
-              {storedRefCode && !appliedCoupon && (
+              {storedRefCode && !appliedReferralCode && (
                 <div className="mb-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-yellow-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">🪔</span>
@@ -349,11 +368,11 @@ export function Cart() {
                           Partner Code: <span className="font-mono bg-yellow-200 text-amber-950 px-1.5 py-0.5 rounded font-black">{storedRefCode.toUpperCase()}</span>
                         </span>
                         <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full uppercase">
-                          Festive Special
+                          0.5% Off till 21st Oct
                         </span>
                       </div>
                       <p className="text-[11px] text-amber-800 mt-0.5">
-                        Claim extra 5% discount & free gifts till end of festival season!
+                        Claim 0.5% referral discount! You can also apply normal coupons as usual.
                       </p>
                     </div>
                   </div>
@@ -362,12 +381,42 @@ export function Cart() {
                     onClick={() => handleApplyCoupon(storedRefCode)}
                     className="shrink-0 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition shadow-sm self-start sm:self-auto flex items-center gap-1 active:scale-95"
                   >
-                    <span>Claim Free Offer</span>
+                    <span>Claim 0.5% Discount</span>
                     <ArrowRight size={13} />
                   </button>
                 </div>
               )}
 
+              {/* Applied Referral Partner Badge (if active) */}
+              {appliedReferralCode && (
+                <div className="mb-3 p-3 bg-amber-50/80 border border-amber-300 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🤝</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-amber-950 text-xs sm:text-sm">
+                          {appliedReferralCode}
+                        </span>
+                        <span className="text-[10px] bg-yellow-400 text-amber-950 font-black px-1.5 py-0.5 rounded-full uppercase">
+                          Partner 0.5% Off
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        {isRefDiscountActive ? '0.5% Referral Discount (Eligible till 21st October)' : 'Partner linked (0.5% discount ended on 21st October)'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeReferralCode}
+                    className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
+              {/* Normal Coupon Section - Stacks with Referral Code! */}
               {appliedCoupon ? (
                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-xl">
                   <div className="flex items-center gap-2">
@@ -378,7 +427,7 @@ export function Cart() {
                           {appliedCoupon.code}
                         </span>
                         <span className="text-[10px] bg-green-200 text-green-900 font-black px-1.5 py-0.5 rounded">
-                          Applied
+                          Coupon Applied
                         </span>
                       </div>
                       <p className="text-[11px] text-green-700 font-medium">
@@ -400,7 +449,7 @@ export function Cart() {
                     <div className="relative flex-1">
                       <input
                         type="text"
-                        placeholder="Enter coupon code"
+                        placeholder="Enter coupon or referral code"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         className="w-full uppercase font-mono px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white transition"
@@ -447,13 +496,23 @@ export function Cart() {
                 <span className="font-semibold text-gray-900">₹{subtotal.toFixed(2)}</span>
               </div>
 
-              {discount > 0 && (
+              {couponDiscount > 0 && (
                 <div className="flex justify-between text-green-700 font-medium">
                   <span className="flex items-center gap-1">
                     <Tag size={13} />
-                    <span>Coupon Discount</span>
+                    <span>Coupon Discount ({appliedCoupon?.code})</span>
                   </span>
-                  <span className="font-bold">-₹{discount.toFixed(2)}</span>
+                  <span className="font-bold">-₹{couponDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
+              {referralDiscount > 0 && (
+                <div className="flex justify-between text-amber-800 font-medium">
+                  <span className="flex items-center gap-1">
+                    <span>🤝</span>
+                    <span>Referral Discount ({appliedReferralCode} - 0.5%)</span>
+                  </span>
+                  <span className="font-bold">-₹{referralDiscount.toFixed(2)}</span>
                 </div>
               )}
 
@@ -568,6 +627,8 @@ export function Cart() {
         onApplyCoupon={handleApplyCoupon}
         onRemoveCoupon={removeCoupon}
         referralCode={storedRefCode || undefined}
+        appliedReferralCode={appliedReferralCode}
+        onRemoveReferralCode={removeReferralCode}
       />
 
       {/* Festive Welcome Modal */}

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Gift, Check, Sparkles, AlertCircle, CheckCircle2, ChevronRight, HelpCircle } from 'lucide-react';
+import { Check, Sparkles, AlertCircle, CheckCircle2, ChevronRight } from 'lucide-react';
 import { CURATED_FESTIVE_GIFTS, getFestiveTierStatus, getGiftWeight, FestiveGiftItem } from '@/data/festiveOffer';
 import { Link } from 'react-router-dom';
 
@@ -30,7 +30,7 @@ export function FestiveGiftSelector({
   const [garlicPreferences, setGarlicPreferences] = useState<Record<string, boolean>>({});
 
   const tierStatus = useMemo(() => getFestiveTierStatus(subtotal), [subtotal]);
-  const { eligibleCount, tier, currentTierConfig, nextTierConfig, amountNeededForNext, progressPercent, isUnlocked } = tierStatus;
+  const { eligibleCount, tier, nextTierConfig, amountNeededForNext, progressPercent, isUnlocked } = tierStatus;
 
   // Filter items based on active tab
   const filteredItems = useMemo(() => {
@@ -147,20 +147,20 @@ export function FestiveGiftSelector({
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-amber-200">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-md text-2xl">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0 shadow-md text-xl sm:text-2xl">
             🎁
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
-                Dussehra/Durga Pooja And Diwali/Deepavali Gift Selection
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h3 className="font-extrabold text-gray-900 text-xs sm:text-base leading-tight">
+                Dussehra & Diwali Gift Selection
               </h3>
-              <span className="text-xs bg-yellow-400 text-amber-950 font-black px-2.5 py-0.5 rounded-full shadow-sm">
+              <span className="text-[10px] sm:text-xs bg-yellow-400 text-amber-950 font-black px-2 py-0.5 rounded-full shadow-xs">
                 Tier {tier}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5">
               Eligible for <strong className="text-amber-800">{eligibleCount} FREE {eligibleCount > 1 ? 'items' : 'item'}</strong> (100g Pickles/Podis, 50g/100g Fryums)
             </p>
           </div>
@@ -229,25 +229,25 @@ export function FestiveGiftSelector({
       )}
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-1.5 my-3 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1 sm:gap-1.5 my-2.5 sm:my-3 overflow-x-auto pb-1 scrollbar-none">
         {(['All', 'Pickles', 'Powders', 'Fryums'] as const).map((cat) => (
           <button
             key={cat}
             type="button"
             onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
+            className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold transition-colors whitespace-nowrap ${
               activeCategory === cat
                 ? 'bg-amber-600 text-white shadow-sm'
                 : 'bg-white text-gray-700 hover:bg-amber-100/60 border border-amber-200'
             }`}
           >
-            {cat} {cat === 'Pickles' || cat === 'Powders' ? '(100g)' : cat === 'Fryums' ? (tier >= 2 ? '(100g)' : '(50g)') : ''}
+            {cat} <span className="text-[9px] sm:text-[10px] opacity-80">{cat === 'Pickles' || cat === 'Powders' ? '(100g)' : cat === 'Fryums' ? (tier >= 2 ? '(100g)' : '(50g)') : ''}</span>
           </button>
         ))}
       </div>
 
-      {/* Grid of Selectable Gift Items */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3 max-h-96 overflow-y-auto pr-1">
+      {/* Grid of Selectable Gift Items - 3 items per row on mobile */}
+      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-1.5 sm:gap-3 max-h-96 overflow-y-auto pr-0.5 sm:pr-1">
         {filteredItems.map((item) => {
           const selected = isGiftSelected(item.id);
           const weight = getGiftWeight(item.category, subtotal);
@@ -260,17 +260,17 @@ export function FestiveGiftSelector({
               onClick={() => {
                 if (!disabled) toggleGift(item);
               }}
-              className={`relative rounded-2xl p-2.5 sm:p-3 transition-all duration-200 cursor-pointer flex flex-col justify-between border-2 ${
+              className={`relative rounded-xl sm:rounded-2xl p-1.5 sm:p-3 transition-all duration-200 cursor-pointer flex flex-col justify-between border-2 ${
                 selected
-                  ? 'bg-white border-green-600 shadow-md ring-2 ring-green-600/20'
+                  ? 'bg-white border-green-600 shadow-sm ring-1 sm:ring-2 ring-green-600/20'
                   : disabled
                   ? 'bg-gray-50/70 border-gray-200 opacity-60 cursor-not-allowed'
-                  : 'bg-white border-amber-200/80 hover:border-amber-400 hover:shadow-sm'
+                  : 'bg-white border-amber-200/80 hover:border-amber-400 hover:shadow-xs'
               }`}
             >
               <div>
-                {/* Image & Selected Badge */}
-                <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-2 bg-gray-100">
+                {/* Image & Selected Badge - Compact 3-col layout */}
+                <div className="relative aspect-square w-full rounded-lg sm:rounded-xl overflow-hidden mb-1 sm:mb-2 bg-gray-100">
                   <img
                     src={item.image}
                     alt={item.name}
@@ -278,25 +278,26 @@ export function FestiveGiftSelector({
                     loading="lazy"
                   />
                   {/* Weight Badge */}
-                  <span className="absolute top-1.5 left-1.5 bg-black/75 backdrop-blur-sm text-yellow-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                  <span className="absolute top-1 left-1 bg-black/80 backdrop-blur-sm text-yellow-300 text-[8px] sm:text-[10px] font-bold px-1 py-0.5 rounded">
                     {weight}
                   </span>
 
                   {/* Selection Checkmark */}
                   {selected && (
-                    <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center shadow-md">
-                      <Check size={14} className="stroke-[3]" />
+                    <div className="absolute top-1 right-1 w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white flex items-center justify-center shadow-md">
+                      <Check size={11} className="stroke-[3] sm:hidden" />
+                      <Check size={14} className="stroke-[3] hidden sm:block" />
                     </div>
                   )}
                 </div>
 
-                <h4 className="font-bold text-gray-900 text-xs line-clamp-1">
+                <h4 className="font-bold text-gray-900 text-[10px] sm:text-xs line-clamp-1 leading-tight">
                   {item.name}
                 </h4>
-                <p className="text-[10px] text-amber-700 font-medium truncate mb-1">
+                <p className="text-[9px] sm:text-[10px] text-amber-700 font-medium truncate mb-0.5">
                   {item.teluguName}
                 </p>
-                <p className="text-[10px] text-gray-500 line-clamp-1 mb-2">
+                <p className="text-[8px] sm:text-[10px] text-gray-500 line-clamp-1 mb-1 hidden sm:block">
                   {item.tagline}
                 </p>
               </div>
@@ -306,15 +307,15 @@ export function FestiveGiftSelector({
                 {item.hasNoGarlicOption && (
                   <div
                     onClick={(e) => handleToggleGarlic(item.id, e)}
-                    className="mt-1 pt-1.5 border-t border-gray-100 flex items-center gap-1.5 text-[10px] text-gray-700 cursor-pointer select-none"
+                    className="mt-0.5 sm:mt-1 pt-1 border-t border-gray-100 flex items-center gap-1 text-[8px] sm:text-[10px] text-gray-700 cursor-pointer select-none"
                   >
                     <input
                       type="checkbox"
                       checked={isGarlicFree}
-                      onChange={() => {}} // Handled by parent div
-                      className="w-3.5 h-3.5 text-green-600 rounded border-gray-300 pointer-events-none"
+                      onChange={() => {}}
+                      className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600 rounded border-gray-300 pointer-events-none"
                     />
-                    <span className="font-semibold text-green-800">No Garlic</span>
+                    <span className="font-semibold text-green-800 truncate">No Garlic</span>
                   </div>
                 )}
 
@@ -326,20 +327,23 @@ export function FestiveGiftSelector({
                     e.stopPropagation();
                     if (!disabled) toggleGift(item);
                   }}
-                  className={`w-full mt-2 py-1.5 rounded-xl font-bold text-[11px] transition-colors flex items-center justify-center gap-1 ${
+                  className={`w-full mt-1 sm:mt-2 py-1 sm:py-1.5 rounded-lg sm:rounded-xl font-bold text-[9px] sm:text-[11px] transition-colors flex items-center justify-center gap-0.5 sm:gap-1 ${
                     selected
-                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-xs'
                       : disabled
-                      ? 'bg-gray-100 text-gray-400'
-                      : 'bg-amber-100 hover:bg-amber-200 text-amber-900'
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300/80'
                   }`}
                 >
                   {selected ? (
                     <>
-                      <Check size={12} /> Selected
+                      <Check size={11} />
+                      <span>Picked</span>
                     </>
+                  ) : disabled ? (
+                    'Full'
                   ) : (
-                    <span>+ Pick as Free Gift</span>
+                    '+ Free'
                   )}
                 </button>
               </div>
