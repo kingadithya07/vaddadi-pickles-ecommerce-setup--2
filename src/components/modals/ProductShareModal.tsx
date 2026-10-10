@@ -25,7 +25,7 @@ export function ProductShareModal({ product, isOpen, onClose }: ProductShareModa
   const isCombo = product.category === 'Combo';
   const priceText = minPrice > 0 ? `(₹${minPrice})` : '';
 
-  const shareText = `Check out this delicious ${isCombo ? 'combo pack' : 'homemade pickle'} from Vaddadi Pickles: *${product.name}* ${priceText}! 🥒✨\n\nAuthentic Andhra recipes handcrafted with traditional love.\n\n🛒 Order here: ${shareUrl}\n\n🌟 *Refer & Earn*: Did you know? You can earn a 10% commission by sharing our pickles!`;
+  const shareText = `Check out this delicious ${isCombo ? 'combo pack' : 'homemade pickle'} from Vaddadi Pickles: *${product.name}* ${priceText}! 🥒✨\n\nAuthentic Andhra recipes handcrafted with traditional love.\n\n🪔 *Festive Special*: Get up to 3 FREE Gift items on orders above ₹1000, ₹2500 & ₹5000!\n\n🛒 Order here: ${shareUrl}\n\n🌟 *Refer & Earn*: Did you know? You can earn a 10% commission by sharing our pickles!`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl);

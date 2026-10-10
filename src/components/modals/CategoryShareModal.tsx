@@ -61,7 +61,7 @@ export function CategoryShareModal({ category, isOpen, onClose }: CategoryShareM
   const refCode = localStorage.getItem('affiliate_ref');
   const shareUrl = `${SITE_URL}/products?category=${encodeURIComponent(category.id)}${refCode ? `&ref=${encodeURIComponent(refCode)}` : ''}`;
 
-  const shareText = `Explore authentic homemade *${category.name}* from Vaddadi Pickles! ${category.icon}✨\n\n${category.description}\n\n🛒 Browse the ${category.name} Collection: ${shareUrl}\n\n🌟 *Refer & Earn*: Share with friends and earn a 10% lifetime commission on every order!`;
+  const shareText = `Explore authentic homemade *${category.name}* from Vaddadi Pickles! ${category.icon}✨\n\n${category.description}\n\n🪔 *Festive Special*: Get up to 3 FREE Gift items on orders above ₹1000, ₹2500 & ₹5000!\n\n🛒 Browse the ${category.name} Collection: ${shareUrl}\n\n🌟 *Refer & Earn*: Share with friends and earn a 10% lifetime commission on every order!`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl);

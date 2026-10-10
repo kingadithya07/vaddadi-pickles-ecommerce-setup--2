@@ -5,6 +5,7 @@ import { Navigate } from 'react-router-dom';
 import { Copy, TrendingUp, DollarSign, Users, CheckCircle2, ShoppingBag, CreditCard, Save, MessageCircle } from 'lucide-react';
 import { Affiliate, AffiliateSale } from '@/types';
 import { SITE_URL } from '@/utils';
+import { AffiliateFestiveMaterials } from '@/components';
 import toast from 'react-hot-toast';
 
 export function AffiliateDashboard() {
@@ -324,6 +325,14 @@ export function AffiliateDashboard() {
                "Min. ₹500. Payouts processed within 1-2 days."}
             </p>
           </div>
+        </div>
+
+        {/* Dussehra/Durga Pooja And Diwali/Deepavali Festive Offer Materials */}
+        <div id="festive-materials">
+          <AffiliateFestiveMaterials
+            referralCode={affiliate.referralCode}
+            commissionRate={affiliate.commissionRate}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

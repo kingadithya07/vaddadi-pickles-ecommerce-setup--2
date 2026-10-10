@@ -23,6 +23,7 @@ export * from './common/FeedbackWidget';
 export * from './common/DussehraBanner';
 export * from './common/FestiveWelcomeModal';
 export * from './common/FestiveGiftSelector';
+export * from './common/AffiliateFestiveMaterials';
 
 // Admin
 export * from './admin/AdminAffiliates';

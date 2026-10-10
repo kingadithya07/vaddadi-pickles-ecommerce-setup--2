@@ -390,6 +390,24 @@ export function Profile() {
                   {copySuccess ? <><Check size={18} /> Copied!</> : <><Copy size={18} /> Copy Link</>}
                 </button>
               </div>
+
+              {/* Festive Offer Promotion Callout */}
+              <div className="mt-4 pt-3.5 border-t border-green-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-50/80 p-3.5 rounded-xl border border-amber-200">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🪔</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-950">Dussehra/Durga Pooja And Diwali/Deepavali Materials</p>
+                    <p className="text-[11px] text-amber-800">Ready-made promotional WhatsApp messages & free gift banners to boost your earnings!</p>
+                  </div>
+                </div>
+                <RouterLink
+                  to="/affiliate"
+                  className="shrink-0 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition shadow-sm flex items-center gap-1"
+                >
+                  <span>Get Materials</span>
+                  <ExternalLink size={12} />
+                </RouterLink>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center py-4">
