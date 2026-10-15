@@ -1247,11 +1247,10 @@ export const useStore = create<StoreState>()(
               });
 
               // Keep cloud in sync with the user's authoritative local cart
+              // Keep cloud in sync with the user's authoritative local cart
               if (hasLocalCart) {
                 get().syncCartWithCloud();
               }
-              // Fetch feedbacks for all logged in users
-              get().fetchFeedbacks();
 
               // If admin, load additional admin data
               if (role === 'admin') {
@@ -1260,8 +1259,10 @@ export const useStore = create<StoreState>()(
             }
           }
 
-          // 2. Fetch Products & Combos
-          const { data: productsData } = await supabase.from('products').select('*');
+          // 2. Fetch Products & Combos with specific columns
+          const { data: productsData } = await supabase
+            .from('products')
+            .select('id, name, description, category, image, variants, in_stock, rating, reviews, best_seller, is_combo, combo_products');
           if (productsData) {
             const products = productsData.filter(p => !p.is_combo).map(p => ({
               id: p.id,
@@ -1292,7 +1293,9 @@ export const useStore = create<StoreState>()(
           }
 
           // 3. Fetch Coupons
-          const { data: couponsData } = await supabase.from('coupons').select('*');
+          const { data: couponsData } = await supabase
+            .from('coupons')
+            .select('code, discount, type, min_order, active');
           if (couponsData) {
             set({
               coupons: couponsData.map(c => ({
@@ -1306,7 +1309,11 @@ export const useStore = create<StoreState>()(
           }
 
           // 4. Fetch Settings
-          const { data: settingsData } = await supabase.from('store_settings').select('*').eq('id', 1).single();
+          const { data: settingsData } = await supabase
+            .from('store_settings')
+            .select('upi_id, business_address, enable_cod, enable_bank_transfer')
+            .eq('id', 1)
+            .single();
           if (settingsData) {
             set({
               settings: {
@@ -1349,7 +1356,12 @@ export const useStore = create<StoreState>()(
               });
             }
           } else if (get().user) {
-            const { data: ordersData } = await supabase.from('orders').select('*').eq('user_id', get().user!.id);
+            const { data: ordersData } = await supabase
+              .from('orders')
+              .select('id, user_id, user_name, user_email, user_phone, items, total, discount, final_amount, coupon_code, affiliate_code, address, status, payment_status, payment_method, transaction_id, tracking_id, carrier, shipping_expense, created_at, updated_at')
+              .eq('user_id', get().user!.id)
+              .order('created_at', { ascending: false })
+              .limit(50);
             if (ordersData) {
               set({
                 orders: ordersData.map(o => ({

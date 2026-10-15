@@ -109,9 +109,10 @@ export function App() {
     const cleanupSettings = useStore.getState().initializeRealtimeSettings();
     const cleanupProducts = useStore.getState().initializeRealtimeProducts();
     const cleanupCoupons = useStore.getState().initializeRealtimeCoupons();
-    const cleanupOrders = useStore.getState().initializeRealtimeOrders();
-    const cleanupVisits = useStore.getState().initializeRealtimeVisits();
-    const cleanupFeedbacks = useStore.getState().subscribeToFeedbacks();
+    let cleanupOrders = () => { };
+    if (isAdmin || useStore.getState().user) {
+      cleanupOrders = useStore.getState().initializeRealtimeOrders();
+    }
     let cleanupUserSync = () => { };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session) => {
@@ -138,16 +139,20 @@ export function App() {
       }
     });
 
+    // Throttle foreground refetches so tab switching or screen unlocks don't re-download the database
+    let lastVisibilityRefetch = Date.now();
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Re-fetch data when app comes back to foreground (especially for mobile)
-        fetchInitialData(false);
+        const now = Date.now();
+        // Cooldown: Only re-fetch if at least 5 minutes have elapsed since last fetch
+        if (now - lastVisibilityRefetch > 5 * 60 * 1000) {
+          lastVisibilityRefetch = now;
+          fetchInitialData(false);
+        }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    // Also listen to window focus as a fallback
-    window.addEventListener('focus', handleVisibilityChange);
 
     // Track affiliate referral code (supports both standard and HashRouter URLs)
     let refCode = new URLSearchParams(window.location.search).get('ref');
@@ -177,11 +182,8 @@ export function App() {
       cleanupProducts();
       cleanupCoupons();
       cleanupOrders();
-      cleanupVisits();
-      if (cleanupFeedbacks) cleanupFeedbacks();
       cleanupUserSync();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
     };
   }, [fetchInitialData]);
 
