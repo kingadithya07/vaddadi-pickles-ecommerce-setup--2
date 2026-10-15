@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck, Tag, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '@/store';
 import { Order, Address, UserAddress } from '@/types';
@@ -58,6 +58,7 @@ export function Checkout() {
   const [adminAdditionalWeight, setAdminAdditionalWeight] = useState<number>(0);
   const [selectedFreeGifts, setSelectedFreeGifts] = useState<SelectedFreeGift[]>([]);
   const [showMobileOrderSummary, setShowMobileOrderSummary] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const cartWeightGrams = useMemo(() => {
     return cart.reduce((totalGrams, item) => {
@@ -278,13 +279,15 @@ export function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
+    if (isPlacingOrder) return;
     if (!user) return toast.error('You must be logged in to place an order.');
+    const cleanTxnId = transactionId.trim();
     if (paymentMethod !== 'cod') {
-      if (!transactionId) {
+      if (!cleanTxnId) {
         toast.error('Please enter transaction ID');
         return;
       }
-      if (!/^[A-Za-z0-9]{12,22}$/.test(transactionId)) {
+      if (!/^[A-Za-z0-9]{12,22}$/.test(cleanTxnId)) {
         toast.error('Transaction ID (UTR) must be between 12 and 22 characters');
         return;
       }
@@ -450,11 +453,12 @@ export function Checkout() {
       status: 'payment_pending',
       paymentStatus: 'awaiting_approval',
       paymentMethod,
-      transactionId: paymentMethod === 'cod' ? 'COD' : transactionId,
+      transactionId: paymentMethod === 'cod' ? `COD-${orderId}` : cleanTxnId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
+    setIsPlacingOrder(true);
     try {
       await createOrder(order);
       // Fire and forget Telegram notification
@@ -462,8 +466,15 @@ export function Checkout() {
       clearCart();
       navigate('/order-success', { state: { orderId: order.id } });
     } catch (error: any) {
-      toast.error(`Failed to place order. Error: ${error?.message || JSON.stringify(error)}`);
-      console.error(error);
+      console.error('Order creation error:', error);
+      const errMsg = error?.message || error?.details || JSON.stringify(error);
+      if (errMsg.includes('idx_orders_unique_transaction_id') || (errMsg.includes('duplicate key') && errMsg.includes('transaction_id'))) {
+        toast.error('This Transaction ID / UTR has already been used for an order. Please verify and enter the correct reference number.', { duration: 6000 });
+      } else {
+        toast.error(`Failed to place order. Error: ${error?.message || JSON.stringify(error)}`);
+      }
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -1698,13 +1709,20 @@ export function Checkout() {
 
             <button
               onClick={handlePlaceOrder}
-              disabled={(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
-              className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base shadow-sm transition ${(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
+              disabled={isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
+              className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base shadow-sm transition ${isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-green-600 text-white hover:bg-green-700 active:scale-[0.99] shadow-green-600/30'
                 }`}
             >
-              {paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'}
+              {isPlacingOrder ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="animate-spin" size={18} />
+                  <span>Placing Order...</span>
+                </span>
+              ) : (
+                paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'
+              )}
             </button>
 
             {paymentMethod !== 'cod' && !transactionId && (
@@ -1753,15 +1771,24 @@ export function Checkout() {
             <button
               type="button"
               onClick={handlePlaceOrder}
-              disabled={(paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
+              disabled={isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
               className={`flex-1 max-w-[210px] py-3 px-4 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-1.5 ${
-                (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
+                isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                   : 'bg-green-600 text-white hover:bg-green-700 active:scale-98 shadow-green-600/30'
               }`}
             >
-              <span>{paymentMethod === 'cod' ? 'Place COD Order' : 'Place Order'}</span>
-              <ArrowRight size={16} />
+              {isPlacingOrder ? (
+                <>
+                  <Loader2 className="animate-spin" size={16} />
+                  <span>Placing...</span>
+                </>
+              ) : (
+                <>
+                  <span>{paymentMethod === 'cod' ? 'Place COD Order' : 'Place Order'}</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </div>
 

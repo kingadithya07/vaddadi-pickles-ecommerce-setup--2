@@ -324,6 +324,12 @@ export const useStore = create<StoreState>()(
       },
 
       createOrder: async (order) => {
+        let txnId: string | null = order.transactionId?.trim() || null;
+        if (order.paymentMethod === 'cod') {
+          // COD orders must have a unique reference so they don't violate idx_orders_unique_transaction_id
+          txnId = (!txnId || txnId === 'COD') ? `COD-${order.id}` : txnId;
+        }
+
         const { error } = await supabase.from('orders').insert({
           id: order.id,
           user_id: order.userId,
@@ -340,7 +346,7 @@ export const useStore = create<StoreState>()(
           status: order.status,
           payment_status: order.paymentStatus,
           payment_method: order.paymentMethod,
-          transaction_id: order.transactionId,
+          transaction_id: txnId,
           tracking_id: order.trackingId,
           carrier: order.carrier,
         });
@@ -351,7 +357,7 @@ export const useStore = create<StoreState>()(
         }
         
         // Only set locally if insert succeeded
-        set({ orders: [...get().orders, order] });
+        set({ orders: [...get().orders, { ...order, transactionId: txnId || undefined }] });
       },
 
       updateOrderStatus: async (orderId, status) => {
