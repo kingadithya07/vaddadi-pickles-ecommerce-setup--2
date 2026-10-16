@@ -139,6 +139,8 @@ interface StoreState {
   clearAbandonedCart: (profileId: string) => Promise<boolean>;
 }
 
+let activeInitialDataPromise: Promise<void> | null = null;
+
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
@@ -1209,8 +1211,13 @@ export const useStore = create<StoreState>()(
       },
 
       fetchInitialData: async (showLoading = true) => {
+        if (activeInitialDataPromise) {
+          return activeInitialDataPromise;
+        }
         if (showLoading) set({ isLoading: true });
-        try {
+
+        activeInitialDataPromise = (async () => {
+          try {
           // 1. Fetch user profile first to determine role
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
@@ -1394,9 +1401,13 @@ export const useStore = create<StoreState>()(
         } catch (err) {
           console.error('Error fetching initial data:', err);
         } finally {
-          set({ isLoading: false });
+          activeInitialDataPromise = null;
+          if (showLoading) set({ isLoading: false });
         }
-      },
+      })();
+
+      return activeInitialDataPromise;
+    },
 
       syncCartWithCloud: async () => {
         const user = get().user;

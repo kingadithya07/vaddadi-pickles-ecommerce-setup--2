@@ -92,6 +92,11 @@ export function Home() {
                 <img
                   src="/logo.png"
                   alt="Vaddadi Pickles"
+                  width="320"
+                  height="320"
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="async"
                   className="w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 rounded-full object-cover border-4 sm:border-8 border-yellow-400 shadow-2xl"
                 />
                 <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 text-3xl sm:text-4xl md:text-5xl animate-bounce">🥭</div>

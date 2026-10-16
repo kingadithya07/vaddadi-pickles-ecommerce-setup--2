@@ -124,8 +124,6 @@ export function App() {
       cleanupUserSync();
       if (event !== 'INITIAL_SESSION') {
         fetchInitialData(false); // Re-fetch all data without showing global loading spinner
-      } else {
-        fetchInitialData(true);
       }
       if (session?.user) {
         cleanupUserSync = useStore.getState().initializeRealtimeUserSync();
