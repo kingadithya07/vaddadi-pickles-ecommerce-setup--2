@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Sparkles, Gift, ArrowRight, CheckCircle2, ChevronRight } from 'lucide-react';
+import { X, Sparkles, Gift, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { FESTIVE_TIERS_CONFIG, CURATED_FESTIVE_GIFTS } from '@/data/festiveOffer';
 
 interface FestiveWelcomeModalProps {

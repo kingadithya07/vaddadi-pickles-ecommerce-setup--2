@@ -7,13 +7,11 @@ import toast from 'react-hot-toast';
 interface AffiliateFestiveMaterialsProps {
   referralCode: string;
   commissionRate?: number;
-  compact?: boolean;
 }
 
 export function AffiliateFestiveMaterials({
   referralCode,
   commissionRate = 10,
-  compact = false,
 }: AffiliateFestiveMaterialsProps) {
   const [activeTab, setActiveTab] = useState<'whatsapp' | 'social' | 'personal'>('whatsapp');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

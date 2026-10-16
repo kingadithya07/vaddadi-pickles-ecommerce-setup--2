@@ -511,12 +511,12 @@ export const useStore = create<StoreState>()(
           if (isReferralDiscountValid()) {
             return {
               success: true,
-              message: `🤝 Partner Referral Code ${trimmedCode} applied! 0.5% referral discount unlocked (Eligible till 21st October). You can also apply a normal coupon!`,
+              message: `🤝 Partner Referral Code ${trimmedCode} applied! ${REFERRAL_DISCOUNT_PERCENT}% referral discount unlocked (Eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL}). You can also apply a normal coupon!`,
             };
           } else {
             return {
               success: true,
-              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: 0.5% referral discount was eligible till 21st October only). You can still apply a normal coupon!`,
+              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: ${REFERRAL_DISCOUNT_PERCENT}% referral discount was eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL} only). You can still apply a normal coupon!`,
             };
           }
         }
@@ -555,12 +555,12 @@ export const useStore = create<StoreState>()(
           if (isReferralDiscountValid()) {
             return {
               success: true,
-              message: `🤝 Partner Referral Code ${trimmedCode} applied! 0.5% referral discount unlocked (Eligible till 21st October). You can also apply a normal coupon!`,
+              message: `🤝 Partner Referral Code ${trimmedCode} applied! ${REFERRAL_DISCOUNT_PERCENT}% referral discount unlocked (Eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL}). You can also apply a normal coupon!`,
             };
           } else {
             return {
               success: true,
-              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: 0.5% referral discount was eligible till 21st October only). You can still apply a normal coupon!`,
+              message: `🤝 Partner Referral Code ${trimmedCode} linked. (Note: ${REFERRAL_DISCOUNT_PERCENT}% referral discount was eligible till ${REFERRAL_DISCOUNT_EXPIRY_LABEL} only). You can still apply a normal coupon!`,
             };
           }
         }
