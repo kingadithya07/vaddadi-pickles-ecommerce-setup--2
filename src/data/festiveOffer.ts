@@ -1,3 +1,5 @@
+import { getOptimizedImageUrl } from '../utils/image';
+
 export interface FestiveGiftItem {
   id: string;
   name: string;
@@ -87,7 +89,7 @@ export const FESTIVE_TIERS_CONFIG: FestiveTierConfig[] = [
   }
 ];
 
-export const CURATED_FESTIVE_GIFTS: FestiveGiftItem[] = [
+const RAW_CURATED_FESTIVE_GIFTS: FestiveGiftItem[] = [
   {
     id: 'prod_1774337565319',
     name: 'Gongura Pickle',
@@ -239,6 +241,11 @@ export const CURATED_FESTIVE_GIFTS: FestiveGiftItem[] = [
     description: 'Unique crispy fryums crafted from wholesome puffed paddy; delicate, airy, and deeply nostalgic.',
   }
 ];
+
+export const CURATED_FESTIVE_GIFTS: FestiveGiftItem[] = RAW_CURATED_FESTIVE_GIFTS.map((item) => ({
+  ...item,
+  image: getOptimizedImageUrl(item.image),
+}));
 
 /**
  * Calculates the exact weight for the item given the cart subtotal.

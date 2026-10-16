@@ -4,6 +4,7 @@ import { Product, ProductVariant, CartItem, User, Order, Coupon, ComboProduct, D
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { isReferralDiscountValid, REFERRAL_DISCOUNT_PERCENT, REFERRAL_DISCOUNT_EXPIRY_LABEL } from '../data/festiveOffer';
+import { getOptimizedImageUrl } from '../utils';
 
 // Sample Products with variants and stock
 const sampleProducts: Product[] = [];
@@ -1269,7 +1270,7 @@ export const useStore = create<StoreState>()(
               name: p.name,
               description: p.description,
               category: p.category,
-              image: (p.image || '').split('#nogarlic')[0],
+              image: getOptimizedImageUrl((p.image || '').split('#nogarlic')[0]),
               hasNoGarlicOption: (p.image || '').includes('#nogarlic'),
               variants: p.variants,
               inStock: p.in_stock,
@@ -1281,7 +1282,7 @@ export const useStore = create<StoreState>()(
               id: p.id,
               name: p.name,
               description: p.description,
-              image: p.image,
+              image: getOptimizedImageUrl(p.image),
               products: p.combo_products,
               originalPrice: p.variants?.[0]?.mrp || 0,
               comboPrice: p.variants?.[0]?.price || 0,
@@ -1538,7 +1539,7 @@ export const useStore = create<StoreState>()(
                     id: newRecord.id,
                     name: newRecord.name,
                     description: newRecord.description,
-                    image: newRecord.image,
+                    image: getOptimizedImageUrl(newRecord.image),
                     products: newRecord.combo_products,
                     originalPrice: newRecord.variants?.[0]?.mrp || 0,
                     comboPrice: newRecord.variants?.[0]?.price || 0,
@@ -1556,7 +1557,7 @@ export const useStore = create<StoreState>()(
                     name: newRecord.name,
                     description: newRecord.description,
                     category: newRecord.category,
-                    image: newRecord.image,
+                    image: getOptimizedImageUrl(newRecord.image),
                     variants: newRecord.variants,
                     inStock: newRecord.in_stock,
                     rating: Number(newRecord.rating),

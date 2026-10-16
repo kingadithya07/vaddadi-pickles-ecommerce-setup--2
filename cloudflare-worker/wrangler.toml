@@ -1,0 +1,12 @@
+name = "vaddadipickles-media"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Automatically provides a free *.workers.dev subdomain upon deployment:
+# e.g., https://vaddadi-pickles-image-cdn.<your-subdomain>.workers.dev
+workers_dev = true
+
+# Optional: When ready to bind to your custom domain, uncomment lines below:
+# routes = [
+#   { pattern = "images.vaddadipickles.com/*", zone_name = "vaddadipickles.com" }
+# ]

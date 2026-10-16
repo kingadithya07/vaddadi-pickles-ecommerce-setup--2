@@ -6,3 +6,4 @@ export * from './pincode';
 export * from './sanitize';
 export * from './tracking';
 export * from './versionCheck';
+export * from './image';
