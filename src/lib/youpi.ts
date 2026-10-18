@@ -39,8 +39,8 @@ export interface YoupiSuccessPayload {
   signature?: string;
 }
 
-const DEFAULT_YOUPI_URL = (import.meta.env.VITE_YOUPI_URL || '').replace(/\/+$/, '');
-const DEFAULT_YOUPI_KEY = import.meta.env.VITE_YOUPI_PUBLIC_KEY || '';
+const DEFAULT_YOUPI_URL = (import.meta.env.VITE_YOUPI_URL || 'https://vaddadipickles-pay.onrender.com').replace(/\/+$/, '');
+const DEFAULT_YOUPI_KEY = import.meta.env.VITE_YOUPI_PUBLIC_KEY || '00000000-0000-0000-0000-000000000001';
 
 /**
  * Checks whether YouPI Gateway environment variables or settings are available.

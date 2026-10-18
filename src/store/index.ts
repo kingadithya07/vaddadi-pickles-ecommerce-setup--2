@@ -26,8 +26,8 @@ const defaultSettings: StoreSettings = {
   enableCOD: false,
   enableBankTransfer: false,
   enableYoupi: true,
-  youpiApiUrl: import.meta.env.VITE_YOUPI_URL || '',
-  youpiMerchantKey: import.meta.env.VITE_YOUPI_PUBLIC_KEY || '',
+  youpiApiUrl: import.meta.env.VITE_YOUPI_URL || 'https://vaddadipickles-pay.onrender.com',
+  youpiMerchantKey: import.meta.env.VITE_YOUPI_PUBLIC_KEY || '00000000-0000-0000-0000-000000000001',
 };
 
 const sampleCoupons: Coupon[] = [];
