@@ -1,0 +1,32 @@
+name: Render Keep Alive & Warmup
+
+on:
+  schedule:
+    # Runs every 10 minutes (cron format: minute hour day month day-of-week)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    name: Ping Render Services
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping YouPI Payment Gateway on Render
+        run: |
+          echo "Pinging YouPI Payment Gateway (vaddadipickles-pay.onrender.com)..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 "https://vaddadipickles-pay.onrender.com")
+          echo "YouPI Gateway HTTP Status: $HTTP_STATUS"
+
+      - name: Ping YouPI Client Script
+        run: |
+          echo "Pre-warming youpi.js bundle..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 "https://vaddadipickles-pay.onrender.com/youpi.js")
+          echo "youpi.js HTTP Status: $HTTP_STATUS"
+
+      - name: Ping Main Web App on Render
+        run: |
+          echo "Pinging Main App (vaddadi-pickles.onrender.com)..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 "https://vaddadi-pickles.onrender.com")
+          echo "Main App HTTP Status: $HTTP_STATUS"

@@ -8,7 +8,7 @@ import { statesAndCities } from '@/data/locations';
 
 import { useCartTotals } from '@/hooks';
 import { lookupPincode, PostOfficeBranch } from '@/utils';
-import { sendTelegramNotification, supabase, launchYoupiPayment, isYoupiConfigured } from '@/lib';
+import { sendTelegramNotification, supabase, launchYoupiPayment, isYoupiConfigured, loadYoupiScript } from '@/lib';
 import { formatPhoneNumber } from '@/utils';
 import toast from 'react-hot-toast';
 import { FestiveGiftSelector, SelectedFreeGift } from '@/components';
@@ -95,6 +95,13 @@ export function Checkout() {
       timeoutsRef.current.forEach(clearTimeout);
     };
   }, []);
+
+  // Pre-warm payment gateway on mount so Render wakes up while customer enters address details
+  useEffect(() => {
+    if (isYoupiAvailable) {
+      loadYoupiScript(settings.youpiApiUrl).catch(() => {});
+    }
+  }, [isYoupiAvailable, settings.youpiApiUrl]);
 
   // Address selection state
   const userAddresses = user?.addresses || [];
