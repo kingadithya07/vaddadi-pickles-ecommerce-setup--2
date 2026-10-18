@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck, Tag, Loader2 } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, MapPin, User, Phone, Mail, QrCode, ExternalLink, Copy, Check, Wallet, HelpCircle, X, Edit2, ChevronDown, ArrowRight, ShieldCheck, Tag, Loader2, Zap } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '@/store';
 import { Order, Address, UserAddress } from '@/types';
@@ -8,10 +8,9 @@ import { statesAndCities } from '@/data/locations';
 
 import { useCartTotals } from '@/hooks';
 import { lookupPincode, PostOfficeBranch } from '@/utils';
-import { sendTelegramNotification } from '@/lib';
+import { sendTelegramNotification, supabase, launchYoupiPayment, isYoupiConfigured } from '@/lib';
 import { formatPhoneNumber } from '@/utils';
 import toast from 'react-hot-toast';
-import { supabase } from '@/lib';
 import { FestiveGiftSelector, SelectedFreeGift } from '@/components';
 import { getFestiveTierStatus } from '@/data/festiveOffer';
 
@@ -59,6 +58,9 @@ export function Checkout() {
   const [selectedFreeGifts, setSelectedFreeGifts] = useState<SelectedFreeGift[]>([]);
   const [showMobileOrderSummary, setShowMobileOrderSummary] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [useManualUtr, setUseManualUtr] = useState(false);
+  const isYoupiAvailable = isYoupiConfigured(settings.youpiApiUrl, settings.youpiMerchantKey);
+  const isAutoYoupi = paymentMethod === 'upi' && isYoupiAvailable && !useManualUtr;
 
   const cartWeightGrams = useMemo(() => {
     return cart.reduce((totalGrams, item) => {
@@ -282,7 +284,7 @@ export function Checkout() {
     if (isPlacingOrder) return;
     if (!user) return toast.error('You must be logged in to place an order.');
     const cleanTxnId = transactionId.trim();
-    if (paymentMethod !== 'cod') {
+    if (!isAutoYoupi && paymentMethod !== 'cod') {
       if (!cleanTxnId) {
         toast.error('Please enter transaction ID');
         return;
@@ -434,6 +436,42 @@ export function Checkout() {
 
     const finalOrderItems = [...cart, ...freeGiftCartItems];
 
+    let finalTxnId = paymentMethod === 'cod' ? `COD-${orderId}` : cleanTxnId;
+    let orderStatus: Order['status'] = 'payment_pending';
+    let paymentStatusState: Order['paymentStatus'] = 'awaiting_approval';
+    let effectivePaymentMethod = paymentMethod;
+
+    if (isAutoYoupi) {
+      setIsPlacingOrder(true);
+      try {
+        toast.loading('Opening Instant UPI Gateway...', { id: 'youpi-toast' });
+        const youpiRes = await launchYoupiPayment({
+          orderId,
+          amount: Number(paymentAmount),
+          customerName: finalName,
+          customerPhone: finalPhone,
+          customerEmail: user.email,
+          gatewayUrl: settings.youpiApiUrl,
+          merchantKey: settings.youpiMerchantKey,
+        });
+        toast.dismiss('youpi-toast');
+        toast.success('Payment verified successfully!');
+        finalTxnId = youpiRes.utr || youpiRes.transactionId || `YOUPI-${orderId}`;
+        orderStatus = 'processing';
+        paymentStatusState = 'approved';
+        effectivePaymentMethod = 'youpi_upi';
+      } catch (err: any) {
+        toast.dismiss('youpi-toast');
+        setIsPlacingOrder(false);
+        if (err?.message === 'PAYMENT_CANCELLED') {
+          toast('Payment was cancelled. You can retry whenever you are ready.', { icon: 'ℹ️' });
+        } else {
+          toast.error(`Payment not completed: ${err?.message || 'Verification timed out'}`);
+        }
+        return;
+      }
+    }
+
     const order: Order = {
       id: orderId,
       userId: user.id,
@@ -450,10 +488,10 @@ export function Checkout() {
       address: finalAddress,
       adminAdditionalAmount: isAdmin ? (Number(adminAdditionalAmount) || 0) : 0,
       adminAdditionalWeight: isAdmin ? (Number(adminAdditionalWeight) || 0) : 0,
-      status: 'payment_pending',
-      paymentStatus: 'awaiting_approval',
-      paymentMethod,
-      transactionId: paymentMethod === 'cod' ? `COD-${orderId}` : cleanTxnId,
+      status: orderStatus,
+      paymentStatus: paymentStatusState,
+      paymentMethod: effectivePaymentMethod,
+      transactionId: finalTxnId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -1076,7 +1114,13 @@ export function Checkout() {
             </h2>
             <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
               {[
-                { id: 'upi', label: 'UPI Payment', icon: Smartphone, desc: 'GPay / PhonePe / Paytm / Any UPI App', recommended: true },
+                { 
+                  id: 'upi', 
+                  label: isYoupiAvailable && !useManualUtr ? 'Instant UPI (Auto-Verified)' : 'UPI Payment', 
+                  icon: isYoupiAvailable && !useManualUtr ? Zap : Smartphone, 
+                  desc: isYoupiAvailable && !useManualUtr ? '⚡ 1-Tap GPay / PhonePe / Paytm / Dynamic QR • Auto-Confirmed' : 'GPay / PhonePe / Paytm / Any UPI App', 
+                  recommended: true 
+                },
                 ...(settings.enableBankTransfer ? [{ id: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'NEFT / IMPS / RTGS' }] : []),
                 ...(settings.enableCOD ? [{ id: 'cod', label: 'Cash on Delivery', icon: CreditCard, desc: 'Pay when you receive' }] : []),
               ].map((method) => (
@@ -1114,12 +1158,82 @@ export function Checkout() {
             {/* UPI Payment Section */}
             {paymentMethod === 'upi' && (
               <div className="mt-5 sm:mt-6 space-y-4">
-                {/* Amount Display - Shows exact amount that will be in QR code */}
-                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-xl sm:rounded-2xl text-center shadow-xs">
-                  <p className="text-xs font-semibold opacity-90 uppercase tracking-wider">Amount to Pay</p>
-                  <p className="text-3xl font-extrabold tracking-tight">₹{displayAmount}</p>
-                  <p className="text-xs opacity-85 mt-0.5">This exact amount will appear in your payment app</p>
-                </div>
+                {isAutoYoupi ? (
+                  /* Instant Auto-Verified UPI Section (Powered by YouPI) */
+                  <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-green-600 to-emerald-500 text-white flex items-center justify-center shadow-md shrink-0">
+                        <Zap size={24} className="animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black text-green-950 text-base sm:text-lg">
+                            Instant UPI Auto-Verification
+                          </h3>
+                          <span className="text-[10px] bg-green-200 text-green-900 font-extrabold px-2 py-0.5 rounded-full">
+                            ZERO FEES
+                          </span>
+                        </div>
+                        <p className="text-xs text-green-700 font-medium">
+                          No manual reference number typing needed
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Amount Display */}
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-xl sm:rounded-2xl text-center shadow-xs">
+                      <p className="text-xs font-semibold opacity-90 uppercase tracking-wider">Amount to Pay</p>
+                      <p className="text-3xl font-extrabold tracking-tight">₹{displayAmount}</p>
+                      <p className="text-xs opacity-85 mt-0.5">Exact amount with direct instant bank settlement</p>
+                    </div>
+
+                    <div className="bg-white/95 rounded-xl p-4 border border-green-200 space-y-2.5 text-xs sm:text-sm text-gray-700 shadow-2xs">
+                      <div className="flex items-start gap-2.5">
+                        <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                        <span><strong>1-Tap Payments:</strong> Switches automatically to Google Pay, PhonePe, Paytm, or CRED on mobile.</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                        <span><strong>Dynamic Vector QR:</strong> Crisp high-definition QR with built-in payment timer for desktop scanning.</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">✓</span>
+                        <span><strong>Automated Verification:</strong> Verified directly via banking alerts—no manual 12-digit UTR needed!</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 border-t border-green-200/60">
+                      <p className="text-[11px] text-green-800 font-medium">
+                        Click "Pay via Instant UPI" below to open the checkout drawer/modal.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setUseManualUtr(true)}
+                        className="text-xs text-green-800 hover:text-green-950 font-bold underline whitespace-nowrap"
+                      >
+                        Prefer manual QR? Enter UTR manually →
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {isYoupiAvailable && (
+                      <div className="flex justify-end mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setUseManualUtr(false)}
+                          className="text-xs text-green-700 hover:text-green-900 font-bold underline flex items-center gap-1"
+                        >
+                          <Zap size={13} /> Switch back to Instant Auto-Verified UPI
+                        </button>
+                      </div>
+                    )}
+                    {/* Amount Display - Shows exact amount that will be in QR code */}
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-xl sm:rounded-2xl text-center shadow-xs">
+                      <p className="text-xs font-semibold opacity-90 uppercase tracking-wider">Amount to Pay</p>
+                      <p className="text-3xl font-extrabold tracking-tight">₹{displayAmount}</p>
+                      <p className="text-xs opacity-85 mt-0.5">This exact amount will appear in your payment app</p>
+                    </div>
 
                 {/* Mobile: Show App Payment Buttons */}
                 {isMobile ? (
@@ -1302,7 +1416,9 @@ export function Checkout() {
                   <p className="text-[11px] text-amber-700 flex items-center gap-1">
                     <span>🛡️</span> Your order will be confirmed upon payment verification.
                   </p>
-                </div>
+                  </div>
+                </>
+              )}
               </div>
             )}
 
@@ -1709,8 +1825,8 @@ export function Checkout() {
 
             <button
               onClick={handlePlaceOrder}
-              disabled={isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
-              className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base shadow-sm transition ${isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
+              disabled={isPlacingOrder || (!isAutoYoupi && paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
+              className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base shadow-sm transition ${isPlacingOrder || (!isAutoYoupi && paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-green-600 text-white hover:bg-green-700 active:scale-[0.99] shadow-green-600/30'
                 }`}
@@ -1718,14 +1834,18 @@ export function Checkout() {
               {isPlacingOrder ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="animate-spin" size={18} />
-                  <span>Placing Order...</span>
+                  <span>{isAutoYoupi ? 'Opening Gateway...' : 'Placing Order...'}</span>
                 </span>
+              ) : isAutoYoupi ? (
+                `⚡ Pay ₹${displayAmount} via Instant UPI`
+              ) : paymentMethod === 'cod' ? (
+                'Place Order (COD)'
               ) : (
-                paymentMethod === 'cod' ? 'Place Order (COD)' : 'Place Order'
+                'Place Order'
               )}
             </button>
 
-            {paymentMethod !== 'cod' && !transactionId && (
+            {!isAutoYoupi && paymentMethod !== 'cod' && !transactionId && (
               <p className="text-center text-xs text-amber-700 font-semibold mt-2">
                 Please complete payment and enter transaction ID / UTR
               </p>
@@ -1771,9 +1891,9 @@ export function Checkout() {
             <button
               type="button"
               onClick={handlePlaceOrder}
-              disabled={isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
+              disabled={isPlacingOrder || (!isAutoYoupi && paymentMethod !== 'cod' && !transactionId) || !agreedToTerms}
               className={`flex-1 max-w-[210px] py-3 px-4 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center gap-1.5 ${
-                isPlacingOrder || (paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
+                isPlacingOrder || (!isAutoYoupi && paymentMethod !== 'cod' && !transactionId) || !agreedToTerms
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                   : 'bg-green-600 text-white hover:bg-green-700 active:scale-98 shadow-green-600/30'
               }`}
@@ -1781,7 +1901,12 @@ export function Checkout() {
               {isPlacingOrder ? (
                 <>
                   <Loader2 className="animate-spin" size={16} />
-                  <span>Placing...</span>
+                  <span>{isAutoYoupi ? 'Opening...' : 'Placing...'}</span>
+                </>
+              ) : isAutoYoupi ? (
+                <>
+                  <span>⚡ Pay ₹{displayAmount}</span>
+                  <ArrowRight size={16} />
                 </>
               ) : (
                 <>
@@ -1792,7 +1917,7 @@ export function Checkout() {
             </button>
           </div>
 
-          {paymentMethod !== 'cod' && !transactionId && (
+          {!isAutoYoupi && paymentMethod !== 'cod' && !transactionId && (
             <p className="text-[10px] text-center text-amber-700 font-semibold mt-1.5">
               ⚠️ Enter 12-digit UPI REF/UTR number above to place order
             </p>

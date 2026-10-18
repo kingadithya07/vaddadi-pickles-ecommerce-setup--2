@@ -153,6 +153,9 @@ export interface StoreSettings {
   };
   enableCOD: boolean;
   enableBankTransfer: boolean;
+  enableYoupi?: boolean;
+  youpiApiUrl?: string;
+  youpiMerchantKey?: string;
 }
 
 export interface FeedbackMessage {

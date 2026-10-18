@@ -25,6 +25,9 @@ const defaultSettings: StoreSettings = {
   },
   enableCOD: false,
   enableBankTransfer: false,
+  enableYoupi: true,
+  youpiApiUrl: import.meta.env.VITE_YOUPI_URL || '',
+  youpiMerchantKey: import.meta.env.VITE_YOUPI_PUBLIC_KEY || '',
 };
 
 const sampleCoupons: Coupon[] = [];
