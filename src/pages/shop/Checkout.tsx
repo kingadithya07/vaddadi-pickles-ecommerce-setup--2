@@ -58,7 +58,7 @@ export function Checkout() {
   const [selectedFreeGifts, setSelectedFreeGifts] = useState<SelectedFreeGift[]>([]);
   const [showMobileOrderSummary, setShowMobileOrderSummary] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [useManualUtr, setUseManualUtr] = useState(false);
+  const [useManualUtr, setUseManualUtr] = useState(true);
   const isYoupiAvailable = isYoupiConfigured(settings.youpiApiUrl, settings.youpiMerchantKey);
   const isAutoYoupi = paymentMethod === 'upi' && isYoupiAvailable && !useManualUtr;
 
@@ -173,7 +173,7 @@ export function Checkout() {
   useEffect(() => {
     const checkMobile = () => {
       const userAgent = navigator.userAgent || navigator.vendor;
-      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase()) || window.innerWidth <= 768;
       setIsMobile(isMobileDevice);
       setShowQR(!isMobileDevice); // Show QR on desktop, hide on mobile by default
     };
@@ -1218,7 +1218,7 @@ export function Checkout() {
                         onClick={() => setUseManualUtr(true)}
                         className="text-xs text-green-800 hover:text-green-950 font-bold underline whitespace-nowrap"
                       >
-                        Prefer manual QR? Enter UTR manually →
+                        ← Back to Direct 1-Tap UPI (GPay / PhonePe / Paytm)
                       </button>
                     </div>
                   </div>
@@ -1231,7 +1231,7 @@ export function Checkout() {
                           onClick={() => setUseManualUtr(false)}
                           className="text-xs text-green-700 hover:text-green-900 font-bold underline flex items-center gap-1"
                         >
-                          <Zap size={13} /> Switch back to Instant Auto-Verified UPI
+                          <Zap size={13} /> Try Instant UPI Gateway (Beta)
                         </button>
                       </div>
                     )}
