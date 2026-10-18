@@ -24,7 +24,8 @@ export function useCartTotals() {
     }
 
     const discount = couponDiscount + referralDiscount;
-    const shipping = subtotal >= 1000 ? 0 : 50;
+    // Delivery charges set to 0 for payment gateway testing (previously: subtotal >= 1000 ? 0 : 50)
+    const shipping = 0;
     const discountedSubtotal = Math.max(0, subtotal - discount);
     const totalRaw = discountedSubtotal + shipping;
     const total = Math.round(totalRaw * 100) / 100;

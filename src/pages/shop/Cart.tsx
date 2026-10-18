@@ -532,7 +532,7 @@ export function Cart() {
                 </span>
               </div>
 
-              {subtotal < 1000 && (
+              {shipping > 0 && subtotal < 1000 && (
                 <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs">
                   <p className="font-semibold flex items-center gap-1">
                     <span>🚚</span> Add ₹{(1000 - subtotal).toFixed(0)} more for FREE All-India Shipping!
